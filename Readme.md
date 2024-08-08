@@ -19,7 +19,7 @@ Parallel zur Entwicklung des rpi-virtuell Materialpool gibt es unterschiedlich z
 
 
 # 3. Dezentrale OER-Strategie
-Im Gespräch mit  Steffen  Rörtgen  Kristallisieren sich weitere Option für interoperable dezentrale Sammlungen von OER Metadaten über geeignete Austauschprotokolle wie Nostr oder ActivityPub, die eine zentrale Datensammlung OER wie bei EDU-Sharing oder Mundo obsolet machen könnte. Die Entwicklung dazu verfolgen wir im Ordner: Dezentrale OER Strategie
+Im Gespräch mit  Steffen  Rörtgen  kristallisieren sich weitere Optionen für interoperable dezentrale Sammlungen von OER Metadaten über geeignete Austauschprotokolle wie Nostr oder ActivityPub, die eine zentrale Datensammlung OER wie bei EDU-Sharing oder Mundo obsolet machen könnten. Die Entwicklung dazu verfolgen wir im Ordner: Dezentrale OER Strategie
 
 
 
