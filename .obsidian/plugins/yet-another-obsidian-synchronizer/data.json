@@ -1,8 +1,5 @@
 {
   "deviceName": "Joachims-PC",
-  "remoteRepo": "git@github.com:adapole/obsidian-yaos.git",
-  "basePath": "C:\\Users\\Joachim\\AppData\\Local\\Obsidian\\resources\\electron.asar\\renderer",
-  "branchName": "main",
   "syncImages": false,
   "syncAudio": false,
   "syncVideos": false,
