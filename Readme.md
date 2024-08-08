@@ -7,3 +7,6 @@ Schwerpunkte:
 - Gesprächsprotokolle rund um die **Vernetzungsoptionen und den Datenaustausch** mit dem Materialpool.
 - Entwicklung von **Qualitätskriterien** für die redaktionelle und maschinelle Erfassung und Verarbeitung neuer Materialien.
 - Allgemeine Überlegungen, die wir zunächst in der Matrix diskutieren können.
+
+ISSUE https://git.rpi-virtuell.de/Comenius-Institut/rpi-Orga/issues/5
+
