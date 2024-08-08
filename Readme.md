@@ -8,7 +8,7 @@ Schwerpunkte im Ordner "Materialpool Entwicklung"
 - Im Ordner Visionen versuchen wir immer wieder neu zu formulieren, wie unsere Nutzer den Materialpool von Morgen erleben könnten.
 
 
-# 2. Gespräche zur Entwicklung EDU-Sharing
+# 2. Gespräche zur Entwicklung von EDU-Sharing
 
 Parallel zur Entwicklung des rpi-virtuell Materialpool gibt es unterschiedlich zusammengesetzte Gesprächsrunden  EDU-Sharing/WLO. Notizen dazu finden sich im Ordner "Edu Sharing - WLO" 
 
