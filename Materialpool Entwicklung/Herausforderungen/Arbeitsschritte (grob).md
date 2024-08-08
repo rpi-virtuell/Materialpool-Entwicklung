@@ -1,0 +1,15 @@
+Weitere Operationalisierung und Aufbereitung in konkrete Tasks/Issues notewenig:
+1. Wie erschließen wir aktuelles Material? (Variante: regelmäßiger Treff aller Materialproduzierenden. Dabei Einpflegen des Materials und Diskussion über Kriterien und über Zugänglichkeit des Materials in diesem Prozess.)
+2. Vorbereitend zu Schritt 1 und parallel dazu: Entwicklung von Qualitätskriterien (Achtung: Unterscheiden zwischen Material insgesamt und OER! – Dabei wird auch Schema weiterentwickelt – wie unterscheiden wir Materialien? Medientypen, Unterrichtssequenzen, akademische Ressourcen etc.)
+3. Woran erkenne ich, dass dieses Qualitätskriterium erreicht worden ist? Dafür braucht es Qualitätserreichungs/Prüfkriterien (Entwicklung von Checklisten, an denen ich erkenne, ob diese Kriterien erfüllt sind.) Prüfung der KI-basierten Anwendung dieser Erreichungskriterien, sobald die Erreichungs-Liste u.E. ausreichend ausgearbeitet ist. Wenn es der KI damit nicht gelingt, unsere Qualitätsansprüche abzuprüfen, dann Erweiterung der Liste.
+4. Anwendung der Kriterien auf neu aufzunehmendes Material (im Sinne 'anheftens'), damit schon eine unmittelbare Auswirkung zu erkennen ist.
+5. Parallel: Entwicklung eines neuen Materialpools (als Teilinstanz des bisherigen), der dem neuen Schema genügt. Dieses Schema wird mit Weiterentwicklung der Qualitätskriterien erweitert. Dazugehörige Entwicklung des "Look & Feel" des Frontends, die sich Feedback aus der Nutzungsperspektive orientiert und an die Nutzungsbedürfnisse angepasst wird.
+6. Erweiterung der Such-Ausgabe – in zwei Bereichen: neue und alte Materialien. In diesem ersten Schritt auch notwendig: Entscheidung über ein Ranking bei der Ausgabe der Materialien. Nur neueste zuerst? Oder weiterhin – um so näher am Suchwort / an Überschrift die Schlagworte sind, um so höher wir gerankt?
+7. Dann in einem weiteren Schritt: KI-gestützte Suchmaske, die nur auf das neue Material (bzw. das Material, was dem neuen Schema genügt - das können auch Altmaterialien sein, die schon mit den neuen Metadaten verknüpft sind) angewendet wird.
+8. Wenn Qualitätskriterienliste bewährt (d.h. bei neu aufzunehmenden Materialien keine neuen Kriterien notwendig werden) – dann automatisierte Prüfung von Materialien – und KI gestützte Ergänzung der Metadaten von Materialien.
+9. Offene Frage: Wann wird altes Material in den neuen Pool aufgenommen? Vorschlag: Wenn das neue Schema auf ein Material übertragen ist und erste Qualitätsprüfungsroutinen über das Mat. gelaufen sind. Sobald neue Kriterien zugefügt werden oder aber eine neue automatisiert anwendbare Erkennungsliste vorliegt, dann wird das im neuen Bereich eingestellte Mat. neu geprüft und die Metadaten ergänzt.
+10. Einen Materialpool, wie er jetzt ist, wird evtl. nicht mehr gebraucht. Aber wo werden die Metadaten (die Anwendung des Schemas auf Materialien) nachgehalten.
+
+## Parallel zu vorhergehenden Schritten: 
+
+Entwicklung des "Look & Feel" eines an Nutzungsbebedarfen ordientiertes Unterstützungsangebotes für Religionsunterricht und religionspädagogischen Materialien, welches das Angebot des bisherigen Materialpools ablöst.
