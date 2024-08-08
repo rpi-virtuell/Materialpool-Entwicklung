@@ -98,7 +98,7 @@
             "state": {
               "type": "backlink",
               "state": {
-                "file": "Materialpool Entwicklung/Herausforderungen/Status Quo.md",
+                "file": "Readme.md",
                 "collapseAll": false,
                 "extraContext": false,
                 "sortOrder": "alphabetical",
@@ -115,7 +115,7 @@
             "state": {
               "type": "outgoing-link",
               "state": {
-                "file": "Materialpool Entwicklung/Herausforderungen/Status Quo.md",
+                "file": "Readme.md",
                 "linksCollapsed": false,
                 "unlinkedCollapsed": true
               }
@@ -138,7 +138,7 @@
             "state": {
               "type": "outline",
               "state": {
-                "file": "Materialpool Entwicklung/Herausforderungen/Status Quo.md"
+                "file": "Readme.md"
               }
             }
           }
@@ -157,7 +157,6 @@
       "daily-notes:Heutige Notiz öffnen": false,
       "templates:Vorlage einfügen": false,
       "command-palette:Befehlspalette öffnen": false,
-      "cicada-sync:CI-SYNC": false,
       "yet-another-obsidian-synchronizer:YAOS": false
     }
   },
