@@ -13,7 +13,7 @@ Schwerpunkte im Ordner "Materialpool Entwicklung"
 Parallel zur Entwicklung des rpi-virtuell Materialpool gibt es unterschiedlich zusammengesetzte Gesprächsrunden  EDU-Sharing/WLO. Notizen dazu finden sich im Ordner "Edu Sharing - WLO" 
 
 ### Fragestellungen: 
-- Wo lassen sich die Entwicklungen der beiden Systeme trotz aufeinander beziehen und Synergieeffekte nutzen.?
+- Wo lassen sich die Entwicklungen der beiden Systeme aufeinander beziehen und Synergieeffekte nutzen.?
 - Welche interoperablen Techniken und Schnittstellen müssen erstellt werden, um die gemeinsamen Ressourcen voll auszuschöpfen?
 - Welche Tools lassen sich vom jeweiligen Partner nutzen und in die eigene Entwicklung integrieren?
 
