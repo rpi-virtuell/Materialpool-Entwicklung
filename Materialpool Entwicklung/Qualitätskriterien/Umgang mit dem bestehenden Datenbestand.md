@@ -1,3 +1,6 @@
+
+## Datenbestand interoperable zugänglich machen
+
 Die Herausforderung liegt darin, die bestehenden Materialien (Materialverweise) einerseits qualitativ zu prüfen und andererseits durch interoperable Datenstrukturen für vielfällige Anwendungsszenarien und Abwendungsorte zugänglich zu machen:
 - Neue Materialpool Oberfläche
 - Datenimports durch EduSharing
@@ -7,6 +10,7 @@ Die Herausforderung liegt darin, die bestehenden Materialien (Materialverweise) 
 
 Differenzierungen: Unterstützersystem einerseits und Mat.pool als ein Baustein in diesem System andererseits / Matpool: Material zukünftig einerseits und Umgang mit Altbestand andererseits/ Im Mat.pool: Materialien öffentlich zugänglich einerseits und dezidiert OER andererseits
 
+## Umsetzungsideen
 
 Mit exemplarischen Materialien ließen sich folgende Prozedur durchlaufen: 
 
