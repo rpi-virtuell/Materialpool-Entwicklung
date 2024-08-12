@@ -5,7 +5,7 @@ Joachims Idee eines "[headless](https://open-data-germany.org/headless-web/)" Ma
 
 Ein headless Materialpool hat nicht mehr nur die "eine" Webseite sondern kann und ganz verschiedenen Applikationen und Kontexten intergriert werden.
 
-## Beispiel Web App
+## Beispiel Web Application
 
 Eine Web App oder Desktop-App , die Auf den Materialpool per **API** zugreift:
 + KI fragt dabei vom User konfigurierte Datenpools und Webdomains ab
