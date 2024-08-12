@@ -4,7 +4,7 @@ Bitte ergänzen, kritisieren, verbessern
 # Checkliste zur Qualitätseinschätzung von Lehrmaterialien
 
 ## Ziel dieser Checkliste
-Diese Checkliste unterstützt dabei, die Qualität von Lehrmaterialien (z. B. Arbeitsblätter, interaktive Lernobjekte, Arbeitsaufträge) hinsichtlich ihrer Gestaltung, didaktischen Wirksamkeit und pädagogischen Wertigkeit zu bewerten.
+Diese Checkliste unterstützt dabei, die Qualität von Lehrmaterialien (z. B. Arbeitsblätter, interaktive Lernobjekte, Arbeitsaufträge) hinsichtlich ihrer Gestaltung, didaktischen Wirksamkeit und pädagogischen Wertigkeit besser einschätzen zu können.
 
 ## Überprüfung der Lehrmaterialien
 
@@ -36,6 +36,7 @@ Diese Checkliste unterstützt dabei, die Qualität von Lehrmaterialien (z. B. Ar
 ### 6. Sprachliche, kulturelle und religiöse Sensibilität
 - [ ] **Sprachliche Klarheit:** Ist die Sprache einfach und klar, ohne unnötige Komplexität?
 - [ ] **Kulturelle Relevanz:** Werden kulturelle Unterschiede berücksichtigt, und sind die Inhalte frei von Vorurteilen?
+- [ ] **Religionssensibilität**: Regt das Material an, Vielfältigkeit von Religion in ihren individuellen und kollektiven Ausdrucksformen zu reflektieren und zu respektieren.
 
 ### 7. Feedback und Bewertung
 - [ ] **Selbstkontrolle:** Bieten die Materialien Möglichkeiten zur Selbstkontrolle und Feedback?
