@@ -1,7 +1,7 @@
 Bitte ergänzen, kritisieren, verbessern
 
 
-# Checkliste zur Bewertung der Qualität von Lehrmaterialien
+# Checkliste zur Qualitätseinschätzung von Lehrmaterialien
 
 ## Ziel dieser Checkliste
 Diese Checkliste unterstützt dabei, die Qualität von Lehrmaterialien (z. B. Arbeitsblätter, interaktive Lernobjekte, Arbeitsaufträge) hinsichtlich ihrer Gestaltung, didaktischen Wirksamkeit und pädagogischen Wertigkeit zu bewerten.
