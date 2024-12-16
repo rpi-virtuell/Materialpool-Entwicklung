@@ -1,6 +1,8 @@
 
 ![[relichat.png]]
 
+https://excalidraw.com/#room=057377fb2755bcaa949d,lQzDkfANNlKdCuQFeYa5Zg
+
 Im Zentrum des Systems steht die reliChat-Anwendung, die als Beratungstool für den Religionsunterricht konzipiert ist. Der Prozessablauf lässt sich in mehrere Kernschritte aufteilen:
 
 Der Prozess beginnt mit der Benutzereingabe über die Chat-Oberfläche, wo Lehrkräfte ihre Anfragen zum Religionsunterricht eingeben können. Das System analysiert zunächst die Fragestellung und den Bedarf (dargestellt durch die erste Raute "klärt Fragestellung/Bedarf").
