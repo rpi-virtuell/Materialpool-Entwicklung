@@ -201,6 +201,23 @@ Werk und Verweise
 
 ## Rubrik
 
+# Eingabeformular für OER/OEP-Materialien
+
+## OER/OEP-spezifische Informationen
+
+**Anpassungsmöglichkeiten:**  
+- [ ] Anpassbar für unterschiedliche Zielgruppen oder Szenarien  
+*(Details: __________)*
+
+**Kooperationsmöglichkeiten:**  
+- [ ] Kollaboratives Lernen unterstützt  
+- [ ] Community-Mitwirkung möglich  
+*(Details: __________)*
+
+**Einsatzszenarien:**  
+*(Praktische Anwendungsbeispiele oder Empfehlungen)*
+- Integration in Lernmanagementsysteme möglich: *(z. B. Moodle, ILIAS)*
+
 35. **Rubrik auswählen:**  
     - [ ] Andragogische Grundlagen  
     - [ ] Berufsbiographie & Fortbildung  
