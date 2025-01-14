@@ -217,4 +217,5 @@ Werk und Verweise
 *(Praktische Anwendungsbeispiele oder Empfehlungen)*
 - Integration in Lernmanagementsysteme möglich: *(z. B. Moodle, ILIAS)*
 
+Mögliche Prüfinstrumente: https://www.irights-lab.de/storage/uploads/ebooks/pdfs/iRLab_OER_Pr%C3%BCfinstrumentarium_Stand%2006.07.22.pdf$0
 
