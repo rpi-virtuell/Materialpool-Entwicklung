@@ -199,7 +199,6 @@ Werk und Verweise
 
 ---
 
-## Rubrik
 
 # Eingabeformular für OER/OEP-Materialien
 
@@ -218,10 +217,4 @@ Werk und Verweise
 *(Praktische Anwendungsbeispiele oder Empfehlungen)*
 - Integration in Lernmanagementsysteme möglich: *(z. B. Moodle, ILIAS)*
 
-35. **Rubrik auswählen:**  
-    - [ ] Andragogische Grundlagen  
-    - [ ] Berufsbiographie & Fortbildung  
-    - [ ] Bildungspolitik & Netzwerke  
-    - [ ] Familien & Generationen  
-    - [ ] Kultur & Ästhetik  
-    - [ ] Professionelle Praktiken & Qualität  
+
