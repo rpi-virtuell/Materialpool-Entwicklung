@@ -21,7 +21,7 @@ Wikilinks (`[[…]]`) zeigen deshalb weiter auf die alten Namen.
 | `relichat-ai/` | Skizzen zu einem Materialpool-Scraper und zur Verbindung mit Bildungsplänen |
 | `Eingabemaske.md` | Feldliste des Eintragungsformulars im WordPress-Materialpool |
 | `Collections/`, `Clippings/`, `Rentry OER Klappe/` | Einzelnotizen und Web-Clippings |
-| `Pasted image 20250113120729.png` | Loses Bild aus dem Vault, ohne Verweis in den Notizen |
+| `Pasted image 20250113120729.png` | Bild aus dem Vault, eingebunden in `Collections/Top 10 Materialempfehlungen.md` |
 
 ## Zugehörige Issues
 
