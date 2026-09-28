@@ -1,0 +1,21 @@
+# Eine Anwendung, kein zweiter Dienst. Auf dem Entwicklungsserver baut
+# Ludgers deploy-app.sh das Image aus dem Dockerfile (docs/betrieb.md).
+services:
+  materialpool:
+    build: .
+    restart: unless-stopped
+    ports:
+      - '8080:3000'
+    volumes:
+      # Der Spiegel schreibt seinen Stand nach daten/; ohne Volume wäre er
+      # nach jedem Neustart des Containers weg.
+      - ./daten:/app/daten
+    environment:
+      RELAYS: ${RELAYS}
+      QUELLE_AUTOREN: ${QUELLE_AUTOREN:-}
+      SPIEGEL_PFAD: ${SPIEGEL_PFAD:-}
+      SPIEGEL_INTERVALL_S: ${SPIEGEL_INTERVALL_S:-}
+      SPIEGEL_STARTWARTEZEIT_S: ${SPIEGEL_STARTWARTEZEIT_S:-}
+      SPIEGEL_LIMIT: ${SPIEGEL_LIMIT:-}
+      HOST: 0.0.0.0
+      PORT: '3000'

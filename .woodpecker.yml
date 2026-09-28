@@ -1,0 +1,44 @@
+# Nach dem Muster von oer-community (.woodpecker.yml dort, docs/betrieb.md).
+# Jeder Push auf main: installieren, prüfen, testen, bauen, ausliefern.
+#
+# Voraussetzungen, die noch fehlen (Issues „Entwicklungsserver einrichten“
+# und „Woodpecker aktivieren“): das Repository ist in Woodpecker noch nicht
+# aktiviert, der Deploy-Nutzer und der Name für deploy-app.sh sind noch
+# nicht festgelegt, material.rpi-virtuell.net hat noch keinen vHost und kein
+# Zertifikat. Bis dahin laufen nur die ersten drei Schritte sinnvoll.
+when:
+  branch: main
+  event: push
+
+steps:
+  - name: install
+    image: node:24-alpine
+    commands:
+      - corepack enable
+      - pnpm install --frozen-lockfile
+
+  - name: check-and-test
+    image: node:24-alpine
+    commands:
+      - corepack enable
+      - pnpm run check
+      - pnpm run test
+
+  - name: build
+    image: node:24-alpine
+    commands:
+      - corepack enable
+      - pnpm run build
+
+  - name: deploy
+    image: appleboy/drone-ssh:1.7.3
+    settings:
+      host: material.rpi-virtuell.net
+      username:
+        from_secret: deploy_ssh_user
+      key:
+        from_secret: deploy_ssh_key
+      script:
+        # Der Server führt für diesen Schlüssel nur dieses Skript aus; der
+        # Name des Server-Verzeichnisses folgt Ludgers ServerSetup.
+        - ~/ServerSetup/scripts/deploy-app.sh materialpool

@@ -1,0 +1,10 @@
+node_modules/
+.env
+.env.sicherung-*
+.svelte-kit/
+build/
+.DS_Store
+daten/spiegel.json
+daten/spiegel.json.tmp
+.claude/worktrees/
+.claude/launch.json

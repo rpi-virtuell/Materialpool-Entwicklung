@@ -1,0 +1,65 @@
+@import 'tailwindcss';
+@plugin 'daisyui';
+
+/* ── Tokens ──────────────────────────────────────────────────────────────
+   Werte aus dem FOERBICO-Styleguide, übernommen aus oer-community
+   (src/app.css dort, docs/designsystem.md). Kopiert, nicht verlinkt:
+   kein WordPress-Stylesheet zur Laufzeit. Komponenten kennen nur Token;
+   kein Hex außerhalb dieser Datei. Schrift vorerst System-UI — die
+   Roboto-Condensed-Dateien folgen, wenn die Gestaltung ansteht (STATUS). */
+
+:root {
+  --fb-primaer:      #203a8f;
+  --fb-akzent:       #ffa500;  /* nie Grund für weißen Text */
+  --fb-ueberschrift: #002366;
+  --fb-text:         #333333;
+  --fb-text-leise:   #5a6178;
+  --fb-rahmen:       #d3d3d3;
+  --fb-flaeche:      #f0f8ff;
+  --fb-flaeche-2:    #e6f2ff;
+  --fb-weiss:        #ffffff;
+  --fb-fehler:       #971b2f;
+  --schrift: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --breite-raster: 1240px;
+  --breite-schmal: 820px;
+  --radius: 5px;
+  --schatten: 0 2px 24px rgba(20, 50, 100, 0.08);
+  --uebergang: 160ms ease-out;
+}
+
+html { background: var(--fb-weiss); color: var(--fb-text); font-family: var(--schrift); }
+body { margin: 0; line-height: 1.5; }
+a { color: var(--fb-primaer); }
+h1, h2, h3 { color: var(--fb-ueberschrift); line-height: 1.2; }
+h1 { font-size: 2rem; margin: 0 0 0.5rem; }
+h2 { font-size: 1.25rem; margin: 0 0 0.25rem; }
+
+.label {
+  font-size: 0.8rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--fb-text-leise);
+  margin: 0 0 0.25rem;
+}
+.marker {
+  display: inline-block;
+  padding: 0.1rem 0.5rem;
+  border-radius: 999px;
+  background: var(--fb-flaeche-2);
+  color: var(--fb-primaer);
+  font-size: 0.85rem;
+  text-decoration: none;
+}
+.hinweis {
+  border: 1px solid var(--fb-akzent);
+  border-left-width: 6px;
+  border-radius: var(--radius);
+  background: var(--fb-flaeche);
+  padding: 1rem 1.25rem;
+  margin: 1rem 0;
+}
+.metazeile { list-style: none; padding: 0; margin: 0.5rem 0 0; display: flex; flex-wrap: wrap; gap: 0.4rem; }
+
+@media (prefers-reduced-motion: reduce) {
+  * { transition: none !important; }
+}
