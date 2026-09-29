@@ -1,55 +1,104 @@
 import { describe, expect, it } from 'vitest';
 import beispiele from '../../../test/fixtures/amb-beispiele.json';
-import { begriffe, dAusKennung, kennungAusD, letzterPfadteil, lizenzKuerzel, materialAusEvent } from './material.js';
+import { begriffe, dAusKennung, herkunftBilden, kennungAusD, letzterPfadteil, lizenzKuerzel, materialAusEvent } from './material.js';
 
-const [abraham, ohneLabels, erntedank, reformation] = beispiele;
+// Echte Events vom Materialpool-Schlüssel (test/fixtures/README.md).
+const [arbeitsheft, berufsorientierung, erntedank, geist, jenseits, fluechtlinge, jericho] = beispiele;
 
 describe('materialAusEvent', () => {
   it('liest die flachen AMB-Felder', () => {
-    const m = materialAusEvent(abraham);
-    expect(m.name).toBe('Abraham — eine kindgerechte Erzählung');
-    expect(m.beschreibung).toMatch(/Grundschule/);
-    expect(m.url).toBe('https://material.rpi-virtuell.de/material/abraham-erzaehlung/');
-    expect(m.bild).toBe('https://blossom.edufeed.org/abcdef.jpg');
-    expect(m.schlagworte).toEqual(['abraham', 'erzählung']);
+    const m = materialAusEvent(arbeitsheft);
+    expect(m.name).toBe('Religionen und miteinander leben in Deutschland - jetzt versteh ich das! (Arbeitsheft)');
+    expect(m.beschreibung).toMatch(/abrahamitischen Religionen/);
+    expect(m.url).toBe('https://material.rpi-virtuell.de/material/religionen-und-miteinander-leben-in-deutschland-jetzt-versteh-ich-das-arbeitsheft/');
+    expect(m.bild).toMatch(/^https:\/\/www\.bpb\.de\//);
+    expect(m.schlagworte).toHaveLength(7);
+    expect(m.schlagworte.slice(0, 2)).toEqual(['Abrahamitische Religionen', 'Christentum']);
     expect(m.sprachen).toEqual(['de']);
-    expect(m.datum).toBe('2025-03-01');
+    expect(m.datum).toBe('2021-01-01');
     expect(m.typen).toEqual(['LearningResource']);
   });
 
   it('liest Personen und Organisationen über die Doppelpunkt-Pfade', () => {
-    const m = materialAusEvent(abraham);
-    expect(m.urheber).toEqual(['Beispielautorin']);
-    expect(m.herausgeber).toEqual(['rpi-virtuell']);
+    expect(materialAusEvent(arbeitsheft).herausgeber).toEqual(['HanisauLand', 'bpb']);
+    expect(materialAusEvent(jericho).urheber).toEqual(['Horst Heller']);
+    expect(materialAusEvent(erntedank).mitwirkende).toEqual([]);
   });
 
   it('bildet SKOS-Begriffe mit deutschem Label', () => {
-    const m = materialAusEvent(abraham);
+    const m = materialAusEvent(arbeitsheft);
     expect(m.bildungsstufen).toEqual([
-      { id: 'https://w3id.org/kim/educationalLevel/level_A', label: 'Primarstufe' }
+      { id: 'https://w3id.org/kim/educationalLevel/level_1', label: 'Primarbereich' },
+      { id: 'https://w3id.org/kim/educationalLevel/level_2', label: 'Sekundarbereich I' }
     ]);
-    expect(m.faecher[0].label).toBe('Religion');
-    expect(m.ressourcentypen[0].label).toBe('Text');
+    expect(m.faecher.map((f) => f.label)).toEqual(['Religionslehre (evangelische)', 'Religion']);
+    expect(m.ressourcentypen.map((r) => r.label)).toEqual(['Lernkontrolle', 'Unterrichtsplanung', 'Textdokument', 'Arbeitsmaterial']);
   });
 
   it('fällt ohne prefLabel auf den letzten Pfadteil zurück', () => {
-    const m = materialAusEvent(ohneLabels);
-    expect(m.bildungsstufen).toEqual([
+    const ohneLabel = { ...jenseits, tags: [['d', 'urn:x'], ['educationalLevel:id', 'https://w3id.org/kim/educationalLevel/level_B']] };
+    expect(materialAusEvent(ohneLabel).bildungsstufen).toEqual([
       { id: 'https://w3id.org/kim/educationalLevel/level_B', label: 'level_B' }
     ]);
-    expect(m.beschreibung).toBe('');
-    expect(m.bild).toBeNull();
+    expect(materialAusEvent(ohneLabel).beschreibung).toBe('');
+    expect(materialAusEvent(ohneLabel).bild).toBeNull();
   });
 
-  it('kürzt Creative-Commons-Lizenzen', () => {
-    expect(materialAusEvent(abraham).lizenzKuerzel).toBe('CC BY-SA 4.0');
-    expect(materialAusEvent(ohneLabels).lizenzKuerzel).toBe('CC0');
+  it('kürzt Creative-Commons-Lizenzen; ohne Lizenz null', () => {
+    expect(materialAusEvent(jericho).lizenz).toBe('https://creativecommons.org/licenses/by-sa/4.0/');
+    expect(materialAusEvent(jericho).lizenzKuerzel).toBe('CC BY-SA 4.0');
+    expect(materialAusEvent(arbeitsheft).lizenzKuerzel).toBeNull();
+    expect(lizenzKuerzel('https://creativecommons.org/publicdomain/zero/1.0/')).toBe('CC0');
     expect(lizenzKuerzel('https://example.org/eigene-lizenz')).toBeNull();
     expect(lizenzKuerzel(null)).toBeNull();
   });
 
+  it('leitet Typ und Stufe aus den SKOS-Begriffen ab — erster bekannter zur Anzeige, alle für Filter', () => {
+    const a = materialAusEvent(arbeitsheft);
+    expect(a.typ).toEqual({ key: 'plan', label: 'Unterrichtsplanung' });
+    expect(a.typKeys).toEqual(['plan', 'ab']);
+    expect(a.stufe).toEqual({ key: 'elem', label: 'Elementar- & Primarbereich' });
+    expect(a.stufenKeys).toEqual(['elem', 'sek1']);
+    expect(materialAusEvent(geist).typ).toEqual({ key: 'video', label: 'Video' });
+    expect(materialAusEvent(fluechtlinge).typ).toEqual({ key: 'audio', label: 'Audio' });
+    expect(materialAusEvent(fluechtlinge).typKeys).toEqual(['plan', 'ab', 'audio', 'webseite']);
+    expect(materialAusEvent(erntedank).stufenKeys).toEqual(['elem', 'sek1', 'sek2', 'fortbildung']);
+    expect(materialAusEvent(jericho).stufenKeys).toEqual(['elem', 'hochschule']);
+    expect(materialAusEvent(berufsorientierung).stufe.key).toBe('unbekannt');
+    expect(materialAusEvent(berufsorientierung).stufenKeys).toEqual(['unbekannt']);
+  });
+
+  it('nennt die Herkunft: Urheber, Herausgeber, Mitwirkende — sonst Hostname — sonst Hinweis', () => {
+    expect(materialAusEvent(arbeitsheft).herkunft).toBe('HanisauLand · bpb');
+    expect(materialAusEvent(berufsorientierung).herkunft).toBe('Matthias Gronover');
+    expect(materialAusEvent({ ...jenseits, tags: [['d', 'https://www.example.org/x']] }).herkunft).toBe('example.org');
+    expect(materialAusEvent({ ...jenseits, tags: [['d', 'urn:x']] }).herkunft).toBe('Herkunft nicht angegeben');
+    expect(herkunftBilden({ urheber: ['A'], herausgeber: ['A', 'B'], mitwirkende: ['B'], url: null })).toBe('A · B');
+  });
+
+  it('findet die URL: d, sonst encoding:contentUrl, sonst erstes http-r', () => {
+    expect(materialAusEvent(erntedank).url).toBe('https://material.rpi-virtuell.de/material/ekd-erntedankfest/');
+    const ohneHttpD = { ...erntedank, tags: erntedank.tags.map((t) => (t[0] === 'd' ? ['d', 'urn:test'] : t)) };
+    expect(materialAusEvent(ohneHttpD).url).toBe('https://www.ekd.de/erntedank-10832.htm');
+    const nurR = { ...jenseits, tags: [['d', 'urn:y'], ['r', 'mailto:x'], ['r', 'https://r.example/']] };
+    expect(materialAusEvent(nurR).url).toBe('https://r.example/');
+    expect(materialAusEvent({ ...jenseits, tags: [['d', 'urn:z']] }).url).toBeNull();
+  });
+
+  it('nimmt ein Bild nur mit http(s)-Adresse', () => {
+    expect(materialAusEvent(geist).bild).toMatch(/^http:\/\/cf\.katholisch\.de\//);
+    expect(materialAusEvent(berufsorientierung).bild).toBeNull();
+    expect(materialAusEvent({ ...geist, tags: [['d', 'urn:a'], ['image', 'ftp://kein-bild/x.jpg']] }).bild).toBeNull();
+  });
+
+  it('liefert Themen: t-Tags, sonst about-Labels, höchstens vier', () => {
+    expect(materialAusEvent(erntedank).themen).toEqual(['Erntedank', 'Früchte', 'Lebensmittel', 'Nutztier']);
+    expect(materialAusEvent(jenseits).themen).toEqual(['Religionslehre (evangelische)', 'Religion']);
+    expect(materialAusEvent({ ...jenseits, tags: [['d', 'urn:x']] }).themen).toEqual([]);
+  });
+
   it('macht aus d eine URL-sichere Kennung und zurück', () => {
-    const m = materialAusEvent(abraham);
+    const m = materialAusEvent(arbeitsheft);
     expect(m.pfad).toBe(`/m/${m.kennung}`);
     expect(m.kennung).not.toContain('/');
     expect(dAusKennung(m.kennung)).toBe(m.d);
@@ -57,45 +106,14 @@ describe('materialAusEvent', () => {
     expect(kennungAusD('a b')).toBe('a%20b');
   });
 
-  it('leitet Typ und Stufe aus den SKOS-Begriffen ab', () => {
-    expect(materialAusEvent(erntedank).typ).toEqual({ key: 'plan', label: 'Unterrichtsplanung' });
-    expect(materialAusEvent(erntedank).stufe).toEqual({ key: 'elem', label: 'Elementar- & Primarbereich' });
-    expect(materialAusEvent(reformation).typ).toEqual({ key: 'video', label: 'Video' });
-    expect(materialAusEvent(reformation).stufe).toEqual({ key: 'bbs', label: 'Berufsbildung' });
-    expect(materialAusEvent(ohneLabels).typ).toEqual({ key: 'sonstiges', label: 'Material' });
-    expect(materialAusEvent(ohneLabels).stufe.key).toBe('unbekannt');
-  });
-
-  it('nennt die Herkunft: Urheber, Herausgeber, Mitwirkende — sonst Hostname — sonst Hinweis', () => {
-    expect(materialAusEvent(erntedank).mitwirkende).toEqual(['Mitwirkende Person']);
-    expect(materialAusEvent(erntedank).herkunft).toBe('Beispielautorin · rpi-virtuell · Mitwirkende Person');
-    expect(materialAusEvent(reformation).herkunft).toBe('bbs-beispiel.de');
-    expect(materialAusEvent({ ...ohneLabels, tags: [['d', 'urn:x']] }).herkunft).toBe('Herkunft nicht angegeben');
-    const doppelt = { ...abraham, tags: [...abraham.tags, ['contributor:name', 'rpi-virtuell']] };
-    expect(materialAusEvent(doppelt).herkunft).toBe('Beispielautorin · rpi-virtuell');
-  });
-
-  it('findet die URL: d, sonst encoding:contentUrl, sonst erstes http-r', () => {
-    expect(materialAusEvent(erntedank).url).toBe('https://example.org/erntedank.pdf');
-    const mitR = { ...ohneLabels, tags: [['d', 'urn:y'], ['r', 'mailto:x'], ['r', 'https://r.example/']] };
-    expect(materialAusEvent(mitR).url).toBe('https://r.example/');
-    expect(materialAusEvent({ ...ohneLabels, tags: [['d', 'urn:z']] }).url).toBeNull();
-  });
-
-  it('nimmt ein Bild nur mit http(s)-Adresse', () => {
-    expect(materialAusEvent(reformation).bild).toBeNull();
-    expect(materialAusEvent(erntedank).bild).toBe('https://blossom.edufeed.org/erntedank.jpg');
-  });
-
-  it('liefert Themen: t-Tags, sonst about-Labels, höchstens vier', () => {
-    expect(materialAusEvent(erntedank).themen).toEqual(['Erntedank', 'schöpfung', 'kita', 'feiern']);
-    expect(materialAusEvent(reformation).themen).toEqual(['Religionslehre (katholische)']);
-    expect(materialAusEvent(ohneLabels).themen).toEqual([]);
-  });
-
   it('nimmt d als Titel, wenn name fehlt', () => {
-    const m = materialAusEvent({ ...ohneLabels, tags: [['d', 'https://x.example/']] });
+    const m = materialAusEvent({ ...jenseits, tags: [['d', 'https://x.example/']] });
     expect(m.name).toBe('https://x.example/');
+  });
+
+  it('nimmt datePublished vor dateCreated', () => {
+    expect(materialAusEvent(jericho).datum).toBe('2024-12-08');
+    expect(materialAusEvent(erntedank).datum).toBe('2020-07-21');
   });
 });
 

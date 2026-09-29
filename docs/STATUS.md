@@ -8,6 +8,60 @@ das Gesamtbild in `superpowers/specs/2026-09-28-materialpool-neustart-design.md`
 
 ---
 
+## 2026-09-29 (3) — Echte Daten: Materialpool-Bestand vom Relay, kein Mock mehr
+
+**Passiert:** Beim lokalen Prüfen fiel auf, dass `.env` seit dem 28.09. auf
+das Mock-Relay zeigte und die Oberfläche handgeschriebene Beispieldaten
+zeigte. Jörgs Vorgabe: **nur echte Daten, keine Beispieldaten.** Befund und
+Umsetzung (Branch `feat/facetten`, zweiter Commit):
+
+- **Bestand gefunden (ADR-0003, Nachtrag):** `amb-relay.edufeed.org` hält
+  8.533 kind:30142, davon 7.701 vom Schlüssel `610df6d6…` mit
+  `material.rpi-virtuell.de`-Adressen — der Materialpool, importiert am
+  04.03.2026. 2.197 mit Bild, 959 mit Lizenz, alle Fach „Religionslehre
+  (evangelische)“. `.env` und `.env.example` zeigen jetzt auf das Relay
+  mit diesem Schlüssel als `QUELLE_AUTOREN`. Wer den Schlüssel verwahrt,
+  ist zu bestätigen.
+- **Spiegel blättert:** Das Relay liefert je Anfrage höchstens 250 Events;
+  `seitenweise` in `services/spiegel.js` geht über `until`, bis alles da
+  ist (31 Seiten, ~50 s beim ersten Lauf). `SPIEGEL_LIMIT` ist jetzt die
+  Obergrenze je Relay (Standard 10.000), `SPIEGEL_STARTWARTEZEIT_S=60`.
+  `daten/spiegel.json` hat 25 MB.
+- **Fixtures sind echt:** `test/fixtures/amb-beispiele.json` enthält
+  sieben signierte Events vom Relay, unverändert (README dort). Alle Tests
+  laufen dagegen. Keine erfundenen Materialien mehr, auch nicht in Tests.
+- **Modell mehrwertig:** Echte Materialien tragen bis zu sieben
+  Bildungsstufen und Ressourcentypen. `stufenKeys` und `typKeys` halten
+  alle, `stufe`/`typ` den ersten zur Anzeige; Filter und Facetten zählen
+  über alle. Neue Stufen `fortbildung` (KIM level_C, 1.179 Materialien)
+  und `hochschule` (level_A, 639) in der Facette, nicht als Kachel.
+  **Berufsbildung hat im Bestand 0 Materialien** — die Kachel führt zu
+  „Dazu passt gerade nichts“; „Postsekundarer nicht-tertiärer Bereich“
+  (1.321) liegt laut Prototyp bei Sek II. Zu klären, ob er zu
+  Berufsbildung gehört.
+- **Seitenumbruch:** 24 Karten je Seite (`seite=`), Zurück/Weiter,
+  Facetten- und Sortierlinks springen auf Seite 1. Sortierung „neu“ geht
+  nach `datePublished`/`dateCreated`, weil `created_at` die Importzeit ist.
+- **Leistung:** Materialien werden je Spiegelstand einmal aufbereitet
+  (`routen/bestand.js`, WeakMap). `csr = false` im Layout: kein
+  JavaScript-Bündel, keine Hydrationsdaten — die Liste schrumpfte von 137
+  auf 67 kB (Dev-Modus, mit eingebetteten Styles). Icons als SVG-Sprite
+  (`IconSprite.svelte`), je Icon nur ein `<use>`. Antwortzeiten bei 7.701
+  Materialien: Startseite 8 ms, Liste 20–40 ms.
+- **Offen: Suche über den AMB-MCP.** Jörg wünscht, dass die Suche den
+  AMB-MCP nutzt (`mcp.amb.edufeed.org`, Bearer-Token). Das Relay selbst
+  spricht NIP-50 (geprüft: `search: "Reformation"` liefert Treffer).
+  Entscheidung steht aus, siehe Frage vom 29.09.
+
+**Wo steht das Projekt:** 120 Tests grün, `svelte-check` 0 Fehler. Dev-
+Server läuft lokal gegen das echte Relay mit 7.701 Materialien; Bilder
+laden von den Quellseiten (ekd.de, bpb.de, ytimg …).
+
+**Nächster Schritt:** Entscheidung zur Suche (MCP, NIP-50 am Relay oder
+Spiegel-Filter) als ADR-0005; Berufsbildung-Zuordnung klären; dann mergen.
+
+---
+
 ## 2026-09-29 (2) — Liste: Facetten und Sortierung
 
 **Passiert:** `/materialien` hat jetzt die Facetten und Sortierungen aus

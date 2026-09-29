@@ -8,6 +8,7 @@ import beispiele from './fixtures/amb-beispiele.json';
 import Detail from '../src/lib/komponenten/Detail.svelte';
 import Fusszeile from '../src/lib/komponenten/Fusszeile.svelte';
 import Icon, { ICON_NAMEN } from '../src/lib/komponenten/Icon.svelte';
+import IconSprite from '../src/lib/komponenten/IconSprite.svelte';
 import Kopfzeile from '../src/lib/komponenten/Kopfzeile.svelte';
 import Startseite from '../src/lib/komponenten/startseite/Startseite.svelte';
 import { ZIELGRUPPEN } from '../src/lib/komponenten/startseite/HeroZielgruppe.svelte';
@@ -24,10 +25,17 @@ const inhalt = { ...leererInhalt(), materialien: beispiele };
 const september = new Date(2026, 8, 29);
 
 describe('Icon', () => {
-  it('rendert Inline-SVG für jedes Typ-Icon und fällt auf „file“ zurück', () => {
+  it('verweist je Icon auf ein Symbol im Sprite und fällt auf „file“ zurück', () => {
     for (const typ of Object.values(TYPEN)) expect(ICON_NAMEN).toContain(typ.icon);
-    expect(render(Icon, { props: { name: 'search' } }).body).toMatch(/<svg[^>]*>/);
-    expect(render(Icon, { props: { name: 'gibtesnicht' } }).body).toContain('icon-tabler-file"');
+    expect(render(Icon, { props: { name: 'search' } }).body).toContain('<use href="#ti-search"');
+    expect(render(Icon, { props: { name: 'gibtesnicht' } }).body).toContain('<use href="#ti-file"');
+  });
+
+  it('das Sprite hält je Icon ein Symbol mit Pfaden, ohne verschachteltes <svg>', () => {
+    const { body } = render(IconSprite);
+    for (const name of ICON_NAMEN) expect(body).toContain(`<symbol id="ti-${name}"`);
+    expect(body).toContain('<path d="M3 10a7 7 0 1 0 14 0a7 7 0 1 0 -14 0"');
+    expect((body.match(/<svg/g) ?? []).length).toBe(1);
   });
 });
 
@@ -73,10 +81,11 @@ describe('Startseite', () => {
     const daten = startseiteLaden({ inhalt, fehlschlag: null, relays, heute: september });
     const { body } = render(Startseite, { props: daten });
     expect(body).toContain('Beliebte Themen');
-    expect(body.indexOf('>Erntedank<')).toBeLessThan(body.indexOf('>abraham<'));
+    expect(body.indexOf('>Erntedank<')).toBeLessThan(body.indexOf('>Abrahamitische Religionen<'));
     expect(body).toContain('href="/materialien?q=Erntedank"');
     expect(body).toContain('Aktuelle Empfehlung');
-    expect(body).toContain('Erntedank feiern in der Kita');
+    expect(body).toContain('EKD: Erntedankfest');
+    expect(body).toMatch(/<img src="https:\/\/www\.ekd\.de\/[^"]+" alt=""/);
     expect(body).toMatch(/--cover-ink:#[0-9a-f]{6};--cover-tint:#[0-9A-F]{6}/);
     expect(body).not.toContain('status-hint');
   });
@@ -103,25 +112,37 @@ describe('Uebersicht (Liste)', () => {
   it('zeigt jede Karte mit Titel, Link, Art und Herkunft', () => {
     const daten = listeLaden({ inhalt, fehlschlag: null, relays });
     const { body } = render(Uebersicht, { props: daten });
-    expect(body).toContain('Abraham — eine kindgerechte Erzählung');
+    expect(body).toContain('Zwischen Jericho und Jerusalem');
     expect(body).toContain(`href="${materialien[0].pfad}"`);
-    expect(body).toContain('4 Treffer');
+    expect(body).toContain('7 Treffer');
     expect(body).toContain('Unterrichtsplanung');
-    expect(body).toContain('bbs-beispiel.de · Berufsbildung');
+    expect(body).toContain('EKD · Elementar- &amp; Primarbereich');
     expect(body).toContain('class="material-grid');
-    expect((body.match(/class="material-card/g) ?? []).length).toBe(4);
+    expect((body.match(/class="material-card/g) ?? []).length).toBe(7);
     expect(body).toContain('loading="lazy"');
+    expect(body).not.toContain('aria-label="Seiten"');
+  });
+
+  it('blättert mit Zurück/Weiter, wenn es mehr als eine Seite gibt', () => {
+    const viele = Array.from({ length: 30 }, (_, i) => ({
+      ...beispiele[0], id: String(i).padStart(64, 'a'), tags: beispiele[0].tags.map((t) => (t[0] === 'd' ? ['d', `https://x.example/${i}`] : t))
+    }));
+    const daten = listeLaden({ inhalt: { ...leererInhalt(), materialien: viele }, fehlschlag: null, relays });
+    const { body } = render(Uebersicht, { props: daten });
+    expect((body.match(/class="material-card/g) ?? []).length).toBe(24);
+    expect(body).toContain('Seite 1 von 2 · Treffer 1–24');
+    expect(body).toMatch(/href="\/materialien\?seite=2" rel="next"/);
   });
 
   it('zeigt aktive Filter als entfernbare Pillen und hält Facetten und Sortierung im Formular', () => {
-    const daten = listeLaden({ inhalt, fehlschlag: null, relays, filter: { ...leererFilter(), q: 'abraham', stufen: ['elem'], sortierung: 'titel' } });
+    const daten = listeLaden({ inhalt, fehlschlag: null, relays, filter: { ...leererFilter(), q: 'jericho', stufen: ['elem'], sortierung: 'titel' } });
     const { body } = render(Uebersicht, { props: daten });
-    expect(body).toContain('1 Treffer von 4');
+    expect(body).toContain('1 Treffer von 7');
     expect(body).toContain('href="/materialien?stufe=elem&amp;sort=titel"');
-    expect(body).toContain('href="/materialien?q=abraham&amp;sort=titel"');
+    expect(body).toContain('href="/materialien?q=jericho&amp;sort=titel"');
     expect(body).toMatch(/name="stufe"[^>]*value="elem"/);
     expect(body).toMatch(/name="sort"[^>]*value="titel"/);
-    expect(body).toMatch(/name="q"[^>]*value="abraham"/);
+    expect(body).toMatch(/name="q"[^>]*value="jericho"/);
   });
 
   it('rendert Facetten als Link-Chips mit Zählern, aktive gedrückt, leere ohne Link', () => {
@@ -132,6 +153,7 @@ describe('Uebersicht (Liste)', () => {
     expect(body).toMatch(/class="chip is-leer[^"]*" aria-disabled="true">Video/);
     expect(body).toContain('href="/materialien?stufe=elem&amp;typ=plan"');
     expect(body).toContain('href="/materialien?stufe=elem&amp;t=Erntedank"');
+    expect(body).toContain('>Fortbildung <span');
   });
 
   it('rendert die Sortierung als Link-Gruppe mit aktivem Eintrag', () => {
@@ -161,12 +183,14 @@ describe('Uebersicht (Liste)', () => {
 
 describe('Detail', () => {
   it('nennt Ressource, Lizenz, Begriffe, Herkunft und die Entwickleransicht', () => {
-    const { body } = render(Detail, { props: { material: materialien[0], relays: ['wss://eins/'] } });
-    expect(body).toContain('https://material.rpi-virtuell.de/material/abraham-erzaehlung/');
+    const jericho = materialien[6];
+    const { body } = render(Detail, { props: { material: jericho, relays: ['wss://eins/'] } });
+    expect(body).toContain('https://material.rpi-virtuell.de/material/zwischen-jericho-und-jerusalem/');
     expect(body).toContain('rel="license"');
-    expect(body).toContain('Religion');
-    expect(body).toContain('Beispielautorin · rpi-virtuell');
+    expect(body).toContain('CC BY-SA 4.0');
+    expect(body).toContain('Religionslehre (evangelische)');
+    expect(body).toContain('Horst Heller');
     expect(body).toContain('wss://eins/');
-    expect(body).toContain(`${materialien[0].pfad}/json`);
+    expect(body).toContain(`${jericho.pfad}/json`);
   });
 });

@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import beispiele from '../../../test/fixtures/amb-beispiele.json';
-import { ersetzbareZusammenfassen, filterBauen, KIND_AMB, standAufbauen } from './spiegel.js';
+import { ersetzbareZusammenfassen, filterBauen, KIND_AMB, SEITENGROESSE, seitenweise, standAufbauen } from './spiegel.js';
 
 /** @returns {import('../konfig.js').Konfig} */
 function konfig(teil = {}) {
@@ -11,7 +11,7 @@ function konfig(teil = {}) {
     spiegelPfad: 'daten/test.json',
     spiegelIntervallS: 600,
     spiegelStartwartezeitS: 1,
-    spiegelLimit: 500,
+    spiegelLimit: 10000,
     ...teil
   };
 }
@@ -20,7 +20,7 @@ afterEach(() => vi.restoreAllMocks());
 
 describe('filterBauen', () => {
   it('fragt kind 30142 mit Limit, ohne Autoren-Einschränkung', () => {
-    expect(filterBauen(konfig())).toEqual({ kinds: [KIND_AMB], limit: 500 });
+    expect(filterBauen(konfig())).toEqual({ kinds: [KIND_AMB], limit: 10000 });
   });
   it('schränkt auf QUELLE_AUTOREN ein, sobald gesetzt', () => {
     const f = filterBauen(konfig({ autoren: ['a'.repeat(64)] }));
@@ -30,6 +30,48 @@ describe('filterBauen', () => {
     const f = filterBauen(konfig({ faecher: ['http://w3id.org/kim/schulfaecher/s1024'] }));
     expect(f['#about:id']).toEqual(['http://w3id.org/kim/schulfaecher/s1024']);
     expect(filterBauen(konfig())).not.toHaveProperty('#about:id');
+  });
+});
+
+describe('seitenweise — das Relay liefert je REQ höchstens 250 Events', () => {
+  /** @param {number} n @param {number} start */
+  const events = (n, start) =>
+    Array.from({ length: n }, (_, i) => ({ ...beispiele[0], id: String(start - i).padStart(64, '0'), created_at: start - i }));
+
+  it('blättert mit until, bis eine Seite kleiner als die Seitengröße ist, und dedupliziert', async () => {
+    const holen = vi.fn(async (_url, filter) => {
+      const bis = /** @type {number} */ (filter.until ?? 1000);
+      // until ist einschließlich: die erste Zeile jeder Folgeseite wiederholt sich
+      return { erreicht: true, events: events(Math.min(SEITENGROESSE, bis - 400 + 1), bis) };
+    });
+    const ergebnis = await seitenweise(holen, 10000)('wss://eins/', { kinds: [KIND_AMB] }, {});
+    expect(ergebnis.erreicht).toBe(true);
+    expect(ergebnis.events).toHaveLength(601);
+    expect(holen).toHaveBeenCalledTimes(3);
+    expect(holen.mock.calls[0][1]).toMatchObject({ limit: SEITENGROESSE });
+    expect(holen.mock.calls[0][1]).not.toHaveProperty('until');
+    expect(holen.mock.calls[1][1]).toMatchObject({ until: 751 });
+  });
+
+  it('hört beim Limit auf und fragt nur den Rest an', async () => {
+    // Folgeseiten beginnen hier unterhalb von until, damit sich nichts wiederholt.
+    const holen = vi.fn(async (_url, filter) => ({
+      erreicht: true,
+      events: events(/** @type {number} */ (filter.limit), filter.until === undefined ? 100000 : /** @type {number} */ (filter.until) - 1)
+    }));
+    const ergebnis = await seitenweise(holen, 300)('wss://eins/', {}, {});
+    expect(ergebnis.events).toHaveLength(300);
+    expect(holen.mock.calls[1][1]).toMatchObject({ limit: 50 });
+  });
+
+  it('gilt als nicht erreicht, wenn schon die erste Seite ausfällt — mit Teilstand, wenn eine spätere ausfällt', async () => {
+    const nie = vi.fn(async () => ({ erreicht: false, events: [] }));
+    expect((await seitenweise(nie, 1000)('wss://eins/', {}, {})).erreicht).toBe(false);
+    let aufruf = 0;
+    const spaeter = vi.fn(async () => (aufruf++ === 0 ? { erreicht: true, events: events(SEITENGROESSE, 1000) } : { erreicht: false, events: [] }));
+    const teil = await seitenweise(spaeter, 1000)('wss://eins/', {}, {});
+    expect(teil.erreicht).toBe(true);
+    expect(teil.events).toHaveLength(SEITENGROESSE);
   });
 });
 
@@ -50,7 +92,8 @@ describe('ersetzbareZusammenfassen', () => {
 
   it('sortiert jüngstes zuerst', () => {
     const [a, b] = beispiele;
-    expect(ersetzbareZusammenfassen([b, a]).map((e) => e.id)).toEqual([a.id, b.id]);
+    const [juenger, aelter] = a.created_at > b.created_at ? [a, b] : [b, a];
+    expect(ersetzbareZusammenfassen([aelter, juenger]).map((e) => e.id)).toEqual([juenger.id, aelter.id]);
   });
 });
 

@@ -25,6 +25,9 @@ export { ABFRAGEGRUND_TEXT } from './relay.js';
 /** AMB-Metadaten als ersetzbares Event (edufeed-AMB-NIP). */
 export const KIND_AMB = 30142;
 
+/** Das AMB-Relay liefert je REQ höchstens so viele Events. */
+export const SEITENGROESSE = 250;
+
 /**
  * @typedef {object} Stand
  * @property {string} zeitpunkt
@@ -64,6 +67,43 @@ export function filterBauen(konfig) {
 }
 
 /**
+ * Blättert über `until`, bis eine Seite kleiner als die Seitengröße ist,
+ * nichts Neues mehr kommt oder `limit` erreicht ist. `until` ist
+ * einschließlich, darum die Deduplizierung nach id. Ein Relay, das nach
+ * der ersten Seite ausfällt, gilt mit dem Teilstand als erreicht — besser
+ * ein Teil als nichts; die nächste Runde holt den Rest.
+ *
+ * @param {typeof eventsHolen} holen
+ * @param {number} limit  Höchstzahl Events je Relay insgesamt
+ * @returns {typeof eventsHolen}
+ */
+export function seitenweise(holen, limit) {
+  return async (url, filter, optionen) => {
+    /** @type {Map<string, Event>} */
+    const gesehen = new Map();
+    /** @type {number|undefined} */
+    let until;
+    let erreicht = false;
+    while (gesehen.size < limit) {
+      const groesse = Math.min(SEITENGROESSE, limit - gesehen.size);
+      const seite = await holen(url, { ...filter, limit: groesse, ...(until === undefined ? {} : { until }) }, optionen);
+      if (!seite.erreicht) break;
+      erreicht = true;
+      let neu = 0;
+      for (const e of seite.events) {
+        if (!gesehen.has(e.id)) {
+          gesehen.set(e.id, e);
+          neu++;
+        }
+      }
+      if (seite.events.length < groesse || neu === 0) break;
+      until = Math.min(...seite.events.map((e) => e.created_at));
+    }
+    return { erreicht, events: [...gesehen.values()] };
+  };
+}
+
+/**
  * Ersetzbare Events (NIP-01): je (pubkey, d) gilt nur das jüngste;
  * bei gleichem `created_at` die kleinere `id`. Ergebnis jüngstes zuerst.
  * @param {Event[]} events
@@ -95,11 +135,9 @@ export function ersetzbareZusammenfassen(events) {
  */
 export async function standAufbauen(konfig, optionen = {}) {
   const begonnen = Date.now();
-  const ergebnis = await eventsVonAllen(
-    konfig.relays,
-    filterBauen(konfig),
-    optionen.holen ? { holen: optionen.holen } : {}
-  );
+  const ergebnis = await eventsVonAllen(konfig.relays, filterBauen(konfig), {
+    holen: seitenweise(optionen.holen ?? eventsHolen, konfig.spiegelLimit)
+  });
   if (ergebnis.grund !== null) {
     return { ok: false, inhalt: null, gefragteRelays: ergebnis.gefragt, grund: ergebnis.grund };
   }

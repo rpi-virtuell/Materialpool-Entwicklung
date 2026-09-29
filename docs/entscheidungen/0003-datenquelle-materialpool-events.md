@@ -26,6 +26,17 @@ Zur Entscheidung fehlen: Bestätigung von edufeed, dass `amb-relay` schreibend
 offen ist; Festlegung des Schlüssels und seiner Verwahrung; Lizenzprüfung des
 Testbestands.
 
+## Befund 29.09.2026
+
+`amb-relay.edufeed.org` hält 8.533 Events kind:30142, davon 7.701 vom
+Schlüssel `610df6d605ed2868153ca9b7dbc0786006419b5877497887eb1d39ebabe27ef1`
+mit `d` = `material.rpi-virtuell.de/material/…`, alle mit `about:id`
+Religionslehre (evangelische), 2.197 mit Bild, 959 mit Lizenz — der
+Materialpool-Bestand, alle am 04.03.2026 publiziert. Das Relay liefert je
+Anfrage höchstens 250 Events und spricht NIP-50 (Volltextsuche). Bis zur
+Bestätigung, wer den Schlüssel verwahrt, steht er in `.env.example` als
+`QUELLE_AUTOREN`; die Entscheidung bleibt offen.
+
 ## Konsequenzen
 
 - Mit Schlüssel: Filter `authors` schließt fremde Events aus; ohne: das

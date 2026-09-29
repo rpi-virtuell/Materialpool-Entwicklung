@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import {
   LRT_ZU_TYP, STUFEN_LABEL, STUFEN_REIHENFOLGE, STUFEN_SICHTBAR, TYPEN, TYP_LABEL, TYP_REIHENFOLGE,
-  stufeAusBegriffen, typAusBegriffen
+  stufeAusBegriffen, stufenAusBegriffen, typAusBegriffen, typenAusBegriffen
 } from './typen.js';
 
 describe('Typen', () => {
@@ -37,8 +37,8 @@ describe('Typen', () => {
 });
 
 describe('Stufen', () => {
-  it('kennt fünf Stufen, vier davon sichtbar', () => {
-    expect(STUFEN_REIHENFOLGE).toEqual(['elem', 'sek1', 'sek2', 'bbs', 'unbekannt']);
+  it('kennt sieben Stufen, vier davon als Kachel sichtbar', () => {
+    expect(STUFEN_REIHENFOLGE).toEqual(['elem', 'sek1', 'sek2', 'bbs', 'fortbildung', 'hochschule', 'unbekannt']);
     expect(STUFEN_SICHTBAR).toEqual(['elem', 'sek1', 'sek2', 'bbs']);
     expect(STUFEN_LABEL.unbekannt).toBe('Stufe nicht angegeben');
   });
@@ -48,7 +48,9 @@ describe('Stufen', () => {
     expect(stufeAusBegriffen([{ id: 'x', label: 'Sekundarstufe I' }]).key).toBe('sek1');
     expect(stufeAusBegriffen([{ id: 'x', label: 'Postsekundarer nicht-tertiärer Bereich' }]).key).toBe('sek2');
     expect(stufeAusBegriffen([{ id: 'x', label: 'Berufsbildung' }]).key).toBe('bbs');
-    expect(stufeAusBegriffen([{ id: 'x', label: 'Hochschule' }])).toEqual({ key: 'unbekannt', label: 'Stufe nicht angegeben' });
+    expect(stufeAusBegriffen([{ id: 'x', label: 'Hochschule' }])).toEqual({ key: 'hochschule', label: 'Hochschule' });
+    expect(stufeAusBegriffen([{ id: 'x', label: 'Fortbildung' }]).key).toBe('fortbildung');
+    expect(stufeAusBegriffen([{ id: 'x', label: 'Weiterbildung' }])).toEqual({ key: 'unbekannt', label: 'Stufe nicht angegeben' });
     expect(stufeAusBegriffen([])).toEqual({ key: 'unbekannt', label: 'Stufe nicht angegeben' });
   });
 
@@ -56,6 +58,23 @@ describe('Stufen', () => {
     expect(stufeAusBegriffen([{ id: 'https://w3id.org/kim/educationalLevel/level_0', label: 'level_0' }]).key).toBe('elem');
     expect(stufeAusBegriffen([{ id: 'https://w3id.org/kim/educationalLevel/level_2', label: 'level_2' }]).key).toBe('sek1');
     expect(stufeAusBegriffen([{ id: 'https://w3id.org/kim/educationalLevel/level_4', label: 'level_4' }]).key).toBe('sek2');
-    expect(stufeAusBegriffen([{ id: 'https://w3id.org/kim/educationalLevel/level_A', label: 'level_A' }]).key).toBe('unbekannt');
+    expect(stufeAusBegriffen([{ id: 'https://w3id.org/kim/educationalLevel/level_A', label: 'level_A' }]).key).toBe('hochschule');
+    expect(stufeAusBegriffen([{ id: 'https://w3id.org/kim/educationalLevel/level_C', label: 'level_C' }]).key).toBe('fortbildung');
+  });
+
+  it('liefert alle Stufen eines Materials dedupliziert in fester Reihenfolge', () => {
+    const begriffe = ['Fortbildung', 'Sekundarbereich II', 'Primarbereich', 'Elementarbereich', 'Postsekundarer nicht-tertiärer Bereich']
+      .map((label) => ({ id: 'x', label }));
+    expect(stufenAusBegriffen(begriffe)).toEqual(['elem', 'sek2', 'fortbildung']);
+    expect(stufenAusBegriffen([])).toEqual(['unbekannt']);
+    expect(stufeAusBegriffen(begriffe)).toEqual({ key: 'elem', label: 'Elementar- & Primarbereich' });
+  });
+
+  it('liefert alle Typen eines Materials dedupliziert in fester Reihenfolge', () => {
+    const begriffe = ['Lernkontrolle', 'Audio', 'Unterrichtsplanung', 'Textdokument', 'Webseite', 'Arbeitsmaterial']
+      .map((label) => ({ id: 'x', label }));
+    expect(typenAusBegriffen(begriffe)).toEqual(['plan', 'ab', 'audio', 'webseite']);
+    expect(typenAusBegriffen([{ id: 'x', label: 'Lernkontrolle' }])).toEqual(['sonstiges']);
+    expect(typAusBegriffen(begriffe)).toEqual({ key: 'audio', label: 'Audio' });
   });
 });

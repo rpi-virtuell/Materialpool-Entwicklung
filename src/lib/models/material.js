@@ -12,7 +12,7 @@
  * gesäubert (CLAUDE.md).
  */
 
-import { stufeAusBegriffen, typAusBegriffen } from './typen.js';
+import { stufeAusBegriffen, stufenAusBegriffen, typAusBegriffen, typenAusBegriffen } from './typen.js';
 
 /** @typedef {import('../services/relay.js').Event} Event */
 /** @typedef {import('./typen.js').TypKey} TypKey */
@@ -45,8 +45,10 @@ import { stufeAusBegriffen, typAusBegriffen } from './typen.js';
  * @property {string[]} mitwirkende
  * @property {string} herkunft      Urheber · Herausgeber · Mitwirkende, sonst Hostname, sonst Hinweis
  * @property {string[]} themen      Schlagworte, sonst Fach-Labels; höchstens vier
- * @property {{ key: TypKey, label: string }} typ
- * @property {{ key: StufeKey, label: string }} stufe
+ * @property {{ key: TypKey, label: string }} typ       erster bekannter Typ (Anzeige)
+ * @property {TypKey[]} typKeys                          alle Typen (Filter, Facetten)
+ * @property {{ key: StufeKey, label: string }} stufe   erste Stufe (Anzeige)
+ * @property {StufeKey[]} stufenKeys                     alle Stufen (Filter, Facetten)
  * @property {Begriff[]} bildungsstufen
  * @property {Begriff[]} faecher
  * @property {Begriff[]} ressourcentypen
@@ -187,7 +189,9 @@ export function materialAusEvent(event) {
     herkunft: herkunftBilden({ urheber, herausgeber, mitwirkende, url }),
     themen: (schlagworte.length > 0 ? schlagworte : faecher.map((f) => f.label)).slice(0, THEMEN_MAX),
     typ: typAusBegriffen(ressourcentypen),
+    typKeys: typenAusBegriffen(ressourcentypen),
     stufe: stufeAusBegriffen(bildungsstufen),
+    stufenKeys: stufenAusBegriffen(bildungsstufen),
     bildungsstufen,
     faecher,
     ressourcentypen,

@@ -4,9 +4,9 @@
  * keine Komponente.
  */
 import { coverFarben, hash, kontrastText, STUFEN_FARBE_DEFAULT } from '../models/farben.js';
-import { materialAusEvent } from '../models/material.js';
 import { passtZurSaison, saisonKeywords } from '../models/saison.js';
 import { STUFEN_LABEL, STUFEN_SICHTBAR, TYPEN } from '../models/typen.js';
+import { materialienVon } from './bestand.js';
 import { leerstandErklaeren, listenPfad } from './uebersicht.js';
 
 /** @typedef {import('../services/spiegel.js').Inhalt} Inhalt */
@@ -86,7 +86,7 @@ export function empfehlungWaehlen(materialien, heute) {
  * @returns {{ themen: Thema[], stufen: Stufe[], empfehlung: Empfehlung|null, status: { text: string, warnung: boolean }|null }}
  */
 export function startseiteLaden({ inhalt, fehlschlag, relays, heute = new Date(), palette = STUFEN_FARBE_DEFAULT }) {
-  const materialien = inhalt.materialien.map(materialAusEvent);
+  const materialien = materialienVon(inhalt);
   const keywords = saisonKeywords(heute);
 
   const themen = themenZaehlen(materialien, keywords)

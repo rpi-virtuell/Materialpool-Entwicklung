@@ -4,7 +4,7 @@ import { materialAusEvent } from '../models/material.js';
 import { leererInhalt } from '../services/spiegel.js';
 import {
   aktiveFilter, facettenBilden, filterAnwenden, filterLesen, leererFilter, leerstandErklaeren,
-  listeLaden, listenPfad, SORTIERUNGEN, sortieren
+  listeLaden, listenPfad, SEITENGROESSE_LISTE, seitenBilden, SORTIERUNGEN, sortieren
 } from './uebersicht.js';
 
 const relays = ['wss://amb-relay.edufeed.org/'];
@@ -37,30 +37,36 @@ describe('listenPfad und filterLesen', () => {
   it('baut Pfade ohne leere Parameter, mehrfach je Facette, und liest sie zurück', () => {
     expect(listenPfad()).toBe('/materialien');
     expect(listenPfad({ q: 'Erntedank', stufen: ['elem'] })).toBe('/materialien?q=Erntedank&stufe=elem');
-    const voll = filter({ q: 'x', stufen: ['elem', 'sek1'], typen: ['video'], schlagworte: ['kita'], sortierung: 'neu' });
-    expect(listenPfad(voll)).toBe('/materialien?q=x&stufe=elem&stufe=sek1&typ=video&t=kita&sort=neu');
+    const voll = filter({ q: 'x', stufen: ['elem', 'sek1'], typen: ['video'], schlagworte: ['kita'], sortierung: 'neu', seite: 3 });
+    expect(listenPfad(voll)).toBe('/materialien?q=x&stufe=elem&stufe=sek1&typ=video&t=kita&sort=neu&seite=3');
     expect(filterLesen(new URLSearchParams(listenPfad(voll).slice(13)))).toEqual(voll);
   });
-  it('lässt die Standardsortierung im Pfad weg und ignoriert Unbekanntes', () => {
-    expect(listenPfad(filter({ sortierung: 'empfohlen' }))).toBe('/materialien');
-    expect(filterLesen(new URLSearchParams('q=+Ostern+&stufe=hochschule&typ=nix&sort=nix'))).toEqual(filter({ q: 'Ostern' }));
+  it('lässt Standardsortierung und Seite 1 im Pfad weg und ignoriert Unbekanntes', () => {
+    expect(listenPfad(filter({ sortierung: 'empfohlen', seite: 1 }))).toBe('/materialien');
+    expect(filterLesen(new URLSearchParams('q=+Ostern+&stufe=weiterbildung&typ=nix&sort=nix&seite=0'))).toEqual(filter({ q: 'Ostern' }));
+    expect(filterLesen(new URLSearchParams('seite=abc')).seite).toBe(1);
   });
 });
 
 describe('filterAnwenden', () => {
   it('sucht kleingeschrieben in Titel, Beschreibung, Herkunft und Schlagworten', () => {
-    expect(filterAnwenden(materialien, filter({ q: 'ERNTEDANK' })).map((m) => m.name)).toEqual(['Erntedank feiern in der Kita']);
-    expect(filterAnwenden(materialien, filter({ q: 'rpi-virtuell' }))).toHaveLength(2);
+    expect(filterAnwenden(materialien, filter({ q: 'ERNTEDANK' })).map((m) => m.name)).toEqual(['EKD: Erntedankfest']);
+    expect(filterAnwenden(materialien, filter({ q: 'horst heller' })).map((m) => m.name)).toEqual(['Zwischen Jericho und Jerusalem']);
+    expect(filterAnwenden(materialien, filter({ q: 'Grundschule' }))).toHaveLength(1);
     expect(filterAnwenden(materialien, filter({ q: 'gibtesnicht' }))).toEqual([]);
   });
-  it('ODER innerhalb einer Facette, UND dazwischen', () => {
-    expect(filterAnwenden(materialien, filter({ stufen: ['elem'] }))).toHaveLength(2);
-    expect(filterAnwenden(materialien, filter({ stufen: ['elem', 'bbs'] }))).toHaveLength(3);
-    expect(filterAnwenden(materialien, filter({ stufen: ['elem'], typen: ['plan'] }))).toHaveLength(2);
+  it('ODER innerhalb einer Facette, UND dazwischen — über alle Stufen und Typen eines Materials', () => {
+    expect(filterAnwenden(materialien, filter({ stufen: ['elem'] }))).toHaveLength(3);
+    expect(filterAnwenden(materialien, filter({ stufen: ['elem', 'hochschule'] }))).toHaveLength(3);
+    expect(filterAnwenden(materialien, filter({ stufen: ['fortbildung'] })).map((m) => m.name)).toEqual(['EKD: Erntedankfest']);
+    expect(filterAnwenden(materialien, filter({ stufen: ['unbekannt'] }))).toHaveLength(2);
+    expect(filterAnwenden(materialien, filter({ typen: ['plan'] }))).toHaveLength(6);
+    expect(filterAnwenden(materialien, filter({ typen: ['ab'] }))).toHaveLength(2);
+    expect(filterAnwenden(materialien, filter({ typen: ['video', 'audio'] }))).toHaveLength(2);
+    expect(filterAnwenden(materialien, filter({ stufen: ['elem'], typen: ['ab'] }))).toHaveLength(1);
     expect(filterAnwenden(materialien, filter({ stufen: ['elem'], typen: ['video'] }))).toHaveLength(0);
-    expect(filterAnwenden(materialien, filter({ typen: ['video', 'sonstiges'] }))).toHaveLength(2);
-    expect(filterAnwenden(materialien, filter({ schlagworte: ['kita'] }))).toHaveLength(1);
-    expect(filterAnwenden(materialien, filter({ q: 'abraham', stufen: ['bbs'] }))).toEqual([]);
+    expect(filterAnwenden(materialien, filter({ schlagworte: ['Pfingsten'] })).map((m) => m.name)).toEqual(['Ein frischer Geist weht']);
+    expect(filterAnwenden(materialien, filter({ q: 'jericho', stufen: ['bbs'] }))).toEqual([]);
   });
   it('lässt ohne Filter alles durch', () => {
     expect(filterAnwenden(materialien, filter())).toHaveLength(materialien.length);
@@ -68,24 +74,27 @@ describe('filterAnwenden', () => {
 });
 
 describe('facettenBilden', () => {
-  it('zählt je Facette ohne die eigene Facette, in fester Reihenfolge', () => {
+  it('zählt je Facette ohne die eigene Facette, in fester Reihenfolge, Materialien mit mehreren Werten in jedem', () => {
     const f = facettenBilden(materialien, filter({ stufen: ['elem'] }));
     expect(f.typen.map((o) => o.key)).toEqual(['plan', 'ab', 'proj', 'uebung', 'video', 'audio', 'webseite', 'sonstiges']);
     // Stufe elem aktiv: Typen werden innerhalb elem gezählt …
-    expect(f.typen.find((o) => o.key === 'plan')?.anzahl).toBe(2);
+    expect(f.typen.find((o) => o.key === 'plan')?.anzahl).toBe(3);
+    expect(f.typen.find((o) => o.key === 'ab')?.anzahl).toBe(1);
     expect(f.typen.find((o) => o.key === 'video')?.anzahl).toBe(0);
     // … die Stufen-Facette selbst aber ohne den Stufenfilter.
-    expect(f.stufen.map((o) => [o.key, o.anzahl])).toEqual([['elem', 2], ['sek1', 0], ['sek2', 0], ['bbs', 1], ['unbekannt', 1]]);
+    expect(f.stufen.map((o) => [o.key, o.anzahl])).toEqual([
+      ['elem', 3], ['sek1', 4], ['sek2', 3], ['bbs', 0], ['fortbildung', 1], ['hochschule', 1], ['unbekannt', 2]
+    ]);
     expect(f.stufen[0].aktiv).toBe(true);
   });
-  it('markiert leere Chips und baut Umschalt-Pfade', () => {
-    const f = facettenBilden(materialien, filter({ stufen: ['elem'] }));
+  it('markiert leere Chips, baut Umschalt-Pfade und springt dabei auf Seite 1', () => {
+    const f = facettenBilden(materialien, filter({ stufen: ['elem'], seite: 3 }));
     const video = f.typen.find((o) => o.key === 'video');
     expect(video?.leer).toBe(true);
     expect(video?.pfad).toBeNull();
     expect(f.typen.find((o) => o.key === 'plan')?.pfad).toBe('/materialien?stufe=elem&typ=plan');
     expect(f.stufen[0].pfad).toBe('/materialien');
-    expect(f.stufen[3].pfad).toBe('/materialien?stufe=elem&stufe=bbs');
+    expect(f.stufen[4].pfad).toBe('/materialien?stufe=elem&stufe=fortbildung');
   });
   it('zeigt höchstens zwölf Schlagworte, aktive zuerst, dann nach Häufigkeit', () => {
     const viele = Array.from({ length: 20 }, (_, i) => ({ ...materialien[0], id: `m${i}`, themen: [`w${i}`, 'gemeinsam'] }));
@@ -98,18 +107,26 @@ describe('facettenBilden', () => {
 });
 
 describe('sortieren', () => {
-  it('empfohlen: Bild zählt doppelt, Lizenz einfach, dann jüngste zuerst', () => {
+  it('empfohlen: Bild zählt doppelt, Lizenz einfach, dann neueste zuerst', () => {
     const namen = sortieren(materialien, 'empfohlen').map((m) => m.name);
-    expect(namen[0]).toBe('Abraham — eine kindgerechte Erzählung');
-    expect(namen[1]).toBe('Erntedank feiern in der Kita');
-    // Punktgleichstand (nur Lizenz): das jüngere zuerst
-    expect(namen[2]).toBe('Material ohne Labels');
-    expect(namen[3]).toBe('Reformation im Berufsschulunterricht');
+    expect(namen[0]).toBe('Zwischen Jericho und Jerusalem'); // Bild und Lizenz
+    // Punktgleichstand (nur Bild): nach Datum, neueste zuerst
+    expect(namen.slice(1, 5)).toEqual([
+      'Religionen und miteinander leben in Deutschland - jetzt versteh ich das! (Arbeitsheft)',
+      'EKD: Erntedankfest', 'Ein frischer Geist weht', 'Flüchtlinge schützen'
+    ]);
+    expect(namen.slice(5)).toEqual(['Jenseits des Wissens', 'Berufsorientierung']);
   });
-  it('neu, titel, anbieter', () => {
-    expect(sortieren(materialien, 'neu').map((m) => m.createdAt)).toEqual([...materialien.map((m) => m.createdAt)].sort((a, b) => b - a));
-    expect(sortieren(materialien, 'titel').map((m) => m.name)[0]).toBe('Abraham — eine kindgerechte Erzählung');
-    expect(sortieren(materialien, 'anbieter').map((m) => m.herkunft)[0]).toBe('bbs-beispiel.de');
+  it('neu sortiert nach datePublished/dateCreated, nicht nach der Importzeit des Events', () => {
+    expect(sortieren(materialien, 'neu').map((m) => m.datum)).toEqual(
+      ['2024-12-08', '2021-01-01', '2020-07-21', '2017-08-13', '2017-05-15', '2017-05-11', '2017-01-01']
+    );
+  });
+  it('titel und anbieter nach deutscher Sortierung', () => {
+    const titel = sortieren(materialien, 'titel').map((m) => m.name);
+    expect(titel[0]).toBe('Berufsorientierung');
+    expect(titel[6]).toBe('Zwischen Jericho und Jerusalem');
+    expect(sortieren(materialien, 'anbieter').map((m) => m.herkunft).slice(0, 2)).toEqual(['EKD', 'Evangelisch-Lutherische Kirche in Bayern']);
     expect(SORTIERUNGEN.map((s) => s.key)).toEqual(['empfohlen', 'neu', 'titel', 'anbieter']);
   });
   it('verändert die Eingabe nicht', () => {
@@ -121,7 +138,7 @@ describe('sortieren', () => {
 
 describe('aktiveFilter', () => {
   it('liefert je aktivem Wert eine Pille mit Entfernen-Pfad', () => {
-    expect(aktiveFilter(filter({ q: 'Ostern', stufen: ['sek1'], typen: ['video'], schlagworte: ['kita'] }))).toEqual([
+    expect(aktiveFilter(filter({ q: 'Ostern', stufen: ['sek1'], typen: ['video'], schlagworte: ['kita'], seite: 2 }))).toEqual([
       { art: 'q', label: '„Ostern“', entfernenPfad: '/materialien?stufe=sek1&typ=video&t=kita' },
       { art: 'typ', label: 'Video', entfernenPfad: '/materialien?q=Ostern&stufe=sek1&t=kita' },
       { art: 'stufe', label: 'Sekundarstufe I', entfernenPfad: '/materialien?q=Ostern&typ=video&t=kita' },
@@ -131,25 +148,55 @@ describe('aktiveFilter', () => {
   });
 });
 
+describe('seitenBilden', () => {
+  it('teilt Treffer in Seiten und zieht die Seite auf den gültigen Bereich', () => {
+    expect(seitenBilden(7, filter())).toEqual({ aktuell: 1, anzahl: 1, von: 1, bis: 7, vorPfad: null, weiterPfad: null });
+    const s = seitenBilden(50, filter({ q: 'x', seite: 2 }));
+    expect(s).toMatchObject({ aktuell: 2, anzahl: 3, von: 25, bis: 48, vorPfad: '/materialien?q=x', weiterPfad: '/materialien?q=x&seite=3' });
+    expect(seitenBilden(50, filter({ seite: 99 })).aktuell).toBe(3);
+    expect(seitenBilden(0, filter())).toMatchObject({ aktuell: 1, anzahl: 1, von: 0, bis: 0 });
+  });
+});
+
 describe('listeLaden', () => {
-  it('liefert Karten sortiert mit Icon, Cover-Farben, Facetten und Sortierungen', () => {
-    const daten = listeLaden({ inhalt: { ...leererInhalt(), materialien: beispiele }, fehlschlag: null, relays });
-    expect(daten.karten).toHaveLength(4);
-    expect(daten.karten[0].material.name).toBe('Abraham — eine kindgerechte Erzählung');
-    expect(daten.gesamt).toBe(4);
+  const inhalt = { ...leererInhalt(), materialien: beispiele };
+  it('liefert Karten sortiert mit Icon, Cover-Farben, Facetten, Sortierungen und Seiten', () => {
+    const daten = listeLaden({ inhalt, fehlschlag: null, relays });
+    expect(daten.karten).toHaveLength(7);
+    expect(daten.treffer).toBe(7);
+    expect(daten.gesamt).toBe(7);
+    expect(daten.karten[0].material.name).toBe('Zwischen Jericho und Jerusalem');
     expect(daten.karten[0].icon).toBe('notebook');
     expect(daten.karten[0].cover.ink).toMatch(/^#/);
     expect(daten.leerstand).toBeNull();
     expect(daten.pillen).toEqual([]);
     expect(daten.facetten.typen).toHaveLength(8);
+    expect(daten.seiten.anzahl).toBe(1);
     expect(daten.sortierungen.find((s) => s.aktiv)?.key).toBe('empfohlen');
     expect(daten.sortierungen.find((s) => s.key === 'titel')?.pfad).toBe('/materialien?sort=titel');
   });
   it('wendet Filter und Sortierung an und behält gesamt', () => {
-    const daten = listeLaden({ inhalt: { ...leererInhalt(), materialien: beispiele }, fehlschlag: null, relays, filter: filter({ q: 'kita', sortierung: 'titel' }) });
+    const daten = listeLaden({ inhalt, fehlschlag: null, relays, filter: filter({ q: 'pfingsten', sortierung: 'titel' }) });
     expect(daten.karten).toHaveLength(1);
-    expect(daten.gesamt).toBe(4);
-    expect(daten.pillen[0].label).toBe('„kita“');
+    expect(daten.treffer).toBe(1);
+    expect(daten.gesamt).toBe(7);
+    expect(daten.pillen[0].label).toBe('„pfingsten“');
     expect(daten.sortierungen.find((s) => s.aktiv)?.key).toBe('titel');
+  });
+  it('blättert: Seite 2 zeigt den Rest, Sortier- und Facettenlinks springen auf Seite 1', () => {
+    const viele = Array.from({ length: SEITENGROESSE_LISTE + 6 }, (_, i) => ({
+      ...beispiele[0], id: String(i).padStart(64, 'a'), tags: beispiele[0].tags.map((t) => (t[0] === 'd' ? ['d', `https://x.example/${i}`] : t))
+    }));
+    const daten = listeLaden({ inhalt: { ...leererInhalt(), materialien: viele }, fehlschlag: null, relays, filter: filter({ seite: 2 }) });
+    expect(daten.treffer).toBe(30);
+    expect(daten.karten).toHaveLength(6);
+    expect(daten.seiten).toMatchObject({ aktuell: 2, anzahl: 2, von: 25, bis: 30, vorPfad: '/materialien', weiterPfad: null });
+    expect(daten.sortierungen.find((s) => s.key === 'neu')?.pfad).toBe('/materialien?sort=neu');
+    expect(daten.facetten.typen.find((o) => o.key === 'plan')?.pfad).toBe('/materialien?typ=plan');
+  });
+  it('bereitet die Materialien je Spiegelstand nur einmal auf', () => {
+    const a = listeLaden({ inhalt, fehlschlag: null, relays });
+    const b = listeLaden({ inhalt, fehlschlag: null, relays, filter: filter({ sortierung: 'titel' }) });
+    expect(a.karten[0].material).toBe(b.karten.find((k) => k.material.id === a.karten[0].material.id)?.material);
   });
 });

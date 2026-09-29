@@ -1,6 +1,7 @@
 <script>
   import '../app.css';
   import { page } from '$app/state';
+  import IconSprite from '$lib/komponenten/IconSprite.svelte';
   import Kopfzeile from '$lib/komponenten/Kopfzeile.svelte';
   import Fusszeile from '$lib/komponenten/Fusszeile.svelte';
 
@@ -17,6 +18,7 @@
 </script>
 
 <div class="rahmen" style={ciStil}>
+  <IconSprite />
   <Kopfzeile {aktiv} />
   {@render children()}
   <Fusszeile spiegelstand={data.spiegelstand} />

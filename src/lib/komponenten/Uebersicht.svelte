@@ -9,9 +9,9 @@
    * Spiegel (Erklärung), keine Treffer (aktive Filter), Treffer.
    * @type {ReturnType<typeof import('$lib/routen/uebersicht.js').listeLaden>}
    */
-  let { karten, filter, pillen, facetten, sortierungen, gesamt, leerstand } = $props();
+  let { karten, treffer, seiten, filter, pillen, facetten, sortierungen, gesamt, leerstand } = $props();
   const trefferText = $derived(
-    karten.length === gesamt ? `${karten.length} Treffer` : `${karten.length} Treffer von ${gesamt}`
+    treffer === gesamt ? `${treffer} Treffer` : `${treffer} Treffer von ${gesamt}`
   );
   const filterText = $derived(pillen.map((p) => p.label).join(' und '));
   const gruppen = $derived([
@@ -82,6 +82,13 @@
             <Karte {karte} />
           {/each}
         </div>
+        {#if seiten.anzahl > 1}
+          <nav class="seiten" aria-label="Seiten">
+            {#if seiten.vorPfad}<a href={seiten.vorPfad} rel="prev">← Zurück</a>{:else}<span class="seiten-aus">← Zurück</span>{/if}
+            <span class="seiten-stand">Seite {seiten.aktuell} von {seiten.anzahl} · Treffer {seiten.von}–{seiten.bis}</span>
+            {#if seiten.weiterPfad}<a href={seiten.weiterPfad} rel="next">Weiter →</a>{:else}<span class="seiten-aus">Weiter →</span>{/if}
+          </nav>
+        {/if}
       {/if}
     {/if}
   </div>
@@ -186,6 +193,18 @@
     grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
     gap: var(--sp-4);
   }
+  .seiten {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: var(--sp-3);
+    margin-top: var(--sp-8);
+    font-size: var(--fs-300);
+    color: var(--text-muted);
+  }
+  .seiten a { color: var(--text-dark); font-weight: 600; text-decoration: none; border-bottom: 1.5px solid var(--unterstrich); }
+  .seiten a:hover { border-bottom-color: var(--text-dark); }
+  .seiten-aus { opacity: 0.4; }
   .keine-treffer h2 { font-size: 22px; margin-bottom: var(--sp-2); }
   .filter-aufheben { color: var(--blue); font-weight: 600; }
   @media (max-width: 640px) {

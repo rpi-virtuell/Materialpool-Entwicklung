@@ -1,23 +1,23 @@
 import { describe, expect, it } from 'vitest';
 import beispiele from '../../../test/fixtures/amb-beispiele.json';
+import { STUFEN_FARBE_DEFAULT } from '../models/farben.js';
 import { materialAusEvent } from '../models/material.js';
 import { leererInhalt } from '../services/spiegel.js';
-import { STUFEN_FARBE_DEFAULT } from '../models/farben.js';
 import { empfehlungWaehlen, startseiteLaden, themenZaehlen } from './startseite.js';
 
 const relays = ['wss://amb-relay.edufeed.org/'];
-const inhalt = { ...leererInhalt(), materialien: beispiele, stand: { zeitpunkt: 'x', dauerMs: 1, gefragteRelays: relays, nichtErreichbar: [], anzahl: { materialien: 4 } } };
+const inhalt = { ...leererInhalt(), materialien: beispiele, stand: { zeitpunkt: 'x', dauerMs: 1, gefragteRelays: relays, nichtErreichbar: [], anzahl: { materialien: 7 } } };
 const september = new Date(2026, 8, 29);
 const juli = new Date(2026, 6, 1);
 
 describe('themenZaehlen', () => {
   it('zählt Themen über alle Materialien, saisonale zuerst, dann nach Häufigkeit, höchstens sechs', () => {
     const { themen } = startseiteLaden({ inhalt, fehlschlag: null, relays, heute: september });
-    expect(themen.map((t) => t.wort).slice(0, 2)).toEqual(['Erntedank', 'schöpfung']);
+    expect(themen[0]).toMatchObject({ wort: 'Erntedank', saisonal: true, pfad: '/materialien?q=Erntedank' });
     expect(themen).toHaveLength(6);
-    expect(themen[0].pfad).toBe('/materialien?q=Erntedank');
+    expect(themen.slice(1).every((t) => !t.saisonal)).toBe(true);
   });
-  it('sortiert ohne Saison nur nach Häufigkeit', () => {
+  it('sortiert ohne Saison nur nach Häufigkeit, dann alphabetisch', () => {
     const zaehlung = themenZaehlen(
       [{ themen: ['a', 'b'] }, { themen: ['b'] }, { themen: ['b', 'c'] }],
       []
@@ -45,7 +45,7 @@ describe('startseiteLaden', () => {
 
   it('wählt die Empfehlung: saisonal mit Bild vor Bild vor allem, stabil je Tag', () => {
     const a = startseiteLaden({ inhalt, fehlschlag: null, relays, heute: september });
-    expect(a.empfehlung?.name).toBe('Erntedank feiern in der Kita');
+    expect(a.empfehlung?.name).toBe('EKD: Erntedankfest');
     expect(a.empfehlung?.cover.ink).toMatch(/^#/);
     expect(a.empfehlung?.icon).toBe('notebook');
     const b = startseiteLaden({ inhalt, fehlschlag: null, relays, heute: september });
@@ -55,7 +55,7 @@ describe('startseiteLaden', () => {
 
   it('ohne Saisontreffer: irgendein Material mit Bild', () => {
     const { empfehlung } = startseiteLaden({ inhalt, fehlschlag: null, relays, heute: juli });
-    expect(empfehlung?.bild).toMatch(/^https:/);
+    expect(empfehlung?.bild).toMatch(/^https?:/);
   });
 
   it('ohne Bilder: irgendein Material', () => {

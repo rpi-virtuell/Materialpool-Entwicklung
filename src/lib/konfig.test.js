@@ -27,7 +27,7 @@ describe('konfigLesen', () => {
     expect(k.spiegelPfad).toBe('daten/spiegel.json');
     expect(k.spiegelIntervallS).toBe(600);
     expect(k.spiegelStartwartezeitS).toBe(20);
-    expect(k.spiegelLimit).toBe(500);
+    expect(k.spiegelLimit).toBe(10000);
   });
 
   it('nimmt Autoren als Hex-Liste, kleingeschrieben', () => {

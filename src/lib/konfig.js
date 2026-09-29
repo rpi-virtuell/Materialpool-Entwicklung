@@ -6,7 +6,7 @@
  * @property {string} spiegelPfad            JSON-Datei des Spiegels
  * @property {number} spiegelIntervallS      Abstand zwischen zwei Läufen
  * @property {number} spiegelStartwartezeitS wie lange der Start auf den ersten Lauf wartet
- * @property {number} spiegelLimit           Höchstzahl Events je Relay-Abfrage
+ * @property {number} spiegelLimit           Höchstzahl Events je Relay (blätternd zu je 250)
  */
 
 const HEX64 = /^[0-9a-f]{64}$/;
@@ -95,6 +95,6 @@ export function konfigLesen(quelle) {
     spiegelStartwartezeitS: positiveGanzzahl(
       quelle.SPIEGEL_STARTWARTEZEIT_S, 20, 'SPIEGEL_STARTWARTEZEIT_S'
     ),
-    spiegelLimit: positiveGanzzahl(quelle.SPIEGEL_LIMIT, 500, 'SPIEGEL_LIMIT')
+    spiegelLimit: positiveGanzzahl(quelle.SPIEGEL_LIMIT, 10000, 'SPIEGEL_LIMIT')
   };
 }

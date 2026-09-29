@@ -24,9 +24,9 @@ Betrieb in `docs/betrieb.md`.
 Voraussetzung: Node ≥ 22.13 (`.nvmrc`: 24), pnpm über corepack.
 
 ```
-cp .env.example .env      # Relays eintragen, QUELLE_AUTOREN vorerst leer
+cp .env.example .env      # zeigt auf amb-relay.edufeed.org und den Materialpool-Schlüssel
 pnpm install
-pnpm dev                  # http://localhost:5173
+pnpm dev                  # http://localhost:5173 — der erste Spiegel-Lauf holt ~7.700 Events (~1 min)
 ```
 
 Prüfen vor jedem Merge:
@@ -35,7 +35,8 @@ Prüfen vor jedem Merge:
 pnpm check && pnpm test
 ```
 
-Den gebauten Server ohne Netz ansehen (Mock-Relay mit den Fixtures):
+Den gebauten Server ohne Netz prüfen (Mock-Relay spielt die sieben echten
+Fixtures ab — keine Beispieldaten):
 
 ```
 node test/mock-relay.mjs 3790

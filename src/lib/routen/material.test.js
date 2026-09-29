@@ -12,9 +12,9 @@ const inhalt = {
 
 describe('materialLaden', () => {
   it('findet ein Material über die Kennung und nennt die Herkunft', () => {
-    const kennung = kennungAusD('https://material.rpi-virtuell.de/material/abraham-erzaehlung/');
+    const kennung = kennungAusD('https://material.rpi-virtuell.de/material/religionen-und-miteinander-leben-in-deutschland-jetzt-versteh-ich-das-arbeitsheft/');
     const treffer = materialLaden({ inhalt, kennung });
-    expect(treffer?.material.name).toMatch(/Abraham/);
+    expect(treffer?.material.name).toMatch(/Religionen und miteinander leben/);
     expect(treffer?.relays).toEqual(['wss://eins/']);
   });
   it('liefert null für unbekannte und für kaputte Kennungen', () => {
@@ -22,7 +22,7 @@ describe('materialLaden', () => {
     expect(eventFinden({ inhalt, kennung: '%E0%A4%A' })).toBeNull();
   });
   it('kennt ein Event ohne Herkunft (Stand aus der Datei) mit leerer Relay-Liste', () => {
-    const treffer = eventFinden({ inhalt, kennung: kennungAusD('https://example.org/ohne-labels') });
+    const treffer = eventFinden({ inhalt, kennung: kennungAusD('https://material.rpi-virtuell.de/material/berufsorientierung/') });
     expect(treffer?.relays).toEqual([]);
   });
 });

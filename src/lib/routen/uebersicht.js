@@ -6,8 +6,8 @@
  */
 import { ABFRAGEGRUND_TEXT } from '../services/spiegel.js';
 import { coverFarben } from '../models/farben.js';
-import { materialAusEvent } from '../models/material.js';
 import { STUFEN_LABEL, STUFEN_REIHENFOLGE, TYP_LABEL, TYP_REIHENFOLGE, TYPEN } from '../models/typen.js';
+import { materialienVon } from './bestand.js';
 
 /** @typedef {import('../services/spiegel.js').Inhalt} Inhalt */
 /** @typedef {import('../services/spiegel.js').Fehlschlag} Fehlschlag */
@@ -23,6 +23,7 @@ import { STUFEN_LABEL, STUFEN_REIHENFOLGE, TYP_LABEL, TYP_REIHENFOLGE, TYPEN } f
  * @property {TypKey[]} typen
  * @property {string[]} schlagworte
  * @property {Sortierung} sortierung
+ * @property {number} seite        1-basiert
  */
 
 /** @type {{ key: Sortierung, label: string }[]} */
@@ -36,9 +37,12 @@ export const SORTIERUNGEN = [
 /** Höchstzahl der Schlagwort-Chips. */
 export const SCHLAGWORTE_MAX = 12;
 
+/** Karten je Seite. */
+export const SEITENGROESSE_LISTE = 24;
+
 /** @returns {Filter} */
 export function leererFilter() {
-  return { q: '', stufen: [], typen: [], schlagworte: [], sortierung: 'empfohlen' };
+  return { q: '', stufen: [], typen: [], schlagworte: [], sortierung: 'empfohlen', seite: 1 };
 }
 
 /**
@@ -71,6 +75,7 @@ export function listenPfad(filter = {}) {
   for (const t of filter.typen ?? []) p.append('typ', t);
   for (const w of filter.schlagworte ?? []) p.append('t', w);
   if (filter.sortierung && filter.sortierung !== 'empfohlen') p.set('sort', filter.sortierung);
+  if (filter.seite && filter.seite > 1) p.set('seite', String(filter.seite));
   const s = p.toString();
   return s ? `/materialien?${s}` : '/materialien';
 }
@@ -88,12 +93,14 @@ export function filterLesen(params) {
       return treffer === undefined ? [] : [treffer];
     });
   const sortierung = SORTIERUNGEN.find((s) => s.key === params.get('sort'))?.key ?? 'empfohlen';
+  const seiteRoh = Number(params.get('seite') ?? '1');
   return {
     q: (params.get('q') ?? '').trim(),
     stufen: bekannte('stufe', STUFEN_REIHENFOLGE),
     typen: bekannte('typ', TYP_REIHENFOLGE),
     schlagworte: [...new Set(params.getAll('t').map((w) => w.trim()).filter(Boolean))],
-    sortierung
+    sortierung,
+    seite: Number.isInteger(seiteRoh) && seiteRoh > 1 ? seiteRoh : 1
   };
 }
 
@@ -103,10 +110,10 @@ function passtZuText(m, q) {
   return [m.name, m.beschreibung, m.herkunft, ...m.schlagworte].join(' ').toLowerCase().includes(q);
 }
 
-/** @param {Material} m @param {Omit<Filter, 'q'|'sortierung'>} f */
+/** @param {Material} m @param {Pick<Filter, 'stufen'|'typen'|'schlagworte'>} f */
 function passtZuFacetten(m, f) {
-  if (f.stufen.length > 0 && !f.stufen.includes(m.stufe.key)) return false;
-  if (f.typen.length > 0 && !f.typen.includes(m.typ.key)) return false;
+  if (f.stufen.length > 0 && !m.stufenKeys.some((k) => f.stufen.includes(k))) return false;
+  if (f.typen.length > 0 && !m.typKeys.some((k) => f.typen.includes(k))) return false;
   if (f.schlagworte.length > 0 && !f.schlagworte.some((w) => m.themen.includes(w))) return false;
   return true;
 }
@@ -161,7 +168,7 @@ function facette(materialien, filter, facette, werteVon, reihenfolge, labelVon) 
       anzahl,
       aktiv,
       leer,
-      pfad: leer ? null : listenPfad({ ...filter, [facette]: umgeschaltet })
+      pfad: leer ? null : listenPfad({ ...filter, [facette]: umgeschaltet, seite: 1 })
     };
   });
 }
@@ -182,8 +189,8 @@ export function facettenBilden(materialien, filter) {
     .sort((a, b) => Number(b.aktiv) - Number(a.aktiv) || b.anzahl - a.anzahl || a.key.localeCompare(b.key, 'de'))
     .slice(0, SCHLAGWORTE_MAX);
   return {
-    typen: facette(materialien, filter, 'typen', (m) => [m.typ.key], TYP_REIHENFOLGE, (k) => TYP_LABEL[k]),
-    stufen: facette(materialien, filter, 'stufen', (m) => [m.stufe.key], STUFEN_REIHENFOLGE, (k) => STUFEN_LABEL[k]),
+    typen: facette(materialien, filter, 'typen', (m) => m.typKeys, TYP_REIHENFOLGE, (k) => TYP_LABEL[k]),
+    stufen: facette(materialien, filter, 'stufen', (m) => m.stufenKeys, STUFEN_REIHENFOLGE, (k) => STUFEN_LABEL[k]),
     schlagworte
   };
 }
@@ -193,9 +200,16 @@ function empfehlungsScore(m) {
   return (m.bild ? 2 : 0) + (m.lizenzKuerzel ? 1 : 0);
 }
 
+/** @param {Material} a @param {Material} b jüngstes Datum zuerst; ohne Datum hinten, dann Event-Zeit */
+function neuesteZuerst(a, b) {
+  return (b.datum ?? '').localeCompare(a.datum ?? '') || b.createdAt - a.createdAt;
+}
+
 /**
  * Sortiert eine Kopie. `empfohlen`: Bild zählt doppelt, Lizenz einfach,
- * dann jüngste zuerst. `titel` und `anbieter` nach deutscher Sortierung.
+ * dann neueste zuerst. `neu` nach `datePublished`/`dateCreated` — die
+ * Event-Zeit (`created_at`) ist im Materialpool-Bestand die Importzeit und
+ * für alle gleich. `titel` und `anbieter` nach deutscher Sortierung.
  * @param {Material[]} materialien
  * @param {Sortierung} sortierung
  */
@@ -204,8 +218,8 @@ export function sortieren(materialien, sortierung) {
   const de = (a, b) => a.localeCompare(b, 'de');
   /** @type {Record<Sortierung, (a: Material, b: Material) => number>} */
   const vergleich = {
-    empfohlen: (a, b) => empfehlungsScore(b) - empfehlungsScore(a) || b.createdAt - a.createdAt,
-    neu: (a, b) => b.createdAt - a.createdAt,
+    empfohlen: (a, b) => empfehlungsScore(b) - empfehlungsScore(a) || neuesteZuerst(a, b),
+    neu: neuesteZuerst,
     titel: (a, b) => de(a.name, b.name),
     anbieter: (a, b) => de(a.herkunft, b.herkunft) || de(a.name, b.name)
   };
@@ -220,15 +234,16 @@ export function sortieren(materialien, sortierung) {
 export function aktiveFilter(filter) {
   /** @type {{ art: 'q'|'typ'|'stufe'|'t', label: string, entfernenPfad: string }[]} */
   const pillen = [];
-  if (filter.q) pillen.push({ art: 'q', label: `„${filter.q}“`, entfernenPfad: listenPfad({ ...filter, q: '' }) });
+  const ohne = { ...filter, seite: 1 };
+  if (filter.q) pillen.push({ art: 'q', label: `„${filter.q}“`, entfernenPfad: listenPfad({ ...ohne, q: '' }) });
   for (const t of filter.typen) {
-    pillen.push({ art: 'typ', label: TYP_LABEL[t], entfernenPfad: listenPfad({ ...filter, typen: filter.typen.filter((k) => k !== t) }) });
+    pillen.push({ art: 'typ', label: TYP_LABEL[t], entfernenPfad: listenPfad({ ...ohne, typen: filter.typen.filter((k) => k !== t) }) });
   }
   for (const s of filter.stufen) {
-    pillen.push({ art: 'stufe', label: STUFEN_LABEL[s], entfernenPfad: listenPfad({ ...filter, stufen: filter.stufen.filter((k) => k !== s) }) });
+    pillen.push({ art: 'stufe', label: STUFEN_LABEL[s], entfernenPfad: listenPfad({ ...ohne, stufen: filter.stufen.filter((k) => k !== s) }) });
   }
   for (const w of filter.schlagworte) {
-    pillen.push({ art: 't', label: w, entfernenPfad: listenPfad({ ...filter, schlagworte: filter.schlagworte.filter((k) => k !== w) }) });
+    pillen.push({ art: 't', label: w, entfernenPfad: listenPfad({ ...ohne, schlagworte: filter.schlagworte.filter((k) => k !== w) }) });
   }
   return pillen;
 }
@@ -241,17 +256,39 @@ export function aktiveFilter(filter) {
  */
 
 /**
+ * Seitenumbruch: die aktuelle Seite (auf den gültigen Bereich gezogen),
+ * Anzahl der Seiten und Pfade zurück und vor.
+ * @param {number} treffer @param {Filter} filter
+ */
+export function seitenBilden(treffer, filter) {
+  const anzahl = Math.max(1, Math.ceil(treffer / SEITENGROESSE_LISTE));
+  const aktuell = Math.min(Math.max(1, filter.seite), anzahl);
+  return {
+    aktuell,
+    anzahl,
+    von: treffer === 0 ? 0 : (aktuell - 1) * SEITENGROESSE_LISTE + 1,
+    bis: Math.min(treffer, aktuell * SEITENGROESSE_LISTE),
+    vorPfad: aktuell > 1 ? listenPfad({ ...filter, seite: aktuell - 1 }) : null,
+    weiterPfad: aktuell < anzahl ? listenPfad({ ...filter, seite: aktuell + 1 }) : null
+  };
+}
+
+/**
  * @param {{ inhalt: Inhalt, fehlschlag: Fehlschlag|null, relays: string[], filter?: Filter }} eingabe
  */
 export function listeLaden({ inhalt, fehlschlag, relays, filter = leererFilter() }) {
-  const alle = inhalt.materialien.map(materialAusEvent);
+  const alle = materialienVon(inhalt);
   const treffer = sortieren(filterAnwenden(alle, filter), filter.sortierung);
+  const seiten = seitenBilden(treffer.length, filter);
+  const ausschnitt = treffer.slice((seiten.aktuell - 1) * SEITENGROESSE_LISTE, seiten.aktuell * SEITENGROESSE_LISTE);
   return {
-    karten: treffer.map((material) => ({ material, icon: TYPEN[material.typ.key].icon, cover: coverFarben(material) })),
+    karten: ausschnitt.map((material) => ({ material, icon: TYPEN[material.typ.key].icon, cover: coverFarben(material) })),
+    treffer: treffer.length,
+    seiten,
     filter,
     pillen: aktiveFilter(filter),
     facetten: facettenBilden(alle, filter),
-    sortierungen: SORTIERUNGEN.map((s) => ({ ...s, aktiv: s.key === filter.sortierung, pfad: listenPfad({ ...filter, sortierung: s.key }) })),
+    sortierungen: SORTIERUNGEN.map((s) => ({ ...s, aktiv: s.key === filter.sortierung, pfad: listenPfad({ ...filter, sortierung: s.key, seite: 1 }) })),
     gesamt: alle.length,
     leerstand: leerstandErklaeren(inhalt, fehlschlag, relays)
   };

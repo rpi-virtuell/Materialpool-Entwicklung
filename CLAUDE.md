@@ -64,8 +64,10 @@ gesäubert.
 ## Serverseitig rendern
 
 Alle Ansichten liefern fertiges HTML mit Inhalt; die Seite ist ohne
-JavaScript lesbar. Keine Relay-Verbindung im Browser, keine
-Live-Aktualisierung. `ssr = false` ist nie die Antwort.
+JavaScript vollständig — `csr = false` im Layout, es gibt kein
+Client-Bündel. Keine Relay-Verbindung im Browser, keine
+Live-Aktualisierung. `ssr = false` ist nie die Antwort. Wer Interaktion
+braucht, die HTML und CSS nicht hergeben, schreibt zuerst eine ADR.
 
 ## Fehlerfälle
 
@@ -116,6 +118,11 @@ ausgeliefert.
 **Vor jedem Merge:** `pnpm check && pnpm test`. Tests laufen ohne Netz gegen
 `test/fixtures/`; Komponenten werden mit `svelte/server` gerendert. **Neue
 Funktionen kommen mit einer Prüfung.**
+
+**Keine erfundenen Daten.** Fixtures sind echte, signierte Events vom
+Relay, unverändert übernommen (`test/fixtures/README.md`). Das Mock-Relay
+(`test/mock-relay.mjs`) spielt nur diese Fixtures ab und dient allein der
+Prüfung des gebauten Servers ohne Netz — `.env` zeigt auf das echte Relay.
 
 ## Umgebungen
 
