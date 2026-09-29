@@ -1,11 +1,3 @@
-# Nach dem Muster von oer-community (.woodpecker.yml dort, docs/betrieb.md).
-# Jeder Push auf main: installieren, prüfen, testen, bauen, ausliefern.
-#
-# Voraussetzungen, die noch fehlen (Issues „Entwicklungsserver einrichten“
-# und „Woodpecker aktivieren“): das Repository ist in Woodpecker noch nicht
-# aktiviert, der Deploy-Nutzer und der Name für deploy-app.sh sind noch
-# nicht festgelegt, material.rpi-virtuell.net hat noch keinen vHost und kein
-# Zertifikat. Bis dahin laufen nur die ersten drei Schritte sinnvoll.
 when:
   branch: main
   event: push
@@ -39,6 +31,4 @@ steps:
       key:
         from_secret: deploy_ssh_key
       script:
-        # Der Server führt für diesen Schlüssel nur dieses Skript aus; der
-        # Name des Server-Verzeichnisses folgt Ludgers ServerSetup.
-        - ~/ServerSetup/scripts/deploy-app.sh materialpool
+        - ~/ServerSetup/scripts/deploy-app.sh material # Konvention: wie subdomain
