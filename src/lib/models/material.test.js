@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import beispiele from '../../../test/fixtures/amb-beispiele.json';
 import { begriffe, dAusKennung, kennungAusD, letzterPfadteil, lizenzKuerzel, materialAusEvent } from './material.js';
 
-const [abraham, ohneLabels] = beispiele;
+const [abraham, ohneLabels, erntedank, reformation] = beispiele;
 
 describe('materialAusEvent', () => {
   it('liest die flachen AMB-Felder', () => {
@@ -55,6 +55,42 @@ describe('materialAusEvent', () => {
     expect(dAusKennung(m.kennung)).toBe(m.d);
     expect(dAusKennung('%E0%A4%A')).toBeNull();
     expect(kennungAusD('a b')).toBe('a%20b');
+  });
+
+  it('leitet Typ und Stufe aus den SKOS-Begriffen ab', () => {
+    expect(materialAusEvent(erntedank).typ).toEqual({ key: 'plan', label: 'Unterrichtsplanung' });
+    expect(materialAusEvent(erntedank).stufe).toEqual({ key: 'elem', label: 'Elementar- & Primarbereich' });
+    expect(materialAusEvent(reformation).typ).toEqual({ key: 'video', label: 'Video' });
+    expect(materialAusEvent(reformation).stufe).toEqual({ key: 'bbs', label: 'Berufsbildung' });
+    expect(materialAusEvent(ohneLabels).typ).toEqual({ key: 'sonstiges', label: 'Material' });
+    expect(materialAusEvent(ohneLabels).stufe.key).toBe('unbekannt');
+  });
+
+  it('nennt die Herkunft: Urheber, Herausgeber, Mitwirkende — sonst Hostname — sonst Hinweis', () => {
+    expect(materialAusEvent(erntedank).mitwirkende).toEqual(['Mitwirkende Person']);
+    expect(materialAusEvent(erntedank).herkunft).toBe('Beispielautorin · rpi-virtuell · Mitwirkende Person');
+    expect(materialAusEvent(reformation).herkunft).toBe('bbs-beispiel.de');
+    expect(materialAusEvent({ ...ohneLabels, tags: [['d', 'urn:x']] }).herkunft).toBe('Herkunft nicht angegeben');
+    const doppelt = { ...abraham, tags: [...abraham.tags, ['contributor:name', 'rpi-virtuell']] };
+    expect(materialAusEvent(doppelt).herkunft).toBe('Beispielautorin · rpi-virtuell');
+  });
+
+  it('findet die URL: d, sonst encoding:contentUrl, sonst erstes http-r', () => {
+    expect(materialAusEvent(erntedank).url).toBe('https://example.org/erntedank.pdf');
+    const mitR = { ...ohneLabels, tags: [['d', 'urn:y'], ['r', 'mailto:x'], ['r', 'https://r.example/']] };
+    expect(materialAusEvent(mitR).url).toBe('https://r.example/');
+    expect(materialAusEvent({ ...ohneLabels, tags: [['d', 'urn:z']] }).url).toBeNull();
+  });
+
+  it('nimmt ein Bild nur mit http(s)-Adresse', () => {
+    expect(materialAusEvent(reformation).bild).toBeNull();
+    expect(materialAusEvent(erntedank).bild).toBe('https://blossom.edufeed.org/erntedank.jpg');
+  });
+
+  it('liefert Themen: t-Tags, sonst about-Labels, höchstens vier', () => {
+    expect(materialAusEvent(erntedank).themen).toEqual(['Erntedank', 'schöpfung', 'kita', 'feiern']);
+    expect(materialAusEvent(reformation).themen).toEqual(['Religionslehre (katholische)']);
+    expect(materialAusEvent(ohneLabels).themen).toEqual([]);
   });
 
   it('nimmt d als Titel, wenn name fehlt', () => {

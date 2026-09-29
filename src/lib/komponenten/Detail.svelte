@@ -4,7 +4,7 @@
 </script>
 
 <article>
-  {#if material.herausgeber.length > 0}<p class="label">{material.herausgeber.join(', ')}</p>{/if}
+  <p class="label">{material.typ.label} · {material.stufe.label}</p>
   <h1>{material.name}</h1>
   {#if material.url}
     <p><a href={material.url} rel="external noopener">{material.url}</a></p>
@@ -17,7 +17,7 @@
   {/if}
 
   <dl>
-    {#if material.urheber.length > 0}<dt>Urheber</dt><dd>{material.urheber.join(', ')}</dd>{/if}
+    <dt>Herkunft</dt><dd>{material.herkunft}</dd>
     {#if material.lizenz}<dt>Lizenz</dt><dd><a href={material.lizenz} rel="license">{material.lizenzKuerzel ?? material.lizenz}</a></dd>{/if}
     {#if material.datum}<dt>Datum</dt><dd>{material.datum}</dd>{/if}
     {#if material.sprachen.length > 0}<dt>Sprache</dt><dd>{material.sprachen.join(', ')}</dd>{/if}
@@ -42,6 +42,7 @@
 </article>
 
 <style>
+  h1 { font-size: var(--fs-700); margin-bottom: var(--sp-3); }
   .bild { max-width: 100%; border-radius: var(--radius); border: 1px solid var(--fb-rahmen); margin: 1rem 0; }
   .beschreibung { font-size: 1.05rem; }
   dl { display: grid; grid-template-columns: max-content 1fr; gap: 0.35rem 1.25rem; margin: 1.5rem 0; }

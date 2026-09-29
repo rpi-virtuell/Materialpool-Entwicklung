@@ -7,6 +7,7 @@ function konfig(teil = {}) {
   return {
     relays: ['wss://eins/', 'wss://zwei/'],
     autoren: [],
+    faecher: [],
     spiegelPfad: 'daten/test.json',
     spiegelIntervallS: 600,
     spiegelStartwartezeitS: 1,
@@ -24,6 +25,11 @@ describe('filterBauen', () => {
   it('schränkt auf QUELLE_AUTOREN ein, sobald gesetzt', () => {
     const f = filterBauen(konfig({ autoren: ['a'.repeat(64)] }));
     expect(f.authors).toEqual(['a'.repeat(64)]);
+  });
+  it('filtert auf QUELLE_FAECHER über #about:id, sobald gesetzt', () => {
+    const f = filterBauen(konfig({ faecher: ['http://w3id.org/kim/schulfaecher/s1024'] }));
+    expect(f['#about:id']).toEqual(['http://w3id.org/kim/schulfaecher/s1024']);
+    expect(filterBauen(konfig())).not.toHaveProperty('#about:id');
   });
 });
 
@@ -56,9 +62,9 @@ describe('standAufbauen', () => {
     }));
     const ergebnis = await standAufbauen(konfig(), { holen });
     expect(ergebnis.ok).toBe(true);
-    expect(ergebnis.inhalt?.materialien).toHaveLength(2);
+    expect(ergebnis.inhalt?.materialien).toHaveLength(beispiele.length);
     expect(ergebnis.inhalt?.quellen[beispiele[0].id]).toEqual(['wss://eins/', 'wss://zwei/']);
-    expect(ergebnis.inhalt?.stand?.anzahl.materialien).toBe(2);
+    expect(ergebnis.inhalt?.stand?.anzahl.materialien).toBe(beispiele.length);
     expect(ergebnis.inhalt?.stand?.nichtErreichbar).toEqual([]);
   });
 

@@ -53,12 +53,14 @@ Spiegel  src/lib/services/spiegel.js   ← einziger Nutzer von relay.js
       ▼
 Modell   src/lib/models/material.js     AMB-Tags → Material
       ▼
-Routen   /            Übersicht (Karten)
+Routen   /            Startseite (Suche, Themen, Stufen, Empfehlung)
+         /materialien Liste; ?q=<Text>&stufe=<elem|sek1|sek2|bbs>
          /m/<kennung> Detail; /m/<kennung>/json rohes Event
 ```
 
 Serverseitig gerendert, ohne JavaScript lesbar, keine Relay-Verbindung im
-Browser. Adressen und Schlüssel kommen aus `.env`, nie aus dem Code.
+Browser. Gestaltung nach dem Materialpool-2.0-Prototyp (ADR-0004);
+CI-Farbe zum Ausprobieren per `?primaryColor=%23C1272D`. Adressen und Schlüssel kommen aus `.env`, nie aus dem Code.
 
 ## Ausliefern
 

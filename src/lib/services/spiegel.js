@@ -57,6 +57,9 @@ export function filterBauen(konfig) {
   /** @type {Record<string, unknown>} */
   const filter = { kinds: [KIND_AMB], limit: konfig.spiegelLimit };
   if (konfig.autoren.length > 0) filter.authors = konfig.autoren;
+  // Mehrbuchstaben-Tagfilter des edufeed-AMB-Relays (khatru + Typesense);
+  // Standard-Relays kennen ihn nicht, die konfigurierten schon (ADR-0004).
+  if (konfig.faecher.length > 0) filter['#about:id'] = konfig.faecher;
   return filter;
 }
 

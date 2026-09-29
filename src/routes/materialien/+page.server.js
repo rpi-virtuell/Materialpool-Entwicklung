@@ -1,18 +1,17 @@
 import { env } from '$env/dynamic/private';
 import { konfigLesen } from '$lib/konfig.js';
-import { startseiteLaden } from '$lib/routen/startseite.js';
+import { filterLesen, listeLaden } from '$lib/routen/uebersicht.js';
 import { spiegelHolen } from '$lib/services/spiegel.js';
 
 export const prerender = false;
 
 /** @type {import('./$types').PageServerLoad} */
-export async function load({ parent }) {
-  const { ci } = await parent();
+export function load({ url }) {
   const spiegel = spiegelHolen();
-  return startseiteLaden({
+  return listeLaden({
     inhalt: spiegel.lesen(),
     fehlschlag: spiegel.letzterFehlschlag(),
     relays: konfigLesen(env).relays,
-    palette: ci?.palette
+    filter: filterLesen(url.searchParams)
   });
 }

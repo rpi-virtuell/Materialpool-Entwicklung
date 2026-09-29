@@ -12,7 +12,11 @@
  * gesäubert (CLAUDE.md).
  */
 
+import { stufeAusBegriffen, typAusBegriffen } from './typen.js';
+
 /** @typedef {import('../services/relay.js').Event} Event */
+/** @typedef {import('./typen.js').TypKey} TypKey */
+/** @typedef {import('./typen.js').StufeKey} StufeKey */
 
 /**
  * @typedef {object} Begriff
@@ -29,8 +33,8 @@
  * @property {string} pfad          /m/<kennung>
  * @property {string} name
  * @property {string} beschreibung
- * @property {string|null} url      `d`, wenn es eine http(s)-Adresse ist
- * @property {string|null} bild
+ * @property {string|null} url      `d`, sonst `encoding:contentUrl`, sonst erstes http-`r`
+ * @property {string|null} bild     `image`, nur mit http(s)-Adresse
  * @property {string|null} lizenz   URL der Lizenz
  * @property {string|null} lizenzKuerzel  z. B. „CC BY-SA 4.0“, sonst null
  * @property {string[]} typen       AMB `type`, z. B. LearningResource
@@ -38,6 +42,11 @@
  * @property {string[]} sprachen
  * @property {string[]} urheber
  * @property {string[]} herausgeber
+ * @property {string[]} mitwirkende
+ * @property {string} herkunft      Urheber · Herausgeber · Mitwirkende, sonst Hostname, sonst Hinweis
+ * @property {string[]} themen      Schlagworte, sonst Fach-Labels; höchstens vier
+ * @property {{ key: TypKey, label: string }} typ
+ * @property {{ key: StufeKey, label: string }} stufe
  * @property {Begriff[]} bildungsstufen
  * @property {Begriff[]} faecher
  * @property {Begriff[]} ressourcentypen
@@ -110,6 +119,32 @@ export function lizenzKuerzel(url) {
   return null;
 }
 
+/** @param {string|null} s */
+function istHttp(s) {
+  return typeof s === 'string' && /^https?:\/\//i.test(s);
+}
+
+/** Höchstens so viele Themen je Material (Prototyp). */
+export const THEMEN_MAX = 4;
+
+/**
+ * Wer das Material verantwortet: Urheber, Herausgeber und Mitwirkende
+ * (dedupliziert), sonst der Hostname der Ressource, sonst ein Hinweis.
+ * @param {{ urheber: string[], herausgeber: string[], mitwirkende: string[], url: string|null }} m
+ */
+export function herkunftBilden(m) {
+  const namen = [...new Set([...m.urheber, ...m.herausgeber, ...m.mitwirkende])];
+  if (namen.length > 0) return namen.join(' · ');
+  if (m.url) {
+    try {
+      return new URL(m.url).hostname.replace(/^www\./, '');
+    } catch {
+      // keine gültige URL — dann der Hinweis
+    }
+  }
+  return 'Herkunft nicht angegeben';
+}
+
 /**
  * @param {Event} event
  * @returns {Material}
@@ -119,6 +154,17 @@ export function materialAusEvent(event) {
   const d = erstes(tags, 'd') ?? '';
   const kennung = kennungAusD(d);
   const lizenz = erstes(tags, 'license:id');
+  const url = istHttp(d)
+    ? d
+    : [erstes(tags, 'encoding:contentUrl'), ...alle(tags, 'r')].find(istHttp) ?? null;
+  const bildRoh = erstes(tags, 'image');
+  const urheber = alle(tags, 'creator:name');
+  const herausgeber = alle(tags, 'publisher:name');
+  const mitwirkende = alle(tags, 'contributor:name');
+  const schlagworte = alle(tags, 't');
+  const faecher = begriffe(tags, 'about');
+  const ressourcentypen = begriffe(tags, 'learningResourceType');
+  const bildungsstufen = begriffe(tags, 'educationalLevel');
   return {
     id: event.id,
     pubkey: event.pubkey,
@@ -128,18 +174,23 @@ export function materialAusEvent(event) {
     pfad: `/m/${kennung}`,
     name: erstes(tags, 'name') ?? (d || '(ohne Titel)'),
     beschreibung: erstes(tags, 'description') ?? '',
-    url: /^https?:\/\//i.test(d) ? d : null,
-    bild: erstes(tags, 'image'),
+    url,
+    bild: istHttp(bildRoh) ? bildRoh : null,
     lizenz,
     lizenzKuerzel: lizenzKuerzel(lizenz),
     typen: alle(tags, 'type'),
-    schlagworte: alle(tags, 't'),
+    schlagworte,
     sprachen: alle(tags, 'inLanguage'),
-    urheber: alle(tags, 'creator:name'),
-    herausgeber: alle(tags, 'publisher:name'),
-    bildungsstufen: begriffe(tags, 'educationalLevel'),
-    faecher: begriffe(tags, 'about'),
-    ressourcentypen: begriffe(tags, 'learningResourceType'),
+    urheber,
+    herausgeber,
+    mitwirkende,
+    herkunft: herkunftBilden({ urheber, herausgeber, mitwirkende, url }),
+    themen: (schlagworte.length > 0 ? schlagworte : faecher.map((f) => f.label)).slice(0, THEMEN_MAX),
+    typ: typAusBegriffen(ressourcentypen),
+    stufe: stufeAusBegriffen(bildungsstufen),
+    bildungsstufen,
+    faecher,
+    ressourcentypen,
     datum: erstes(tags, 'datePublished') ?? erstes(tags, 'dateCreated')
   };
 }

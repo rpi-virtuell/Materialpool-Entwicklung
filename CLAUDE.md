@@ -16,9 +16,11 @@ Jede Arbeitssitzung beginnt dort und endet mit einem Eintrag dort.
 
 ## Zuschnitt
 
-Nur Lesen: Übersicht und Detailansicht der Materialien aus dem Spiegel.
-**Nicht Teil dieses Vorhabens (Stand ADR-0001):** Eingabe, Bewertung,
-Anmeldung, Suche über Relays hinweg, Import aus dem WordPress-Materialpool.
+Nur Lesen: Startseite, Liste und Detailansicht der Materialien aus dem
+Spiegel. Die Suche ist ein GET-Formular, das den Spiegel filtert
+(ADR-0004). **Nicht Teil dieses Vorhabens (Stand ADR-0001/0004):**
+Eingabe, Bewertung, Anmeldung, Merkliste, Suche über Relays hinweg,
+Import aus dem WordPress-Materialpool.
 **Was es nicht gibt, wird auch nicht angedeutet** — keine Schaltflächen oder
 Menüpunkte für nicht vorhandene Funktionen, auch nicht abgeblendet.
 
@@ -77,10 +79,15 @@ Live-Aktualisierung. `ssr = false` ist nie die Antwort.
 
 ## Gestaltung
 
-Token aus dem FOERBICO-Styleguide in `src/app.css`, übernommen aus
-oer-community — kopiert, nicht verlinkt. Komponenten kennen nur Token; kein
-Hex außerhalb `src/app.css`; Text auf `--fb-akzent` nie weiß. Schrift ist
-vorerst System-UI (STATUS).
+Tokens des Materialpool-2.0-Prototyps in `src/app.css` (`--blue`,
+`--fs-*`, `--sp-*` …, ADR-0004); die FOERBICO-Token `--fb-*` sind Aliase,
+bis Liste und Detail umgestellt sind. Komponenten kennen nur Token; **Hex
+nur in `src/app.css`, `src/lib/stile/*.css` und `src/lib/models/farben.js`**
+(Farbdaten für Inline-Variablen) — `test/architektur.test.js` prüft das.
+Schriften Inter und Space Grotesk selbst gehostet (`src/lib/stile/
+schriften.css`), Icons als Inline-SVG (`komponenten/Icon.svelte`), kein
+Icon-Font. Startseiten-CSS liegt in den `<style>`-Blöcken der jeweiligen
+Komponenten, damit es nur dort lädt.
 
 ## Sprache
 
@@ -90,7 +97,8 @@ der Nostr-Spezifikation oder AMB gehört: `kind`, `tags`, `d`, `t`,
 
 ## Technik
 
-SvelteKit 2 + Svelte 5 (Runes) · TailwindCSS 4 + DaisyUI 5 · JavaScript mit
+SvelteKit 2 + Svelte 5 (Runes) · TailwindCSS 4 (Preflight; DaisyUI
+installiert, aber nicht importiert — ungenutzt, ADR-0004) · JavaScript mit
 JSDoc, `checkJs` und `strict` über `svelte-check` · pnpm ·
 `@sveltejs/adapter-node` · Relay-Abfrage ist eigener, schlanker Servercode
 (`services/relay.js`, aus oer-community übernommen) — kein `nostr-tools`

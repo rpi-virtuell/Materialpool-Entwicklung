@@ -2,6 +2,7 @@
  * @typedef {object} Konfig
  * @property {string[]} relays               wss-Adressen, mindestens eine (Pflicht)
  * @property {string[]} autoren              Hex-Pubkeys der Quelle; leer = alle Autoren (ADR-0003, offen)
+ * @property {string[]} faecher              URIs für `#about:id`; leer = kein Fachfilter (ADR-0004)
  * @property {string} spiegelPfad            JSON-Datei des Spiegels
  * @property {number} spiegelIntervallS      Abstand zwischen zwei Läufen
  * @property {number} spiegelStartwartezeitS wie lange der Start auf den ersten Lauf wartet
@@ -79,9 +80,16 @@ export function konfigLesen(quelle) {
     );
   }
 
+  const faecher = liste(quelle.QUELLE_FAECHER);
+  const keineUri = faecher.filter((f) => !/^https?:\/\//.test(f));
+  if (keineUri.length > 0) {
+    throw new Error(`QUELLE_FAECHER: keine URI: ${keineUri.join(', ')}`);
+  }
+
   return {
     relays,
     autoren,
+    faecher,
     spiegelPfad: (quelle.SPIEGEL_PFAD ?? '').trim() || 'daten/spiegel.json',
     spiegelIntervallS: positiveGanzzahl(quelle.SPIEGEL_INTERVALL_S, 600, 'SPIEGEL_INTERVALL_S'),
     spiegelStartwartezeitS: positiveGanzzahl(

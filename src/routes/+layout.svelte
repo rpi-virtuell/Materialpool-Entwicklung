@@ -6,21 +6,22 @@
 
   /** @type {{ children: import('svelte').Snippet, data: import('./$types').LayoutData }} */
   let { children, data } = $props();
+
+  const aktiv = $derived(
+    page.url.pathname === '/' ? 'start' : page.url.pathname.startsWith('/materialien') ? 'liste' : null
+  );
+  // CI-Farbe (Prototyp 9) als Inline-Variablen auf dem Rahmen: erbt in
+  // Kopf, Seite und Fuß und liegt vor den Tokens aus app.css. Werte sind
+  // in ciFarbeLesen auf #RRGGBB geprüft.
+  const ciStil = $derived(data.ci ? `--blue:${data.ci.blue};--blue-dark:${data.ci.blueDark}` : undefined);
 </script>
 
-<Kopfzeile />
-<main class:breit={page.data.breit === true}>
+<div class="rahmen" style={ciStil}>
+  <Kopfzeile {aktiv} />
   {@render children()}
-</main>
-<Fusszeile spiegelstand={data.spiegelstand} />
+  <Fusszeile spiegelstand={data.spiegelstand} />
+</div>
 
 <style>
-  main {
-    max-width: var(--breite-schmal);
-    margin: 0 auto;
-    padding: 32px 24px 48px;
-  }
-  main.breit {
-    max-width: var(--breite-raster);
-  }
+  .rahmen { display: contents; }
 </style>

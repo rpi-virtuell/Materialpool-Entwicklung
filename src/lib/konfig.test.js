@@ -23,6 +23,7 @@ describe('konfigLesen', () => {
     const k = konfigLesen({ RELAYS: 'wss://a/, wss://b/' });
     expect(k.relays).toEqual(['wss://a/', 'wss://b/']);
     expect(k.autoren).toEqual([]);
+    expect(k.faecher).toEqual([]);
     expect(k.spiegelPfad).toBe('daten/spiegel.json');
     expect(k.spiegelIntervallS).toBe(600);
     expect(k.spiegelStartwartezeitS).toBe(20);
@@ -36,6 +37,12 @@ describe('konfigLesen', () => {
 
   it('lehnt einen Autor ab, der kein Hex-Schlüssel ist', () => {
     expect(() => konfigLesen({ RELAYS: 'wss://a/', QUELLE_AUTOREN: 'npub1abc' })).toThrow(/QUELLE_AUTOREN/);
+  });
+
+  it('nimmt Fächer als URI-Liste und lehnt anderes ab', () => {
+    const k = konfigLesen({ RELAYS: 'wss://a/', QUELLE_FAECHER: 'http://w3id.org/kim/schulfaecher/s1024, https://w3id.org/kim/schulfaecher/s1026' });
+    expect(k.faecher).toEqual(['http://w3id.org/kim/schulfaecher/s1024', 'https://w3id.org/kim/schulfaecher/s1026']);
+    expect(() => konfigLesen({ RELAYS: 'wss://a/', QUELLE_FAECHER: 's1024' })).toThrow(/QUELLE_FAECHER/);
   });
 
   it('bricht bei unbrauchbarer Ganzzahl ab statt still auf den Standard zu fallen', () => {

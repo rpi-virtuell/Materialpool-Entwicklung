@@ -9,14 +9,20 @@ import { join, relative } from 'node:path';
 import { describe, expect, it } from 'vitest';
 
 const WURZEL = new URL('../src/lib', import.meta.url).pathname;
+const SRC = new URL('../src', import.meta.url).pathname;
 
-/** @param {string} verzeichnis @returns {string[]} */
-function jsDateien(verzeichnis) {
+/** @param {string} verzeichnis @param {(name: string) => boolean} passt @returns {string[]} */
+function dateien(verzeichnis, passt) {
   return readdirSync(verzeichnis).flatMap((name) => {
     const pfad = join(verzeichnis, name);
-    if (statSync(pfad).isDirectory()) return jsDateien(pfad);
-    return name.endsWith('.js') && !name.endsWith('.test.js') ? [pfad] : [];
+    if (statSync(pfad).isDirectory()) return dateien(pfad, passt);
+    return passt(name) ? [pfad] : [];
   });
+}
+
+/** @param {string} verzeichnis */
+function jsDateien(verzeichnis) {
+  return dateien(verzeichnis, (name) => name.endsWith('.js') && !name.endsWith('.test.js'));
 }
 
 const datenschicht = ['models', 'routen', 'services'].flatMap((d) => jsDateien(join(WURZEL, d)));
@@ -41,6 +47,16 @@ describe('Architektur', () => {
       .filter((datei) => !datei.endsWith('services/spiegel.js') && !datei.endsWith('services/relay.js'))
       .filter((datei) => /from\s+'[^']*relay\.js'/.test(readFileSync(datei, 'utf8')))
       .map((datei) => relative(WURZEL, datei));
+    expect(verstoesse).toEqual([]);
+  });
+
+  it('Hex-Farben stehen nur in app.css, stile/*.css und models/farben.js (ADR-0004)', () => {
+    const erlaubt = /(^|\/)(app\.css|stile\/[^/]+\.css|models\/farben\.js)$/;
+    const kandidaten = dateien(SRC, (name) => /\.(svelte|js|css)$/.test(name) && !name.endsWith('.test.js'));
+    const verstoesse = kandidaten
+      .filter((datei) => !erlaubt.test(datei))
+      .filter((datei) => /#[0-9a-fA-F]{3,8}\b/.test(readFileSync(datei, 'utf8').replace(/https?:\/\/\S+/g, '')))
+      .map((datei) => relative(SRC, datei));
     expect(verstoesse).toEqual([]);
   });
 });

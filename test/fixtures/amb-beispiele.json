@@ -5,27 +5,90 @@
     "created_at": 1758000000,
     "kind": 30142,
     "tags": [
-      ["d", "https://material.rpi-virtuell.de/material/abraham-erzaehlung/"],
-      ["type", "LearningResource"],
-      ["name", "Abraham — eine kindgerechte Erzählung"],
-      ["description", "Eine Erzählung zu Abraham für die Grundschule mit Impulsen zum Weiterdenken."],
-      ["t", "abraham"],
-      ["t", "erzählung"],
-      ["inLanguage", "de"],
-      ["creator:name", "Beispielautorin"],
-      ["creator:type", "Person"],
-      ["publisher:name", "rpi-virtuell"],
-      ["publisher:type", "Organization"],
-      ["license:id", "https://creativecommons.org/licenses/by-sa/4.0/"],
-      ["educationalLevel:id", "https://w3id.org/kim/educationalLevel/level_A"],
-      ["educationalLevel:prefLabel:de", "Primarstufe"],
-      ["educationalLevel:prefLabel:en", "Primary level"],
-      ["about:id", "https://w3id.org/kim/schulfaecher/s1017"],
-      ["about:prefLabel:de", "Religion"],
-      ["learningResourceType:id", "https://w3id.org/kim/hcrt/text"],
-      ["learningResourceType:prefLabel:de", "Text"],
-      ["datePublished", "2025-03-01"],
-      ["image", "https://blossom.edufeed.org/abcdef.jpg"]
+      [
+        "d",
+        "https://material.rpi-virtuell.de/material/abraham-erzaehlung/"
+      ],
+      [
+        "type",
+        "LearningResource"
+      ],
+      [
+        "name",
+        "Abraham — eine kindgerechte Erzählung"
+      ],
+      [
+        "description",
+        "Eine Erzählung zu Abraham für die Grundschule mit Impulsen zum Weiterdenken."
+      ],
+      [
+        "t",
+        "abraham"
+      ],
+      [
+        "t",
+        "erzählung"
+      ],
+      [
+        "inLanguage",
+        "de"
+      ],
+      [
+        "creator:name",
+        "Beispielautorin"
+      ],
+      [
+        "creator:type",
+        "Person"
+      ],
+      [
+        "publisher:name",
+        "rpi-virtuell"
+      ],
+      [
+        "publisher:type",
+        "Organization"
+      ],
+      [
+        "license:id",
+        "https://creativecommons.org/licenses/by-sa/4.0/"
+      ],
+      [
+        "educationalLevel:id",
+        "https://w3id.org/kim/educationalLevel/level_A"
+      ],
+      [
+        "educationalLevel:prefLabel:de",
+        "Primarstufe"
+      ],
+      [
+        "educationalLevel:prefLabel:en",
+        "Primary level"
+      ],
+      [
+        "about:id",
+        "https://w3id.org/kim/schulfaecher/s1017"
+      ],
+      [
+        "about:prefLabel:de",
+        "Religion"
+      ],
+      [
+        "learningResourceType:id",
+        "https://w3id.org/kim/hcrt/text"
+      ],
+      [
+        "learningResourceType:prefLabel:de",
+        "Text"
+      ],
+      [
+        "datePublished",
+        "2025-03-01"
+      ],
+      [
+        "image",
+        "https://blossom.edufeed.org/abcdef.jpg"
+      ]
     ],
     "content": "",
     "sig": "0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"
@@ -36,13 +99,208 @@
     "created_at": 1757000000,
     "kind": 30142,
     "tags": [
-      ["d", "https://example.org/ohne-labels"],
-      ["type", "LearningResource"],
-      ["name", "Material ohne Labels"],
-      ["license:id", "https://creativecommons.org/publicdomain/zero/1.0/"],
-      ["educationalLevel:id", "https://w3id.org/kim/educationalLevel/level_B"]
+      [
+        "d",
+        "https://example.org/ohne-labels"
+      ],
+      [
+        "type",
+        "LearningResource"
+      ],
+      [
+        "name",
+        "Material ohne Labels"
+      ],
+      [
+        "license:id",
+        "https://creativecommons.org/publicdomain/zero/1.0/"
+      ],
+      [
+        "educationalLevel:id",
+        "https://w3id.org/kim/educationalLevel/level_B"
+      ]
     ],
     "content": "",
     "sig": "0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"
+  },
+  {
+    "id": "3333333333333333333333333333333333333333333333333333333333333333",
+    "pubkey": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "created_at": 1756000000,
+    "kind": 30142,
+    "tags": [
+      [
+        "d",
+        "urn:materialpool:erntedank-kita"
+      ],
+      [
+        "type",
+        "LearningResource"
+      ],
+      [
+        "name",
+        "Erntedank feiern in der Kita"
+      ],
+      [
+        "description",
+        "Ein Vormittag zu Erntedank mit Liedern, Geschichte und Segen für Kinder ab drei Jahren."
+      ],
+      [
+        "t",
+        "Erntedank"
+      ],
+      [
+        "t",
+        "schöpfung"
+      ],
+      [
+        "t",
+        "kita"
+      ],
+      [
+        "t",
+        "feiern"
+      ],
+      [
+        "t",
+        "lied"
+      ],
+      [
+        "inLanguage",
+        "de"
+      ],
+      [
+        "creator:name",
+        "Beispielautorin"
+      ],
+      [
+        "creator:type",
+        "Person"
+      ],
+      [
+        "publisher:name",
+        "rpi-virtuell"
+      ],
+      [
+        "publisher:type",
+        "Organization"
+      ],
+      [
+        "contributor:name",
+        "Mitwirkende Person"
+      ],
+      [
+        "contributor:type",
+        "Person"
+      ],
+      [
+        "license:id",
+        "https://creativecommons.org/licenses/by/4.0/"
+      ],
+      [
+        "educationalLevel:id",
+        "https://w3id.org/kim/educationalLevel/level_0"
+      ],
+      [
+        "educationalLevel:prefLabel:de",
+        "Elementarbereich"
+      ],
+      [
+        "about:id",
+        "https://w3id.org/kim/schulfaecher/s1024"
+      ],
+      [
+        "about:prefLabel:de",
+        "Religionslehre (evangelische)"
+      ],
+      [
+        "learningResourceType:id",
+        "https://w3id.org/kim/hcrt/lesson_plan"
+      ],
+      [
+        "learningResourceType:prefLabel:de",
+        "Unterrichtsplanung"
+      ],
+      [
+        "encoding:contentUrl",
+        "https://example.org/erntedank.pdf"
+      ],
+      [
+        "datePublished",
+        "2025-09-15"
+      ],
+      [
+        "image",
+        "https://blossom.edufeed.org/erntedank.jpg"
+      ]
+    ],
+    "content": "",
+    "sig": "00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"
+  },
+  {
+    "id": "4444444444444444444444444444444444444444444444444444444444444444",
+    "pubkey": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "created_at": 1755000000,
+    "kind": 30142,
+    "tags": [
+      [
+        "d",
+        "https://www.bbs-beispiel.de/reformation/"
+      ],
+      [
+        "type",
+        "LearningResource"
+      ],
+      [
+        "name",
+        "Reformation im Berufsschulunterricht"
+      ],
+      [
+        "description",
+        "Videoimpuls und Aufgaben zu Luther und der Reformation für Berufsschulklassen."
+      ],
+      [
+        "inLanguage",
+        "de"
+      ],
+      [
+        "license:id",
+        "https://creativecommons.org/licenses/by-sa/4.0/"
+      ],
+      [
+        "educationalLevel:id",
+        "https://example.org/stufen/berufsbildung"
+      ],
+      [
+        "educationalLevel:prefLabel:de",
+        "Berufsbildung"
+      ],
+      [
+        "about:id",
+        "https://w3id.org/kim/schulfaecher/s1026"
+      ],
+      [
+        "about:prefLabel:de",
+        "Religionslehre (katholische)"
+      ],
+      [
+        "learningResourceType:id",
+        "https://w3id.org/kim/hcrt/video"
+      ],
+      [
+        "learningResourceType:prefLabel:de",
+        "Video"
+      ],
+      [
+        "datePublished",
+        "2025-10-20"
+      ],
+      [
+        "image",
+        "ftp://kein-bild.example/x.jpg"
+      ]
+    ],
+    "content": "",
+    "sig": "00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"
   }
 ]

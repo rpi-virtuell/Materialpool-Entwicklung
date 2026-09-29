@@ -1,12 +1,12 @@
 <script>
-  import Uebersicht from '$lib/komponenten/Uebersicht.svelte';
+  import Startseite from '$lib/komponenten/startseite/Startseite.svelte';
   /** @type {{ data: import('./$types').PageData }} */
   let { data } = $props();
 </script>
 
 <svelte:head>
-  <title>Materialpool-Entwicklung</title>
-  <meta name="description" content="Schaufenster für Materialien als AMB-Events auf Nostr — Entwicklungsstand des rpi-virtuell-Materialpools." />
+  <title>Materialpool Religion</title>
+  <meta name="description" content="Materialien für Religionsunterricht, Kita, Gemeinde und Konfi-Arbeit — Schaufenster für AMB-Events (kind:30142) auf Nostr." />
 </svelte:head>
 
-<Uebersicht materialien={data.materialien} leerstand={data.leerstand} />
+<Startseite themen={data.themen} stufen={data.stufen} empfehlung={data.empfehlung} status={data.status} />

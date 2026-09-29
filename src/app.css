@@ -1,62 +1,133 @@
 @import 'tailwindcss';
-@plugin 'daisyui';
+@import './lib/stile/schriften.css';
 
 /* ── Tokens ──────────────────────────────────────────────────────────────
-   Werte aus dem FOERBICO-Styleguide, übernommen aus oer-community
-   (src/app.css dort, docs/designsystem.md). Kopiert, nicht verlinkt:
-   kein WordPress-Stylesheet zur Laufzeit. Komponenten kennen nur Token;
-   kein Hex außerhalb dieser Datei. Schrift vorerst System-UI — die
-   Roboto-Condensed-Dateien folgen, wenn die Gestaltung ansteht (STATUS). */
+   Design-Tokens des Materialpool-2.0-Prototyps (startseite.css, ADR-0004).
+   Komponenten kennen nur Token; Hex steht allein hier, in lib/stile/*.css
+   und in models/farben.js (Farbdaten für Inline-Variablen) —
+   test/architektur.test.js prüft das. Tokennamen bleiben, wie das
+   übernommene Stylesheet sie liefert. Die FOERBICO-Token (--fb-*) sind
+   Aliase auf die neuen Werte, bis Liste und Detail umgestellt sind. */
 
 :root {
-  --fb-primaer:      #203a8f;
-  --fb-akzent:       #ffa500;  /* nie Grund für weißen Text */
-  --fb-ueberschrift: #002366;
-  --fb-text:         #333333;
-  --fb-text-leise:   #5a6178;
-  --fb-rahmen:       #d3d3d3;
-  --fb-flaeche:      #f0f8ff;
-  --fb-flaeche-2:    #e6f2ff;
-  --fb-weiss:        #ffffff;
-  --fb-fehler:       #971b2f;
-  --schrift: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
-  --breite-raster: 1240px;
-  --breite-schmal: 820px;
-  --radius: 5px;
-  --schatten: 0 2px 24px rgba(20, 50, 100, 0.08);
-  --uebergang: 160ms ease-out;
+  --blue: #1d5a8c;          /* CI-Farbe; per ?primaryColor überschreibbar */
+  --blue-dark: #123f63;     /* = --blue um 15 % abgedunkelt */
+  --blue-darker: #0d2f4c;   /* Hover des Suchknopfs */
+  --text-dark: #22262b;
+  --text-body: #3d434a;
+  --text-muted: #767f87;
+  --border: #dfe5ea;
+  --unterstrich: #c3cad1;
+  --weiss: #fff;
+  --weiss-88: #ffffffe0;
+  --weiss-78: #ffffffc7;
+  --weiss-75: #ffffffbf;
+  --weiss-70: #ffffffb3;
+  --weiss-35: #ffffff59;
+  --weiss-22: #ffffff38;
+  --weiss-12: #ffffff1f;
+  --radius-sm: 9px;
+  --fs-100: 12px;
+  --fs-200: 13px;
+  --fs-300: 14px;
+  --fs-400: 16px;
+  --fs-500: 18px;
+  --fs-700: 28px;
+  --sp-1: 4px;
+  --sp-2: 8px;
+  --sp-3: 12px;
+  --sp-4: 16px;
+  --sp-5: 20px;
+  --sp-6: 24px;
+  --sp-8: 32px;
+  --sp-10: 40px;
+  --sp-15: 60px;
+  --font-body: 'Inter Variable', Inter, 'Helvetica Neue', system-ui, sans-serif;
+  --font-display: 'Space Grotesk Variable', 'Space Grotesk', 'Inter Variable', system-ui, sans-serif;
+  --content-max: 1100px;
+  --content-schmal: 820px;
+  --gutter: 24px;
+
+  /* Aliase für Komponenten, die noch FOERBICO-Token nutzen (Detail). */
+  --fb-primaer: var(--blue);
+  --fb-akzent: var(--blue-dark);
+  --fb-ueberschrift: var(--text-dark);
+  --fb-text: var(--text-body);
+  --fb-text-leise: var(--text-muted);
+  --fb-rahmen: var(--border);
+  --fb-flaeche: #f5f7f9;
+  --fb-flaeche-2: #e9eef3;
+  --fb-weiss: var(--weiss);
+  --fb-fehler: #971b2f;
+  --radius: 6px;
+  --uebergang: 150ms ease;
 }
 
-html { background: var(--fb-weiss); color: var(--fb-text); font-family: var(--schrift); }
-body { margin: 0; line-height: 1.5; }
-a { color: var(--fb-primaer); }
-h1, h2, h3 { color: var(--fb-ueberschrift); line-height: 1.2; }
-h1 { font-size: 2rem; margin: 0 0 0.5rem; }
-h2 { font-size: 1.25rem; margin: 0 0 0.25rem; }
+/* ── Basis (startseite.css) ─────────────────────────────────────────── */
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  font-family: var(--font-body);
+  font-size: 16px;
+  font-weight: 400;
+  line-height: 1.6;
+  color: var(--text-body);
+  background: var(--weiss);
+}
+button, input { font-family: inherit; }
+h1, h2, h3 {
+  margin: 0;
+  font-family: var(--font-display);
+  font-weight: 600;
+  color: var(--text-dark);
+  letter-spacing: -0.01em;
+}
+p { margin: 0 0 10px; }
+a { color: inherit; }
 
+:focus-visible { outline: 2px solid var(--text-dark); outline-offset: 2px; }
+
+.status-hint {
+  background: var(--weiss);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: var(--sp-3) var(--sp-4);
+  color: var(--text-muted);
+  font-size: var(--fs-300);
+}
+.status-warn { border-left: 3px solid var(--blue); }
+
+/* Schmale Inhaltsspalte für Detail und Fehlerseite. */
+.inhalt-schmal {
+  max-width: var(--content-schmal);
+  margin: 0 auto;
+  padding: var(--sp-8) var(--gutter) var(--sp-15);
+}
+
+/* Bausteine der Detailseite (noch mit --fb-Aliasen). */
 .label {
-  font-size: 0.8rem;
+  font-size: var(--fs-200);
   letter-spacing: 0.04em;
   text-transform: uppercase;
-  color: var(--fb-text-leise);
-  margin: 0 0 0.25rem;
+  color: var(--text-muted);
+  margin: 0 0 var(--sp-1);
 }
 .marker {
   display: inline-block;
   padding: 0.1rem 0.5rem;
   border-radius: 999px;
   background: var(--fb-flaeche-2);
-  color: var(--fb-primaer);
-  font-size: 0.85rem;
+  color: var(--blue);
+  font-size: var(--fs-200);
   text-decoration: none;
 }
 .hinweis {
-  border: 1px solid var(--fb-akzent);
-  border-left-width: 6px;
-  border-radius: var(--radius);
-  background: var(--fb-flaeche);
-  padding: 1rem 1.25rem;
-  margin: 1rem 0;
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--blue);
+  border-radius: 6px;
+  background: var(--weiss);
+  padding: var(--sp-3) var(--sp-4);
+  margin: var(--sp-4) 0;
 }
 .metazeile { list-style: none; padding: 0; margin: 0.5rem 0 0; display: flex; flex-wrap: wrap; gap: 0.4rem; }
 
