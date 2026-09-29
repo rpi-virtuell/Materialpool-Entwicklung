@@ -94,7 +94,9 @@ export const LEVEL_ZU_STUFE = /** @type {Record<string, StufeKey>} */ ({
   'Sekundarstufe I': 'sek1',
   'Sekundarbereich II': 'sek2',
   'Sekundarstufe II': 'sek2',
-  'Postsekundarer nicht-tertiärer Bereich': 'sek2',
+  // Berufsschule, Fachschule: im Materialpool-Bestand 1.321 Materialien,
+  // ein Label „Berufsbildung“ gibt es dort nicht (Entscheidung 29.09.2026).
+  'Postsekundarer nicht-tertiärer Bereich': 'bbs',
   Berufsbildung: 'bbs',
   Fortbildung: 'fortbildung',
   Hochschule: 'hochschule'
@@ -106,7 +108,7 @@ const KIM_LEVEL_ZU_STUFE = /** @type {Record<string, StufeKey>} */ ({
   level_1: 'elem',
   level_2: 'sek1',
   level_3: 'sek2',
-  level_4: 'sek2',
+  level_4: 'bbs',
   level_A: 'hochschule',
   level_C: 'fortbildung'
 });

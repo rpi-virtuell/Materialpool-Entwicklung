@@ -166,11 +166,27 @@ describe('Uebersicht (Liste)', () => {
   });
 
   it('erklärt „keine Treffer“ mit den aktiven Filtern', () => {
-    const daten = listeLaden({ inhalt, fehlschlag: null, relays, filter: { ...leererFilter(), q: 'gibtesnicht', stufen: ['bbs'] } });
+    const daten = listeLaden({ inhalt, fehlschlag: null, relays, filter: { ...leererFilter(), q: 'gibtesnicht', stufen: ['hochschule'] } });
     const { body } = render(Uebersicht, { props: daten });
     expect(body).toContain('Dazu passt gerade nichts');
-    expect(body).toContain('„gibtesnicht“ und Berufsbildung');
+    expect(body).toContain('„gibtesnicht“ und Hochschule');
     expect(body).toContain('Filter aufheben');
+  });
+
+  it('sagt, wenn die Relay-Suche nicht lief und der Spiegel einspringt', () => {
+    const suche = { events: [], gefragteRelays: relays, grund: /** @type {const} */ ('kein-relay-erreichbar') };
+    const daten = listeLaden({ inhalt, fehlschlag: null, relays, filter: { ...leererFilter(), q: 'erntedank' }, suche });
+    const { body } = render(Uebersicht, { props: daten });
+    expect(body).toMatch(/class="status-hint status-warn suche-hinweis[^"]*">Kein Relay war erreichbar/);
+    expect(body).toContain('EKD: Erntedankfest');
+  });
+
+  it('nennt die Standardsortierung bei Relay-Treffern „Relevanz“', () => {
+    const suche = { events: [beispiele[3], beispiele[2]], gefragteRelays: relays, grund: null };
+    const daten = listeLaden({ inhalt, fehlschlag: null, relays, filter: { ...leererFilter(), q: 'geist' }, suche });
+    const { body } = render(Uebersicht, { props: daten });
+    expect(body).toContain('>Relevanz</a>');
+    expect(body).not.toContain('suche-hinweis');
   });
 
   it('erklärt eine leere Liste statt sie stumm zu lassen', () => {

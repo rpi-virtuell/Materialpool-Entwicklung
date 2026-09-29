@@ -35,10 +35,8 @@ Umsetzung (Branch `feat/facetten`, zweiter Commit):
   alle, `stufe`/`typ` den ersten zur Anzeige; Filter und Facetten zählen
   über alle. Neue Stufen `fortbildung` (KIM level_C, 1.179 Materialien)
   und `hochschule` (level_A, 639) in der Facette, nicht als Kachel.
-  **Berufsbildung hat im Bestand 0 Materialien** — die Kachel führt zu
-  „Dazu passt gerade nichts“; „Postsekundarer nicht-tertiärer Bereich“
-  (1.321) liegt laut Prototyp bei Sek II. Zu klären, ob er zu
-  Berufsbildung gehört.
+  Ein Label „Berufsbildung“ gibt es im Bestand nicht; siehe Entscheidung
+  unten.
 - **Seitenumbruch:** 24 Karten je Seite (`seite=`), Zurück/Weiter,
   Facetten- und Sortierlinks springen auf Seite 1. Sortierung „neu“ geht
   nach `datePublished`/`dateCreated`, weil `created_at` die Importzeit ist.
@@ -48,17 +46,23 @@ Umsetzung (Branch `feat/facetten`, zweiter Commit):
   auf 67 kB (Dev-Modus, mit eingebetteten Styles). Icons als SVG-Sprite
   (`IconSprite.svelte`), je Icon nur ein `<use>`. Antwortzeiten bei 7.701
   Materialien: Startseite 8 ms, Liste 20–40 ms.
-- **Offen: Suche über den AMB-MCP.** Jörg wünscht, dass die Suche den
-  AMB-MCP nutzt (`mcp.amb.edufeed.org`, Bearer-Token). Das Relay selbst
-  spricht NIP-50 (geprüft: `search: "Reformation"` liefert Treffer).
-  Entscheidung steht aus, siehe Frage vom 29.09.
+- **Suche per NIP-50 am Relay (ADR-0005, Jörgs Entscheidung):** Bei
+  Suchtext fragt der Server die Relays mit `search` (Typesense-Ranking,
+  1–2,5 s, höchstens 250 Treffer, je Suchtext 10 min im Speicher).
+  Facetten, Sortierung und Seiten arbeiten auf den Treffern; „Empfohlen“
+  heißt dann „Relevanz“. Ohne erreichbares Relay springt die Wortsuche
+  im Spiegel ein, mit Hinweis. Der AMB-MCP bleibt Option für später.
+- **Berufsbildung (Jörgs Entscheidung):** „Postsekundarer nicht-tertiärer
+  Bereich“ (KIM level_4, 1.321 Materialien) zählt zu Berufsbildung, nicht
+  zu Sekundarstufe II — die Kachel führt jetzt zu Treffern.
 
-**Wo steht das Projekt:** 120 Tests grün, `svelte-check` 0 Fehler. Dev-
+**Wo steht das Projekt:** 129 Tests grün, `svelte-check` 0 Fehler. Dev-
 Server läuft lokal gegen das echte Relay mit 7.701 Materialien; Bilder
-laden von den Quellseiten (ekd.de, bpb.de, ytimg …).
+laden von den Quellseiten (ekd.de, bpb.de, ytimg …); Suche geprüft.
 
-**Nächster Schritt:** Entscheidung zur Suche (MCP, NIP-50 am Relay oder
-Spiegel-Filter) als ADR-0005; Berufsbildung-Zuordnung klären; dann mergen.
+**Nächster Schritt:** `feat/facetten` mergen und pushen. Danach:
+Deploy-Voraussetzungen (28.09.), Detailseite auf Prototyp-Tokens, Frage
+an edufeed/Steffen, wer den Schlüssel `610df6d6…` verwahrt (ADR-0003).
 
 ---
 

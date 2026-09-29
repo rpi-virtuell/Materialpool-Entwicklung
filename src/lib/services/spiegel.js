@@ -28,6 +28,12 @@ export const KIND_AMB = 30142;
 /** Das AMB-Relay liefert je REQ höchstens so viele Events. */
 export const SEITENGROESSE = 250;
 
+/** Höchstzahl Treffer einer Volltextsuche (NIP-50) — das Relay-Maximum. */
+export const SUCHE_LIMIT = 250;
+
+/** Wie viele Suchanfragen der Zwischenspeicher hält. */
+export const SUCHE_SPEICHER_MAX = 200;
+
 /**
  * @typedef {object} Stand
  * @property {string} zeitpunkt
@@ -105,11 +111,14 @@ export function seitenweise(holen, limit) {
 
 /**
  * Ersetzbare Events (NIP-01): je (pubkey, d) gilt nur das jüngste;
- * bei gleichem `created_at` die kleinere `id`. Ergebnis jüngstes zuerst.
+ * bei gleichem `created_at` die kleinere `id`. Ergebnis jüngstes zuerst —
+ * oder, mit `reihenfolgeBehalten`, in der Reihenfolge des ersten
+ * Auftretens (Relevanz einer Suche).
  * @param {Event[]} events
+ * @param {{ reihenfolgeBehalten?: boolean }} [optionen]
  * @returns {Event[]}
  */
-export function ersetzbareZusammenfassen(events) {
+export function ersetzbareZusammenfassen(events, optionen = {}) {
   /** @type {Map<string, Event>} */
   const nachAdresse = new Map();
   for (const e of events) {
@@ -122,7 +131,73 @@ export function ersetzbareZusammenfassen(events) {
       (e.created_at === vorhanden.created_at && e.id < vorhanden.id);
     if (juenger) nachAdresse.set(schluessel, e);
   }
-  return [...nachAdresse.values()].sort((a, b) => b.created_at - a.created_at);
+  const werte = [...nachAdresse.values()];
+  return optionen.reihenfolgeBehalten ? werte : werte.sort((a, b) => b.created_at - a.created_at);
+}
+
+// ── Volltextsuche am Relay (NIP-50, ADR-0005) ────────────────────────────
+
+/**
+ * @typedef {object} Suchergebnis
+ * @property {Event[]} events        relevanzsortiert, je (pubkey, d) eines
+ * @property {string[]} gefragteRelays
+ * @property {Abfragegrund} grund    gesetzt, wenn keine belastbare Antwort kam
+ */
+
+/** @type {Map<string, { zeitpunkt: number, ergebnis: Suchergebnis }>} */
+let sucheSpeicher = new Map();
+
+/** @param {string} text */
+export function sucheSchluessel(text) {
+  return text.trim().toLowerCase().replace(/\s+/g, ' ');
+}
+
+/**
+ * Volltextsuche über alle konfigurierten Relays mit denselben Einschränkungen
+ * wie der Spiegel (Autoren, Fächer). Das Relay sortiert nach Relevanz; die
+ * Reihenfolge bleibt erhalten. Ergebnisse liegen SPIEGEL_INTERVALL_S im
+ * Speicher, weil Facetten und Seitenumbruch dieselbe Suche wiederholen.
+ *
+ * @param {Konfig} konfig
+ * @param {string} text
+ * @param {{ holen?: typeof eventsHolen, jetzt?: () => number }} [optionen]
+ * @returns {Promise<Suchergebnis>}
+ */
+export async function relaySuche(konfig, text, optionen = {}) {
+  const jetzt = optionen.jetzt ?? Date.now;
+  const schluessel = sucheSchluessel(text);
+  const frisch = konfig.spiegelIntervallS * 1000;
+  const gemerkt = sucheSpeicher.get(schluessel);
+  if (gemerkt && jetzt() - gemerkt.zeitpunkt < frisch) return gemerkt.ergebnis;
+
+  const { limit: _limit, ...grund } = filterBauen(konfig);
+  const ergebnis = await eventsVonAllen(
+    konfig.relays,
+    { ...grund, search: schluessel, limit: SUCHE_LIMIT },
+    { holen: optionen.holen ?? eventsHolen, zeitschrankeMs: 6000 }
+  );
+  /** @type {Suchergebnis} */
+  const antwort = {
+    events: ersetzbareZusammenfassen(
+      ergebnis.events.filter((e) => e.kind === KIND_AMB),
+      { reihenfolgeBehalten: true }
+    ),
+    gefragteRelays: ergebnis.gefragt,
+    grund: ergebnis.grund
+  };
+  if (antwort.grund === null) {
+    if (sucheSpeicher.size >= SUCHE_SPEICHER_MAX) {
+      const aeltester = sucheSpeicher.keys().next().value;
+      if (aeltester !== undefined) sucheSpeicher.delete(aeltester);
+    }
+    sucheSpeicher.set(schluessel, { zeitpunkt: jetzt(), ergebnis: antwort });
+  }
+  return antwort;
+}
+
+/** Nur für Tests: Suchspeicher leeren. */
+export function sucheZuruecksetzen() {
+  sucheSpeicher = new Map();
 }
 
 /**
@@ -227,8 +302,11 @@ export async function einmalLaufen(konfig, optionen = {}) {
 
 /**
  * Startet den Spiegel mit dem Prozess: gesicherten Stand laden, ersten Lauf
- * anstoßen, höchstens SPIEGEL_STARTWARTEZEIT_S darauf warten, dann
- * regelmäßig neu laufen.
+ * anstoßen, dann regelmäßig neu laufen. Liegt ein gesicherter Stand vor,
+ * geht der Server sofort damit ans Netz und der erste Lauf holt im
+ * Hintergrund nach — ein Neustart kostet so keine Minute Wartezeit bei
+ * 7.700 Events. Ohne Datei wartet der Start höchstens
+ * SPIEGEL_STARTWARTEZEIT_S auf den ersten Lauf.
  * @param {Konfig} konfig
  * @param {{ holen?: typeof eventsHolen }} [optionen]
  */
@@ -237,10 +315,12 @@ export function spiegelStarten(konfig, optionen = {}) {
     const gesichert = await vonPlatteLesen(konfig.spiegelPfad);
     if (gesichert) aktuell = gesichert;
     const ersterLauf = einmalLaufen(konfig, optionen).catch(() => false);
-    const frist = new Promise((erledigt) =>
-      setTimeout(erledigt, konfig.spiegelStartwartezeitS * 1000)
-    );
-    await Promise.race([ersterLauf, frist]);
+    if (!gesichert) {
+      const frist = new Promise((erledigt) =>
+        setTimeout(erledigt, konfig.spiegelStartwartezeitS * 1000)
+      );
+      await Promise.race([ersterLauf, frist]);
+    }
     zeitgeber = setInterval(() => {
       einmalLaufen(konfig, optionen).catch(() => {});
     }, konfig.spiegelIntervallS * 1000);

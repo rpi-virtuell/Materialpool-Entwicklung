@@ -17,10 +17,11 @@ Jede Arbeitssitzung beginnt dort und endet mit einem Eintrag dort.
 ## Zuschnitt
 
 Nur Lesen: Startseite, Liste und Detailansicht der Materialien aus dem
-Spiegel. Die Suche ist ein GET-Formular, das den Spiegel filtert
-(ADR-0004). **Nicht Teil dieses Vorhabens (Stand ADR-0001/0004):**
-Eingabe, Bewertung, Anmeldung, Merkliste, Suche über Relays hinweg,
-Import aus dem WordPress-Materialpool.
+Spiegel. Die Suche ist ein GET-Formular; bei Suchtext fragt der Server
+die Relays per NIP-50 und rendert die Treffer aus dem Spiegel-Modell
+(ADR-0005), ohne Suchtext filtert er den Spiegel. **Nicht Teil dieses
+Vorhabens (Stand ADR-0001/0004):** Eingabe, Bewertung, Anmeldung,
+Merkliste, Import aus dem WordPress-Materialpool.
 **Was es nicht gibt, wird auch nicht angedeutet** — keine Schaltflächen oder
 Menüpunkte für nicht vorhandene Funktionen, auch nicht abgeblendet.
 
@@ -37,8 +38,12 @@ importiert `services/relay.js`.** Beides prüft `test/architektur.test.js`.
 Jede Anfrage rendert aus `src/lib/services/spiegel.js`, nie direkt vom
 Relay. Ein Lauf baut über ALLE konfigurierten Relays einen neuen Stand und
 tauscht ihn atomar ein; gültig ist er, wenn mindestens ein Relay geantwortet
-hat. Der Stand liegt unter `SPIEGEL_PFAD` und überlebt Neustarts; scheitert
-der letzte Lauf, nennt die Fußzeile das Alter des gezeigten Stands.
+hat. Das Relay liefert je REQ höchstens 250 Events, der Lauf blättert über
+`until` bis `SPIEGEL_LIMIT`. Der Stand liegt unter `SPIEGEL_PFAD` und
+überlebt Neustarts; scheitert der letzte Lauf, nennt die Fußzeile das Alter
+des gezeigten Stands. Einzige Ausnahme vom „nie direkt“: die Volltextsuche
+`relaySuche` im selben Modul (ADR-0005), mit Zwischenspeicher und Rückfall
+auf den Spiegel.
 
 `kind:30142` ist ersetzbar: je `(pubkey, d)` zählt nur das jüngste Event,
 bei gleichem `created_at` die kleinere `id`.
@@ -53,10 +58,10 @@ schreibt:** flache Felder (`d` = AMB-`id`, `name`, `description`, `image`,
 Das Modell ist `src/lib/models/material.js`; wer ein Feld ergänzt, ergänzt
 den Test daneben.
 
-**Wer publiziert, ist noch offen (ADR-0003).** Bis dahin ist
-`QUELLE_AUTOREN` leer und der Spiegel zeigt alles, was die Relays bis
-`SPIEGEL_LIMIT` liefern. Sobald der Schlüssel feststeht, kommt er in die
-`.env` — nie in den Code.
+**Wer den Materialpool-Schlüssel verwahrt, ist noch offen (ADR-0003),
+der Bestand aber gefunden:** 7.701 Events von `610df6d6…` auf
+`amb-relay.edufeed.org`. Der Schlüssel steht als `QUELLE_AUTOREN` in der
+`.env` — nie im Code.
 
 **Events werden nie verändert.** Was zu säubern ist, wird beim Rendern
 gesäubert.

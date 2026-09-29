@@ -1,6 +1,6 @@
 # ADR-0001: Der Materialpool wird als Svelte-Schaufenster für AMB-Events nach dem Muster von oer-community neu begonnen
 
-**Status:** angenommen (2026-09-28)
+**Status:** angenommen (2026-09-28) · Nachtrag 2026-09-29: Die Suche über die konfigurierten Relays (NIP-50) ist mit ADR-0005 Teil des Vorhabens.
 **Beteiligte:** Christina Kreutz, Jörg Lohrer (Besprechung 28.09.2026)
 
 ## Kontext

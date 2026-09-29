@@ -55,8 +55,8 @@ Spiegel  src/lib/services/spiegel.js   ← einziger Nutzer von relay.js
 Modell   src/lib/models/material.js     AMB-Tags → Material
       ▼
 Routen   /            Startseite (Suche, Themen, Stufen, Empfehlung)
-         /materialien Liste; ?q=<Text>, stufe=, typ=, t= (mehrfach),
-                      sort=empfohlen|neu|titel|anbieter
+         /materialien Liste; ?q=<Text> (NIP-50 am Relay, ADR-0005),
+                      stufe=, typ=, t= (mehrfach), sort=, seite=
          /m/<kennung> Detail; /m/<kennung>/json rohes Event
 ```
 

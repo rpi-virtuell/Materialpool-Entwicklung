@@ -46,7 +46,7 @@ describe('Stufen', () => {
   it('bildet educationalLevel-Labels auf Stufen ab', () => {
     expect(stufeAusBegriffen([{ id: 'x', label: 'Primarbereich' }])).toEqual({ key: 'elem', label: 'Elementar- & Primarbereich' });
     expect(stufeAusBegriffen([{ id: 'x', label: 'Sekundarstufe I' }]).key).toBe('sek1');
-    expect(stufeAusBegriffen([{ id: 'x', label: 'Postsekundarer nicht-tertiärer Bereich' }]).key).toBe('sek2');
+    expect(stufeAusBegriffen([{ id: 'x', label: 'Postsekundarer nicht-tertiärer Bereich' }]).key).toBe('bbs');
     expect(stufeAusBegriffen([{ id: 'x', label: 'Berufsbildung' }]).key).toBe('bbs');
     expect(stufeAusBegriffen([{ id: 'x', label: 'Hochschule' }])).toEqual({ key: 'hochschule', label: 'Hochschule' });
     expect(stufeAusBegriffen([{ id: 'x', label: 'Fortbildung' }]).key).toBe('fortbildung');
@@ -57,7 +57,7 @@ describe('Stufen', () => {
   it('fällt bei der Stufe auf die KIM-URI zurück', () => {
     expect(stufeAusBegriffen([{ id: 'https://w3id.org/kim/educationalLevel/level_0', label: 'level_0' }]).key).toBe('elem');
     expect(stufeAusBegriffen([{ id: 'https://w3id.org/kim/educationalLevel/level_2', label: 'level_2' }]).key).toBe('sek1');
-    expect(stufeAusBegriffen([{ id: 'https://w3id.org/kim/educationalLevel/level_4', label: 'level_4' }]).key).toBe('sek2');
+    expect(stufeAusBegriffen([{ id: 'https://w3id.org/kim/educationalLevel/level_4', label: 'level_4' }]).key).toBe('bbs');
     expect(stufeAusBegriffen([{ id: 'https://w3id.org/kim/educationalLevel/level_A', label: 'level_A' }]).key).toBe('hochschule');
     expect(stufeAusBegriffen([{ id: 'https://w3id.org/kim/educationalLevel/level_C', label: 'level_C' }]).key).toBe('fortbildung');
   });
@@ -65,7 +65,7 @@ describe('Stufen', () => {
   it('liefert alle Stufen eines Materials dedupliziert in fester Reihenfolge', () => {
     const begriffe = ['Fortbildung', 'Sekundarbereich II', 'Primarbereich', 'Elementarbereich', 'Postsekundarer nicht-tertiärer Bereich']
       .map((label) => ({ id: 'x', label }));
-    expect(stufenAusBegriffen(begriffe)).toEqual(['elem', 'sek2', 'fortbildung']);
+    expect(stufenAusBegriffen(begriffe)).toEqual(['elem', 'sek2', 'bbs', 'fortbildung']);
     expect(stufenAusBegriffen([])).toEqual(['unbekannt']);
     expect(stufeAusBegriffen(begriffe)).toEqual({ key: 'elem', label: 'Elementar- & Primarbereich' });
   });

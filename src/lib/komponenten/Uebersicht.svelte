@@ -9,7 +9,7 @@
    * Spiegel (Erklärung), keine Treffer (aktive Filter), Treffer.
    * @type {ReturnType<typeof import('$lib/routen/uebersicht.js').listeLaden>}
    */
-  let { karten, treffer, seiten, filter, pillen, facetten, sortierungen, gesamt, leerstand } = $props();
+  let { karten, treffer, seiten, filter, pillen, facetten, sortierungen, suche, gesamt, leerstand } = $props();
   const trefferText = $derived(
     treffer === gesamt ? `${treffer} Treffer` : `${treffer} Treffer von ${gesamt}`
   );
@@ -37,6 +37,7 @@
     {#if leerstand}
       <p class="status-hint status-warn">{leerstand}</p>
     {:else}
+      {#if suche.hinweis}<p class="status-hint status-warn suche-hinweis">{suche.hinweis}</p>{/if}
       <div class="facetten">
         {#each gruppen as gruppe (gruppe.name)}
           {#if gruppe.werte.length > 0}
@@ -139,6 +140,7 @@
   }
   .liste-suche button:hover { background: var(--blue-darker); }
 
+  .suche-hinweis { margin-bottom: var(--sp-4); }
   .facetten { display: flex; flex-direction: column; gap: var(--sp-3); margin-bottom: var(--sp-6); }
   .facette { border: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; align-items: baseline; gap: var(--sp-2) var(--sp-3); }
   .facette legend { float: left; font-size: var(--fs-200); font-weight: 600; color: var(--text-muted); min-width: 7.5em; padding: 0; }

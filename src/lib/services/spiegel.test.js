@@ -1,6 +1,12 @@
+import { mkdtemp, rm, writeFile } from 'node:fs/promises';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import beispiele from '../../../test/fixtures/amb-beispiele.json';
-import { ersetzbareZusammenfassen, filterBauen, KIND_AMB, SEITENGROESSE, seitenweise, standAufbauen } from './spiegel.js';
+import {
+  ersetzbareZusammenfassen, filterBauen, KIND_AMB, relaySuche, SEITENGROESSE, seitenweise, spiegelBereit, spiegelHolen,
+  spiegelStarten, spiegelZuruecksetzen, standAufbauen, SUCHE_LIMIT, sucheZuruecksetzen
+} from './spiegel.js';
 
 /** @returns {import('../konfig.js').Konfig} */
 function konfig(teil = {}) {
@@ -16,7 +22,11 @@ function konfig(teil = {}) {
   };
 }
 
-afterEach(() => vi.restoreAllMocks());
+afterEach(() => {
+  vi.restoreAllMocks();
+  sucheZuruecksetzen();
+  spiegelZuruecksetzen();
+});
 
 describe('filterBauen', () => {
   it('fragt kind 30142 mit Limit, ohne Autoren-Einschränkung', () => {
@@ -136,3 +146,73 @@ describe('standAufbauen', () => {
     expect(ergebnis.inhalt?.materialien).toEqual([]);
   });
 });
+
+describe('relaySuche — Volltext am Relay (NIP-50, ADR-0005)', () => {
+  const [a, b, c] = beispiele;
+
+  it('schickt search mit den Einschränkungen des Spiegels und behält die Relevanz-Reihenfolge', async () => {
+    const holen = vi.fn(async (/** @type {string} */ _url, /** @type {Record<string, unknown>} */ _filter) => ({ erreicht: true, events: [c, a, b] }));
+    const k = konfig({ relays: ['wss://eins/'], autoren: ['a'.repeat(64)] });
+    const ergebnis = await relaySuche(k, '  Reformation  Luther ', { holen });
+    expect(holen.mock.calls[0][1]).toEqual({ kinds: [KIND_AMB], authors: ['a'.repeat(64)], search: 'reformation luther', limit: SUCHE_LIMIT });
+    expect(ergebnis.grund).toBeNull();
+    expect(ergebnis.events.map((e) => e.id)).toEqual([c.id, a.id, b.id]);
+  });
+
+  it('führt je (pubkey, d) zusammen und lässt fremde Kinds weg', async () => {
+    const neuer = { ...a, id: '9'.repeat(64), created_at: a.created_at + 1 };
+    const holen = vi.fn(async () => ({ erreicht: true, events: [a, { ...b, kind: 1 }, neuer] }));
+    const ergebnis = await relaySuche(konfig(), 'x', { holen });
+    expect(ergebnis.events.map((e) => e.id)).toEqual([neuer.id]);
+  });
+
+  it('merkt sich Antworten je Suchtext für SPIEGEL_INTERVALL_S, Fehlschläge nicht', async () => {
+    let uhr = 0;
+    const jetzt = () => uhr;
+    const holen = vi.fn(async () => ({ erreicht: true, events: [a] }));
+    const k = konfig({ spiegelIntervallS: 600 });
+    await relaySuche(k, 'Ostern', { holen, jetzt });
+    await relaySuche(k, ' ostern', { holen, jetzt });
+    expect(holen).toHaveBeenCalledTimes(2); // zwei Relays, eine Anfrage
+    uhr = 600 * 1000;
+    await relaySuche(k, 'ostern', { holen, jetzt });
+    expect(holen).toHaveBeenCalledTimes(4);
+
+    const nie = vi.fn(async () => ({ erreicht: false, events: [] }));
+    const fehl = await relaySuche(k, 'pfingsten', { holen: nie, jetzt });
+    expect(fehl.grund).toBe('kein-relay-erreichbar');
+    await relaySuche(k, 'pfingsten', { holen: nie, jetzt });
+    expect(nie).toHaveBeenCalledTimes(4);
+  });
+});
+
+describe('spiegelStarten', () => {
+  /** Ein Relay, das erst nach 1,5 s antwortet. */
+  const langsam = () => new Promise((f) => setTimeout(() => f({ erreicht: true, events: beispiele }), 1500));
+
+  it('geht mit gesichertem Stand sofort ans Netz und holt den ersten Lauf im Hintergrund nach', async () => {
+    const ordner = await mkdtemp(join(tmpdir(), 'spiegel-'));
+    const pfad = join(ordner, 'spiegel.json');
+    const stand = { zeitpunkt: '2026-09-29T00:00:00Z', dauerMs: 1, gefragteRelays: ['wss://eins/'], nichtErreichbar: [], anzahl: { materialien: 1 } };
+    await writeFile(pfad, JSON.stringify({ stand, materialien: [beispiele[0]], quellen: {} }));
+    const begonnen = Date.now();
+    spiegelStarten(konfig({ spiegelPfad: pfad, spiegelStartwartezeitS: 5 }), { holen: langsam });
+    await spiegelBereit();
+    expect(Date.now() - begonnen).toBeLessThan(1000);
+    expect(spiegelHolen().lesen().materialien).toHaveLength(1);
+    await rm(ordner, { recursive: true, force: true });
+  });
+
+  it('wartet ohne Datei höchstens die Startwartezeit auf den ersten Lauf', async () => {
+    const ordner = await mkdtemp(join(tmpdir(), 'spiegel-'));
+    const begonnen = Date.now();
+    spiegelStarten(konfig({ spiegelPfad: join(ordner, 'neu.json'), spiegelStartwartezeitS: 1 }), { holen: langsam });
+    await spiegelBereit();
+    const dauer = Date.now() - begonnen;
+    expect(dauer).toBeGreaterThanOrEqual(900);
+    expect(dauer).toBeLessThan(1500);
+    expect(spiegelHolen().lesen().materialien).toHaveLength(0);
+    await rm(ordner, { recursive: true, force: true });
+  });
+});
+

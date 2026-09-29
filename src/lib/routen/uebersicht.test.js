@@ -3,7 +3,7 @@ import beispiele from '../../../test/fixtures/amb-beispiele.json';
 import { materialAusEvent } from '../models/material.js';
 import { leererInhalt } from '../services/spiegel.js';
 import {
-  aktiveFilter, facettenBilden, filterAnwenden, filterLesen, leererFilter, leerstandErklaeren,
+  aktiveFilter, facettenBilden, filterAnwenden, filterLesen, grundmengeBilden, leererFilter, leerstandErklaeren,
   listeLaden, listenPfad, SEITENGROESSE_LISTE, seitenBilden, SORTIERUNGEN, sortieren
 } from './uebersicht.js';
 
@@ -60,6 +60,7 @@ describe('filterAnwenden', () => {
     expect(filterAnwenden(materialien, filter({ stufen: ['elem', 'hochschule'] }))).toHaveLength(3);
     expect(filterAnwenden(materialien, filter({ stufen: ['fortbildung'] })).map((m) => m.name)).toEqual(['EKD: Erntedankfest']);
     expect(filterAnwenden(materialien, filter({ stufen: ['unbekannt'] }))).toHaveLength(2);
+    expect(filterAnwenden(materialien, filter({ stufen: ['bbs'] })).map((m) => m.name)).toEqual(['EKD: Erntedankfest', 'Flüchtlinge schützen']);
     expect(filterAnwenden(materialien, filter({ typen: ['plan'] }))).toHaveLength(6);
     expect(filterAnwenden(materialien, filter({ typen: ['ab'] }))).toHaveLength(2);
     expect(filterAnwenden(materialien, filter({ typen: ['video', 'audio'] }))).toHaveLength(2);
@@ -83,7 +84,7 @@ describe('facettenBilden', () => {
     expect(f.typen.find((o) => o.key === 'video')?.anzahl).toBe(0);
     // … die Stufen-Facette selbst aber ohne den Stufenfilter.
     expect(f.stufen.map((o) => [o.key, o.anzahl])).toEqual([
-      ['elem', 3], ['sek1', 4], ['sek2', 3], ['bbs', 0], ['fortbildung', 1], ['hochschule', 1], ['unbekannt', 2]
+      ['elem', 3], ['sek1', 4], ['sek2', 3], ['bbs', 2], ['fortbildung', 1], ['hochschule', 1], ['unbekannt', 2]
     ]);
     expect(f.stufen[0].aktiv).toBe(true);
   });
@@ -92,6 +93,7 @@ describe('facettenBilden', () => {
     const video = f.typen.find((o) => o.key === 'video');
     expect(video?.leer).toBe(true);
     expect(video?.pfad).toBeNull();
+    expect(f.stufen.find((o) => o.key === 'bbs')?.pfad).toBe('/materialien?stufe=elem&stufe=bbs');
     expect(f.typen.find((o) => o.key === 'plan')?.pfad).toBe('/materialien?stufe=elem&typ=plan');
     expect(f.stufen[0].pfad).toBe('/materialien');
     expect(f.stufen[4].pfad).toBe('/materialien?stufe=elem&stufe=fortbildung');
@@ -198,5 +200,49 @@ describe('listeLaden', () => {
     const a = listeLaden({ inhalt, fehlschlag: null, relays });
     const b = listeLaden({ inhalt, fehlschlag: null, relays, filter: filter({ sortierung: 'titel' }) });
     expect(a.karten[0].material).toBe(b.karten.find((k) => k.material.id === a.karten[0].material.id)?.material);
+  });
+
+});
+
+describe('listeLaden mit Relay-Suche (ADR-0005)', () => {
+  const inhalt = { ...leererInhalt(), materialien: beispiele };
+  const [arbeitsheft, , erntedank, geist] = beispiele;
+  /** @param {import('../services/spiegel.js').Event[]} events */
+  const suche = (events, grund = /** @type {import('../services/relay.js').Abfragegrund} */ (null)) => ({ events, gefragteRelays: relays, grund });
+
+  it('nimmt bei Suchtext die Relay-Treffer in Relevanz-Reihenfolge als Grundmenge', () => {
+    const g = grundmengeBilden(inhalt, filter({ q: 'geist' }), suche([geist, erntedank]));
+    expect(g.quelle).toBe('relay');
+    expect(g.textGefiltert).toBe(true);
+    expect(g.materialien.map((m) => m.name)).toEqual(['Ein frischer Geist weht', 'EKD: Erntedankfest']);
+    const daten = listeLaden({ inhalt, fehlschlag: null, relays, filter: filter({ q: 'geist' }), suche: suche([geist, erntedank]) });
+    expect(daten.karten.map((k) => k.material.name)).toEqual(['Ein frischer Geist weht', 'EKD: Erntedankfest']);
+    expect(daten.treffer).toBe(2);
+    expect(daten.gesamt).toBe(7);
+    expect(daten.suche).toEqual({ quelle: 'relay', hinweis: null });
+    expect(daten.sortierungen[0]).toMatchObject({ key: 'empfohlen', label: 'Relevanz', aktiv: true });
+  });
+
+  it('Facetten und andere Sortierungen greifen auf die Relay-Treffer', () => {
+    const daten = listeLaden({ inhalt, fehlschlag: null, relays, filter: filter({ q: 'x', typen: ['video'] }), suche: suche([erntedank, geist, arbeitsheft]) });
+    expect(daten.karten.map((k) => k.material.name)).toEqual(['Ein frischer Geist weht']);
+    expect(daten.facetten.typen.find((o) => o.key === 'plan')?.anzahl).toBe(2);
+    expect(daten.facetten.stufen.find((o) => o.key === 'unbekannt')?.anzahl).toBe(0);
+    const titel = listeLaden({ inhalt, fehlschlag: null, relays, filter: filter({ q: 'x', sortierung: 'titel' }), suche: suche([erntedank, geist, arbeitsheft]) });
+    expect(titel.karten.map((k) => k.material.name)[0]).toBe('Ein frischer Geist weht');
+  });
+
+  it('fällt ohne erreichbares Relay auf die Wortsuche im Spiegel zurück und sagt das', () => {
+    const daten = listeLaden({ inhalt, fehlschlag: null, relays, filter: filter({ q: 'erntedank' }), suche: suche([], 'kein-relay-erreichbar') });
+    expect(daten.karten.map((k) => k.material.name)).toEqual(['EKD: Erntedankfest']);
+    expect(daten.suche.quelle).toBe('spiegel');
+    expect(daten.suche.hinweis).toMatch(/Kein Relay war erreichbar.*Spiegel/);
+    expect(daten.sortierungen[0].label).toBe('Empfohlen');
+  });
+
+  it('ohne Suchtext bleibt alles im Spiegel, auch wenn ein Suchergebnis mitkommt', () => {
+    const daten = listeLaden({ inhalt, fehlschlag: null, relays, filter: filter(), suche: suche([geist]) });
+    expect(daten.treffer).toBe(7);
+    expect(daten.suche).toEqual({ quelle: 'spiegel', hinweis: null });
   });
 });

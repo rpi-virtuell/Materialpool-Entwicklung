@@ -62,7 +62,8 @@ describe('materialAusEvent', () => {
     expect(materialAusEvent(geist).typ).toEqual({ key: 'video', label: 'Video' });
     expect(materialAusEvent(fluechtlinge).typ).toEqual({ key: 'audio', label: 'Audio' });
     expect(materialAusEvent(fluechtlinge).typKeys).toEqual(['plan', 'ab', 'audio', 'webseite']);
-    expect(materialAusEvent(erntedank).stufenKeys).toEqual(['elem', 'sek1', 'sek2', 'fortbildung']);
+    expect(materialAusEvent(erntedank).stufenKeys).toEqual(['elem', 'sek1', 'sek2', 'bbs', 'fortbildung']);
+    expect(materialAusEvent(fluechtlinge).stufenKeys).toEqual(['sek1', 'sek2', 'bbs']);
     expect(materialAusEvent(jericho).stufenKeys).toEqual(['elem', 'hochschule']);
     expect(materialAusEvent(berufsorientierung).stufe.key).toBe('unbekannt');
     expect(materialAusEvent(berufsorientierung).stufenKeys).toEqual(['unbekannt']);

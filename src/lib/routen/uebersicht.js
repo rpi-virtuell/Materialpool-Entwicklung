@@ -4,13 +4,15 @@
  * ODER innerhalb einer Facette, UND dazwischen; Zähler je Facette ohne
  * die eigene Facette. Alles reine Funktionen.
  */
-import { ABFRAGEGRUND_TEXT } from '../services/spiegel.js';
 import { coverFarben } from '../models/farben.js';
+import { materialAusEvent } from '../models/material.js';
 import { STUFEN_LABEL, STUFEN_REIHENFOLGE, TYP_LABEL, TYP_REIHENFOLGE, TYPEN } from '../models/typen.js';
+import { ABFRAGEGRUND_TEXT as GRUND_TEXT } from '../services/spiegel.js';
 import { materialienVon } from './bestand.js';
 
 /** @typedef {import('../services/spiegel.js').Inhalt} Inhalt */
 /** @typedef {import('../services/spiegel.js').Fehlschlag} Fehlschlag */
+/** @typedef {import('../services/spiegel.js').Suchergebnis} Suchergebnis */
 /** @typedef {import('../models/material.js').Material} Material */
 /** @typedef {import('../models/typen.js').StufeKey} StufeKey */
 /** @typedef {import('../models/typen.js').TypKey} TypKey */
@@ -55,7 +57,7 @@ export function leererFilter() {
 export function leerstandErklaeren(inhalt, fehlschlag, relays) {
   if (inhalt.materialien.length > 0) return null;
   if (fehlschlag?.grund) {
-    return `${ABFRAGEGRUND_TEXT[fehlschlag.grund]} Gefragt: ${fehlschlag.gefragteRelays.join(', ')}.`;
+    return `${GRUND_TEXT[fehlschlag.grund]} Gefragt: ${fehlschlag.gefragteRelays.join(', ')}.`;
   }
   if (inhalt.stand === null) {
     return `Der Spiegel hat noch keinen Stand. Erster Lauf gegen ${relays.join(', ')} läuft oder steht aus.`;
@@ -101,6 +103,29 @@ export function filterLesen(params) {
     schlagworte: [...new Set(params.getAll('t').map((w) => w.trim()).filter(Boolean))],
     sortierung,
     seite: Number.isInteger(seiteRoh) && seiteRoh > 1 ? seiteRoh : 1
+  };
+}
+
+/**
+ * Grundmenge einer Liste: bei Suchtext die Relay-Treffer (relevanzsortiert,
+ * ADR-0005); ohne Suchtext oder wenn kein Relay antwortete, der Spiegel
+ * mit Wortsuche — dann mit Hinweis, nie stumm.
+ * @param {Inhalt} inhalt
+ * @param {Filter} filter
+ * @param {Suchergebnis|null} suche
+ * @returns {{ materialien: Material[], textGefiltert: boolean, quelle: 'relay'|'spiegel', hinweis: string|null }}
+ */
+export function grundmengeBilden(inhalt, filter, suche) {
+  if (!filter.q) return { materialien: materialienVon(inhalt), textGefiltert: false, quelle: 'spiegel', hinweis: null };
+  if (suche && suche.grund === null) {
+    return { materialien: suche.events.map(materialAusEvent), textGefiltert: true, quelle: 'relay', hinweis: null };
+  }
+  const grund = suche?.grund ? GRUND_TEXT[suche.grund] : 'Die Suche am Relay ist nicht gelaufen.';
+  return {
+    materialien: materialienVon(inhalt),
+    textGefiltert: false,
+    quelle: 'spiegel',
+    hinweis: `${grund} Gezeigt werden Wortsuche-Treffer aus dem Spiegel, ohne Ranking nach Relevanz.`
   };
 }
 
@@ -274,11 +299,16 @@ export function seitenBilden(treffer, filter) {
 }
 
 /**
- * @param {{ inhalt: Inhalt, fehlschlag: Fehlschlag|null, relays: string[], filter?: Filter }} eingabe
+ * @param {{ inhalt: Inhalt, fehlschlag: Fehlschlag|null, relays: string[], filter?: Filter, suche?: Suchergebnis|null }} eingabe
  */
-export function listeLaden({ inhalt, fehlschlag, relays, filter = leererFilter() }) {
-  const alle = materialienVon(inhalt);
-  const treffer = sortieren(filterAnwenden(alle, filter), filter.sortierung);
+export function listeLaden({ inhalt, fehlschlag, relays, filter = leererFilter(), suche = null }) {
+  const grundmenge = grundmengeBilden(inhalt, filter, suche);
+  // Relay-Treffer sind schon textgefiltert; die Facetten greifen darauf.
+  const facettenFilter = grundmenge.textGefiltert ? { ...filter, q: '' } : filter;
+  const gefiltert = filterAnwenden(grundmenge.materialien, facettenFilter);
+  // „Empfohlen“ heißt bei Relay-Treffern: Relevanz, also die Reihenfolge des Relays.
+  const relevanz = grundmenge.quelle === 'relay' && filter.sortierung === 'empfohlen';
+  const treffer = relevanz ? gefiltert : sortieren(gefiltert, filter.sortierung);
   const seiten = seitenBilden(treffer.length, filter);
   const ausschnitt = treffer.slice((seiten.aktuell - 1) * SEITENGROESSE_LISTE, seiten.aktuell * SEITENGROESSE_LISTE);
   return {
@@ -287,9 +317,15 @@ export function listeLaden({ inhalt, fehlschlag, relays, filter = leererFilter()
     seiten,
     filter,
     pillen: aktiveFilter(filter),
-    facetten: facettenBilden(alle, filter),
-    sortierungen: SORTIERUNGEN.map((s) => ({ ...s, aktiv: s.key === filter.sortierung, pfad: listenPfad({ ...filter, sortierung: s.key, seite: 1 }) })),
-    gesamt: alle.length,
+    facetten: facettenBilden(grundmenge.materialien, facettenFilter),
+    sortierungen: SORTIERUNGEN.map((s) => ({
+      ...s,
+      label: s.key === 'empfohlen' && grundmenge.quelle === 'relay' ? 'Relevanz' : s.label,
+      aktiv: s.key === filter.sortierung,
+      pfad: listenPfad({ ...filter, sortierung: s.key, seite: 1 })
+    })),
+    gesamt: materialienVon(inhalt).length,
+    suche: { quelle: grundmenge.quelle, hinweis: grundmenge.hinweis },
     leerstand: leerstandErklaeren(inhalt, fehlschlag, relays)
   };
 }

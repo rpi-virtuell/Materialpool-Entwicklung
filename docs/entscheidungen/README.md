@@ -7,12 +7,14 @@ ist der Einstieg — die Statuszeile in der Datei ist maßgeblich.
 
 **Was heute gilt, in einem Satz je Thema:** Svelte-Schaufenster für
 AMB-Events nach dem Muster von oer-community (0001), Joachims Notizen
-archiviert statt gelöscht (0002), Datenquelle noch offen (0003), Startseite
-nach dem Materialpool-2.0-Prototyp, serverseitig aus dem Spiegel (0004).
+archiviert statt gelöscht (0002), Datenquelle noch offen — Bestand aber
+gefunden (0003), Startseite nach dem Materialpool-2.0-Prototyp, serverseitig
+aus dem Spiegel (0004), Suche per NIP-50 am Relay (0005).
 
 | Nr. | Titel | Status |
 |---|---|---|
-| [0001](0001-svelte-schaufenster-nach-oer-community-muster.md) | Der Materialpool wird als Svelte-Schaufenster für AMB-Events nach dem Muster von oer-community neu begonnen | angenommen (2026-09-28) |
+| [0001](0001-svelte-schaufenster-nach-oer-community-muster.md) | Der Materialpool wird als Svelte-Schaufenster für AMB-Events nach dem Muster von oer-community neu begonnen | angenommen (2026-09-28), Nachtrag 2026-09-29 |
 | [0002](0002-archiv-statt-loeschung.md) | Joachims Vault wird archiviert, nicht gelöscht; die Historie bleibt | angenommen (2026-09-28) |
 | [0003](0003-datenquelle-materialpool-events.md) | Welcher Schlüssel publiziert Materialpool-Einträge als kind:30142 auf welches Relay | offen |
 | [0004](0004-startseite-nach-prototyp-serverseitig.md) | Die Startseite übernimmt Gestaltung und Aufbau des Materialpool-2.0-Prototyps, bleibt aber serverseitig gerendert aus dem Spiegel | offen |
+| [0005](0005-suche-per-nip-50-am-relay.md) | Die Suche fragt die konfigurierten Relays per NIP-50 und rendert die Treffer aus dem Spiegel-Modell | angenommen (2026-09-29) |
