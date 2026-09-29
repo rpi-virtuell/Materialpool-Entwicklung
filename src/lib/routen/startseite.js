@@ -96,7 +96,7 @@ export function startseiteLaden({ inhalt, fehlschlag, relays, heute = new Date()
   const stufen = STUFEN_SICHTBAR.map((key) => ({
     key,
     label: STUFEN_LABEL[key],
-    pfad: listenPfad({ stufe: key }),
+    pfad: listenPfad({ stufen: [key] }),
     farbe: palette[key],
     text: kontrastText(palette[key])
   }));

@@ -2,16 +2,23 @@
   import Icon from './Icon.svelte';
   import Karte from './Karte.svelte';
   /**
-   * Liste (/materialien): Suche, Ergebnisleiste mit Treffern und aktiven
-   * Filtern als entfernbare Pillen, Karten. Zustände: leerer Spiegel
-   * (Erklärung), keine Treffer (aktive Filter), Treffer.
+   * Liste (/materialien): Suche, Facetten (Materialart, Bildungsstufe,
+   * Schlagworte) als Link-Chips, Ergebnisleiste mit Treffern, aktiven
+   * Filtern als entfernbare Pillen und Sortierung als Link-Gruppe, Karten.
+   * Alles GET-Links — ohne JavaScript vollständig. Zustände: leerer
+   * Spiegel (Erklärung), keine Treffer (aktive Filter), Treffer.
    * @type {ReturnType<typeof import('$lib/routen/uebersicht.js').listeLaden>}
    */
-  let { karten, filter, pillen, gesamt, leerstand } = $props();
+  let { karten, filter, pillen, facetten, sortierungen, gesamt, leerstand } = $props();
   const trefferText = $derived(
     karten.length === gesamt ? `${karten.length} Treffer` : `${karten.length} Treffer von ${gesamt}`
   );
   const filterText = $derived(pillen.map((p) => p.label).join(' und '));
+  const gruppen = $derived([
+    { name: 'Materialart', werte: facetten.typen },
+    { name: 'Bildungsstufe', werte: facetten.stufen },
+    { name: 'Schlagworte', werte: facetten.schlagworte }
+  ]);
 </script>
 
 <main class="liste-page">
@@ -20,30 +27,62 @@
     <form class="liste-suche" action="/materialien" method="get" role="search">
       <Icon name="search" />
       <input type="search" name="q" value={filter.q} placeholder="Suchen in Titel, Beschreibung, Herkunft und Schlagworten" aria-label="Materialien durchsuchen" />
-      {#if filter.stufe}<input type="hidden" name="stufe" value={filter.stufe} />{/if}
+      {#each filter.stufen as s (s)}<input type="hidden" name="stufe" value={s} />{/each}
+      {#each filter.typen as t (t)}<input type="hidden" name="typ" value={t} />{/each}
+      {#each filter.schlagworte as w (w)}<input type="hidden" name="t" value={w} />{/each}
+      {#if filter.sortierung !== 'empfohlen'}<input type="hidden" name="sort" value={filter.sortierung} />{/if}
       <button type="submit">Suchen</button>
     </form>
 
     {#if leerstand}
       <p class="status-hint status-warn">{leerstand}</p>
-    {:else if karten.length === 0}
-      <div class="keine-treffer">
-        <h2>Dazu passt gerade nichts</h2>
-        <p>Von {gesamt} Materialien passt keines zu {filterText}.</p>
-        <a class="filter-aufheben" href="/materialien">Filter aufheben</a>
-      </div>
     {:else}
-      <div class="ergebnisleiste">
-        <span class="treffer">{trefferText}</span>
-        {#each pillen as pille (pille.art)}
-          <a class="filter-pille" href={pille.entfernenPfad} aria-label="Filter {pille.label} entfernen">{pille.label} <span aria-hidden="true">×</span></a>
+      <div class="facetten">
+        {#each gruppen as gruppe (gruppe.name)}
+          {#if gruppe.werte.length > 0}
+            <fieldset class="facette">
+              <legend>{gruppe.name}</legend>
+              <div class="facette-chips">
+                {#each gruppe.werte as wert (wert.key)}
+                  {#if wert.pfad}
+                    <a class="chip" class:is-aktiv={wert.aktiv} href={wert.pfad} aria-current={wert.aktiv ? 'true' : undefined}>
+                      {wert.label} <span class="chip-zahl">{wert.anzahl}</span>
+                    </a>
+                  {:else}
+                    <span class="chip is-leer" aria-disabled="true">{wert.label} <span class="chip-zahl">0</span></span>
+                  {/if}
+                {/each}
+              </div>
+            </fieldset>
+          {/if}
         {/each}
       </div>
-      <div class="material-grid">
-        {#each karten as karte (karte.material.id)}
-          <Karte {karte} />
-        {/each}
-      </div>
+
+      {#if karten.length === 0}
+        <div class="keine-treffer">
+          <h2>Dazu passt gerade nichts</h2>
+          <p>Von {gesamt} Materialien passt keines zu {filterText}.</p>
+          <a class="filter-aufheben" href="/materialien">Filter aufheben</a>
+        </div>
+      {:else}
+        <div class="ergebnisleiste">
+          <span class="treffer">{trefferText}</span>
+          {#each pillen as pille (pille.art + pille.label)}
+            <a class="filter-pille" href={pille.entfernenPfad} aria-label="Filter {pille.label} entfernen">{pille.label} <span aria-hidden="true">×</span></a>
+          {/each}
+          <nav class="sortierung" aria-label="Sortierung">
+            <span class="sortierung-label">Sortieren:</span>
+            {#each sortierungen as s (s.key)}
+              <a href={s.pfad} class:is-aktiv={s.aktiv} aria-current={s.aktiv ? 'true' : undefined}>{s.label}</a>
+            {/each}
+          </nav>
+        </div>
+        <div class="material-grid">
+          {#each karten as karte (karte.material.id)}
+            <Karte {karte} />
+          {/each}
+        </div>
+      {/if}
     {/if}
   </div>
 </main>
@@ -92,6 +131,30 @@
     cursor: pointer;
   }
   .liste-suche button:hover { background: var(--blue-darker); }
+
+  .facetten { display: flex; flex-direction: column; gap: var(--sp-3); margin-bottom: var(--sp-6); }
+  .facette { border: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; align-items: baseline; gap: var(--sp-2) var(--sp-3); }
+  .facette legend { float: left; font-size: var(--fs-200); font-weight: 600; color: var(--text-muted); min-width: 7.5em; padding: 0; }
+  .facette-chips { display: flex; flex-wrap: wrap; gap: var(--sp-2); }
+  .chip {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--sp-1);
+    padding: var(--sp-1) var(--sp-3);
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    font-size: var(--fs-200);
+    font-weight: 500;
+    color: var(--text-dark);
+    text-decoration: none;
+    background: var(--weiss);
+    transition: border-color 0.15s ease, background-color 0.15s ease;
+  }
+  .chip:hover { border-color: var(--text-dark); }
+  .chip.is-aktiv { background: var(--blue); border-color: var(--blue); color: var(--weiss); }
+  .chip.is-leer { color: var(--text-muted); border-style: dashed; cursor: default; }
+  .chip-zahl { font-weight: 400; opacity: 0.75; }
+
   .ergebnisleiste {
     display: flex;
     flex-wrap: wrap;
@@ -114,6 +177,10 @@
     background: var(--fb-flaeche);
   }
   .filter-pille:hover { border-color: var(--text-dark); }
+  .sortierung { margin-left: auto; display: flex; flex-wrap: wrap; align-items: center; gap: var(--sp-1) var(--sp-3); }
+  .sortierung a { color: var(--text-muted); text-decoration: none; padding: 2px 0; border-bottom: 2px solid transparent; }
+  .sortierung a:hover { color: var(--text-dark); }
+  .sortierung a.is-aktiv { color: var(--text-dark); font-weight: 600; border-bottom-color: var(--blue); }
   .material-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
@@ -123,5 +190,7 @@
   .filter-aufheben { color: var(--blue); font-weight: 600; }
   @media (max-width: 640px) {
     .liste-inner { padding: var(--sp-6) var(--sp-4) var(--sp-10); }
+    .facette legend { float: none; min-width: 0; width: 100%; margin-bottom: var(--sp-1); }
+    .sortierung { margin-left: 0; width: 100%; }
   }
 </style>

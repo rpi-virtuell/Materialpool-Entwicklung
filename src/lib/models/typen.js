@@ -22,6 +22,18 @@ export const TYPEN = /** @type {Record<TypKey, { icon: string }>} */ ({
 /** @type {TypKey[]} */
 export const TYP_REIHENFOLGE = /** @type {TypKey[]} */ (Object.keys(TYPEN));
 
+/** Anzeigename je Typ für die Facette „Materialart“. @type {Record<TypKey, string>} */
+export const TYP_LABEL = {
+  plan: 'Unterrichtsplanung',
+  ab: 'Arbeitsmaterial',
+  proj: 'Projektarbeit',
+  uebung: 'Übung',
+  video: 'Video',
+  audio: 'Audio',
+  webseite: 'Webseite',
+  sonstiges: 'Sonstiges'
+};
+
 /** learningResourceType-Label → Typ; alles andere ist „sonstiges“. */
 export const LRT_ZU_TYP = /** @type {Record<string, TypKey>} */ ({
   Arbeitsmaterial: 'ab',

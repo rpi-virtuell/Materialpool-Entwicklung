@@ -8,6 +8,38 @@ das Gesamtbild in `superpowers/specs/2026-09-28-materialpool-neustart-design.md`
 
 ---
 
+## 2026-09-29 (2) — Liste: Facetten und Sortierung
+
+**Passiert:** `/materialien` hat jetzt die Facetten und Sortierungen aus
+Abschnitt 7 der Prototyp-Vorlage (Branch `feat/facetten`):
+
+- **Facetten** Materialart (`typ`), Bildungsstufe (`stufe`), Schlagworte
+  (`t`) als GET-Link-Chips: ODER innerhalb einer Facette, UND dazwischen;
+  Zähler je Facette ohne die eigene Facette; Chips mit 0 ohne Link
+  (`is-leer`). Schlagworte höchstens 12, aktive zuerst. Parameter dürfen
+  sich wiederholen (`?stufe=elem&stufe=sek1`); die Kacheln der Startseite
+  bleiben gültig.
+- **Sortierung** `sort=empfohlen|neu|titel|anbieter` als Link-Gruppe in
+  der Ergebnisleiste (kein `<select>`, weil das ohne JavaScript einen
+  Knopf bräuchte). `empfohlen` = 2·Bild + 1·Lizenz, dann jüngste zuerst;
+  die im Prototyp hart kodierte Ausnahme für einen Titel ist nicht
+  übernommen.
+- Das Suchformular hält aktive Facetten und Sortierung als versteckte
+  Felder. Aktive Werte erscheinen als entfernbare Pillen.
+- Logik rein in `routen/uebersicht.js` (`filterLesen`, `listenPfad`,
+  `filterAnwenden`, `facettenBilden`, `sortieren`); `TYP_LABEL` in
+  `models/typen.js`.
+
+**Wo steht das Projekt:** `pnpm check` 0 Fehler, 108 Tests grün. Im
+Browser gegen das Mock-Relay geprüft (Desktop und 600 px): Kombinationen
+aus Facetten, Sortierung, „keine Treffer“ mit aktiven Filtern.
+
+**Nächster Schritt:** `feat/facetten` mergen. Danach Detailseite auf die
+Tokens des Prototyps umstellen und die `--fb-*`-Aliase entfernen; Deploy-
+Voraussetzungen wie am 28.09.
+
+---
+
 ## 2026-09-29 — Startseite nach dem Materialpool-2.0-Prototyp, serverseitig
 
 **Passiert:** Jörg hat die Svelte-Bauanleitung und `startseite.css` des

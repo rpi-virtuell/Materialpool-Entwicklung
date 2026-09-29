@@ -96,8 +96,10 @@ kleingeschrieben) und `stufe` (Key) als Query-Parameter. Ergebnisleiste
 „N Treffer“, aktive Filter als Pillen mit Link zum Entfernen, Karten in
 Spiegelreihenfolge. Keine Treffer → „Dazu passt gerade nichts“ mit den
 aktiven Filtern und Link „Filter aufheben“. Spiegel leer → Leerstands-
-Erklärung wie bisher. Facetten, Sortierung, Merkliste: nicht Teil dieser
-Spec; `filterAnwenden` ist so geschnitten, dass sie sich ergänzen lassen.
+Erklärung wie bisher. Facetten und Sortierung folgten am selben Tag
+(STATUS 2026-09-29 (2)): `typ`, `stufe`, `t` mehrfach, `sort`; Zähler je
+Facette ohne die eigene Facette; Sortierung als Link-Gruppe. Merkliste:
+nicht Teil dieser Spec.
 
 ## Fehlerfälle
 

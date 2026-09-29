@@ -54,7 +54,8 @@ Spiegel  src/lib/services/spiegel.js   ← einziger Nutzer von relay.js
 Modell   src/lib/models/material.js     AMB-Tags → Material
       ▼
 Routen   /            Startseite (Suche, Themen, Stufen, Empfehlung)
-         /materialien Liste; ?q=<Text>&stufe=<elem|sek1|sek2|bbs>
+         /materialien Liste; ?q=<Text>, stufe=, typ=, t= (mehrfach),
+                      sort=empfohlen|neu|titel|anbieter
          /m/<kennung> Detail; /m/<kennung>/json rohes Event
 ```
 

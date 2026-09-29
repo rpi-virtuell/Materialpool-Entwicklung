@@ -1,13 +1,16 @@
 import { describe, expect, it } from 'vitest';
 import {
-  LRT_ZU_TYP, STUFEN_LABEL, STUFEN_REIHENFOLGE, STUFEN_SICHTBAR, TYPEN, TYP_REIHENFOLGE,
+  LRT_ZU_TYP, STUFEN_LABEL, STUFEN_REIHENFOLGE, STUFEN_SICHTBAR, TYPEN, TYP_LABEL, TYP_REIHENFOLGE,
   stufeAusBegriffen, typAusBegriffen
 } from './typen.js';
 
 describe('Typen', () => {
   it('kennt acht Typen in fester Reihenfolge, jeder mit Icon', () => {
     expect(TYP_REIHENFOLGE).toEqual(['plan', 'ab', 'proj', 'uebung', 'video', 'audio', 'webseite', 'sonstiges']);
-    for (const key of TYP_REIHENFOLGE) expect(TYPEN[key].icon).toMatch(/^[a-z-]+$/);
+    for (const key of TYP_REIHENFOLGE) {
+      expect(TYPEN[key].icon).toMatch(/^[a-z-]+$/);
+      expect(TYP_LABEL[key]).toBeTruthy();
+    }
   });
 
   it('bildet learningResourceType-Labels auf Typen ab, Unbekanntes auf sonstiges', () => {

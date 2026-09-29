@@ -10,4 +10,4 @@
   <meta name="description" content="Alle Materialien des Materialpools Religion zum Durchstöbern, nach Bildungsstufe und Stichwort." />
 </svelte:head>
 
-<Uebersicht karten={data.karten} filter={data.filter} pillen={data.pillen} gesamt={data.gesamt} leerstand={data.leerstand} />
+<Uebersicht karten={data.karten} filter={data.filter} pillen={data.pillen} facetten={data.facetten} sortierungen={data.sortierungen} gesamt={data.gesamt} leerstand={data.leerstand} />

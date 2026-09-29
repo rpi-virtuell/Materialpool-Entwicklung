@@ -15,7 +15,7 @@ import Uebersicht from '../src/lib/komponenten/Uebersicht.svelte';
 import { materialAusEvent } from '../src/lib/models/material.js';
 import { TYPEN } from '../src/lib/models/typen.js';
 import { startseiteLaden } from '../src/lib/routen/startseite.js';
-import { listeLaden } from '../src/lib/routen/uebersicht.js';
+import { leererFilter, listeLaden } from '../src/lib/routen/uebersicht.js';
 import { leererInhalt } from '../src/lib/services/spiegel.js';
 
 const relays = ['wss://amb-relay.edufeed.org/'];
@@ -113,18 +113,38 @@ describe('Uebersicht (Liste)', () => {
     expect(body).toContain('loading="lazy"');
   });
 
-  it('zeigt aktive Filter als entfernbare Pillen und hält die Stufe im Formular', () => {
-    const daten = listeLaden({ inhalt, fehlschlag: null, relays, filter: { q: 'abraham', stufe: 'elem' } });
+  it('zeigt aktive Filter als entfernbare Pillen und hält Facetten und Sortierung im Formular', () => {
+    const daten = listeLaden({ inhalt, fehlschlag: null, relays, filter: { ...leererFilter(), q: 'abraham', stufen: ['elem'], sortierung: 'titel' } });
     const { body } = render(Uebersicht, { props: daten });
     expect(body).toContain('1 Treffer von 4');
-    expect(body).toContain('href="/materialien?stufe=elem"');
-    expect(body).toContain('href="/materialien?q=abraham"');
+    expect(body).toContain('href="/materialien?stufe=elem&amp;sort=titel"');
+    expect(body).toContain('href="/materialien?q=abraham&amp;sort=titel"');
     expect(body).toMatch(/name="stufe"[^>]*value="elem"/);
+    expect(body).toMatch(/name="sort"[^>]*value="titel"/);
     expect(body).toMatch(/name="q"[^>]*value="abraham"/);
   });
 
+  it('rendert Facetten als Link-Chips mit Zählern, aktive gedrückt, leere ohne Link', () => {
+    const daten = listeLaden({ inhalt, fehlschlag: null, relays, filter: { ...leererFilter(), stufen: ['elem'] } });
+    const { body } = render(Uebersicht, { props: daten });
+    for (const name of ['Materialart', 'Bildungsstufe', 'Schlagworte']) expect(body).toMatch(new RegExp(`<legend[^>]*>${name}</legend>`));
+    expect(body).toMatch(/class="chip[^"]*is-aktiv[^"]*" href="\/materialien" aria-current="true"/);
+    expect(body).toMatch(/class="chip is-leer[^"]*" aria-disabled="true">Video/);
+    expect(body).toContain('href="/materialien?stufe=elem&amp;typ=plan"');
+    expect(body).toContain('href="/materialien?stufe=elem&amp;t=Erntedank"');
+  });
+
+  it('rendert die Sortierung als Link-Gruppe mit aktivem Eintrag', () => {
+    const daten = listeLaden({ inhalt, fehlschlag: null, relays, filter: { ...leererFilter(), sortierung: 'neu' } });
+    const { body } = render(Uebersicht, { props: daten });
+    expect(body).toMatch(/aria-label="Sortierung"/);
+    expect(body).toMatch(/href="\/materialien\?sort=neu" aria-current="true" class="[^"]*is-aktiv[^"]*"/);
+    expect(body).toContain('href="/materialien?sort=titel"');
+    expect(body).toContain('href="/materialien"');
+  });
+
   it('erklärt „keine Treffer“ mit den aktiven Filtern', () => {
-    const daten = listeLaden({ inhalt, fehlschlag: null, relays, filter: { q: 'gibtesnicht', stufe: 'bbs' } });
+    const daten = listeLaden({ inhalt, fehlschlag: null, relays, filter: { ...leererFilter(), q: 'gibtesnicht', stufen: ['bbs'] } });
     const { body } = render(Uebersicht, { props: daten });
     expect(body).toContain('Dazu passt gerade nichts');
     expect(body).toContain('„gibtesnicht“ und Berufsbildung');
