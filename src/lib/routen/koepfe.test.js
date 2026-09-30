@@ -11,6 +11,14 @@ describe('antwortKoepfe', () => {
     expect(csp).toContain("frame-ancestors 'none'");
     expect(csp).toContain("form-action 'self'");
   });
+  it('verbietet gemeinsamen Caches persönliche Seiten (Konto, Farbe)', () => {
+    /** @param {Record<string, string>} cookies */
+    const mit = (cookies) => antwortKoepfe({ cookie: (name) => cookies[name] });
+    expect(mit({ konto: '{"name":"Christina"}' })['cache-control']).toBe('private, no-store');
+    expect(mit({ primaryColor: '#c1272d' })['cache-control']).toBe('private, no-store');
+    expect(mit({})).not.toHaveProperty('cache-control');
+    expect(antwortKoepfe().vary).toBe('Cookie');
+  });
   it('lässt dem Dev-Server seine Skripte', () => {
     expect(antwortKoepfe({ entwicklung: true })).not.toHaveProperty('content-security-policy');
   });

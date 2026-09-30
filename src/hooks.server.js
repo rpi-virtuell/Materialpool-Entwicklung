@@ -17,9 +17,13 @@ export async function init() {
   await spiegelBereit();
 }
 
-/** Sicherheitsrichtlinie auf jeder Antwort (routen/koepfe.js). @type {import('@sveltejs/kit').Handle} */
+/** Sicherheitsrichtlinie und Cache-Regeln auf jeder Antwort (routen/koepfe.js). @type {import('@sveltejs/kit').Handle} */
 export async function handle({ event, resolve }) {
   const antwort = await resolve(event);
-  for (const [name, wert] of Object.entries(antwortKoepfe({ entwicklung: dev }))) antwort.headers.set(name, wert);
+  const koepfe = antwortKoepfe({ entwicklung: dev, cookie: (name) => event.cookies.get(name) });
+  for (const [name, wert] of Object.entries(koepfe)) {
+    if (name === 'vary') antwort.headers.append(name, wert);
+    else antwort.headers.set(name, wert);
+  }
   return antwort;
 }
