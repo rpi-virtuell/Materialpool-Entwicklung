@@ -3,6 +3,7 @@
   import { page } from '$app/state';
   import IconSprite from '$lib/komponenten/IconSprite.svelte';
   import Kopfzeile from '$lib/komponenten/Kopfzeile.svelte';
+  import Farbschalter from '$lib/komponenten/Farbschalter.svelte';
   import Fusszeile from '$lib/komponenten/Fusszeile.svelte';
 
   /** @type {{ children: import('svelte').Snippet, data: import('./$types').LayoutData }} */
@@ -22,6 +23,7 @@
   <Kopfzeile {aktiv} />
   {@render children()}
   <Fusszeile spiegelstand={data.spiegelstand} />
+  <Farbschalter schalter={data.farbschalter} />
 </div>
 
 <style>

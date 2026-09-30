@@ -6,6 +6,7 @@ import { render } from 'svelte/server';
 import { describe, expect, it } from 'vitest';
 import beispiele from './fixtures/amb-beispiele.json';
 import Detail from '../src/lib/komponenten/Detail.svelte';
+import Farbschalter from '../src/lib/komponenten/Farbschalter.svelte';
 import Fusszeile from '../src/lib/komponenten/Fusszeile.svelte';
 import Icon, { ICON_NAMEN } from '../src/lib/komponenten/Icon.svelte';
 import IconSprite from '../src/lib/komponenten/IconSprite.svelte';
@@ -15,6 +16,7 @@ import { ZIELGRUPPEN } from '../src/lib/komponenten/startseite/HeroZielgruppe.sv
 import Uebersicht from '../src/lib/komponenten/Uebersicht.svelte';
 import { materialAusEvent } from '../src/lib/models/material.js';
 import { TYPEN } from '../src/lib/models/typen.js';
+import { farbschalterBilden } from '../src/lib/routen/farbschalter.js';
 import { startseiteLaden } from '../src/lib/routen/startseite.js';
 import { leererFilter, listeLaden } from '../src/lib/routen/uebersicht.js';
 import { leererInhalt } from '../src/lib/services/spiegel.js';
@@ -23,6 +25,25 @@ const relays = ['wss://amb-relay.edufeed.org/'];
 const materialien = beispiele.map(materialAusEvent);
 const inhalt = { ...leererInhalt(), materialien: beispiele };
 const september = new Date(2026, 8, 29);
+
+describe('Farbschalter', () => {
+  it('ist ein GET-Formular auf die aktuelle Seite mit Hex- und Farbfeld, ohne JavaScript', () => {
+    const url = new URL('http://x/materialien?stufe=elem&primaryColor=%23c1272d');
+    const { body } = render(Farbschalter, { props: { schalter: farbschalterBilden(url, '#c1272d') } });
+    expect(body).toMatch(/<form[^>]*class="farbschalter[^>]*action="\/materialien"[^>]*method="get"/);
+    expect(body).toMatch(/type="hidden" name="stufe" value="elem"/);
+    expect(body).toMatch(/type="text" name="primaryColor" value="#c1272d"/);
+    expect(body).toMatch(/type="color" name="primaryColor" value="#c1272d"/);
+    expect(body).toContain('Übernehmen');
+    expect(body).toContain('href="/materialien?stufe=elem&amp;primaryColor="');
+    expect(body).not.toContain('<script');
+  });
+  it('bietet „Zurücksetzen“ nur an, wenn eine Farbe gesetzt ist', () => {
+    const { body } = render(Farbschalter, { props: { schalter: farbschalterBilden(new URL('http://x/'), null) } });
+    expect(body).toContain('value="#1d5a8c"');
+    expect(body).not.toContain('Zurücksetzen');
+  });
+});
 
 describe('Icon', () => {
   it('verweist je Icon auf ein Symbol im Sprite und fällt auf „file“ zurück', () => {
