@@ -18,7 +18,8 @@
 
   <dl>
     <dt>Herkunft</dt><dd>{material.herkunft}</dd>
-    {#if material.lizenz}<dt>Lizenz</dt><dd><a href={material.lizenz} rel="license">{material.lizenzKuerzel ?? material.lizenz}</a></dd>{/if}
+    {#if material.lizenzUrl}<dt>Lizenz</dt><dd><a href={material.lizenzUrl} rel="license">{material.lizenzKuerzel ?? material.lizenzUrl}</a></dd>
+    {:else if material.lizenz}<dt>Lizenz</dt><dd>{material.lizenzKuerzel ?? material.lizenz}</dd>{/if}
     {#if material.datum}<dt>Datum</dt><dd>{material.datum}</dd>{/if}
     {#if material.sprachen.length > 0}<dt>Sprache</dt><dd>{material.sprachen.join(', ')}</dd>{/if}
     {#if material.bildungsstufen.length > 0}<dt>Bildungsstufe</dt><dd>{material.bildungsstufen.map((b) => b.label).join(', ')}</dd>{/if}

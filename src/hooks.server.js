@@ -5,12 +5,21 @@
  * Meldung. Fehlt ein Pflichtwert, bricht `konfigLesen` hier ab — beim
  * Start, nicht später mit leeren Seiten.
  */
+import { dev } from '$app/environment';
 import { env } from '$env/dynamic/private';
 import { konfigLesen } from '$lib/konfig.js';
+import { antwortKoepfe } from '$lib/routen/koepfe.js';
 import { spiegelBereit, spiegelStarten } from '$lib/services/spiegel.js';
 
 /** @type {import('@sveltejs/kit').ServerInit} */
 export async function init() {
   spiegelStarten(konfigLesen(env));
   await spiegelBereit();
+}
+
+/** Sicherheitsrichtlinie auf jeder Antwort (routen/koepfe.js). @type {import('@sveltejs/kit').Handle} */
+export async function handle({ event, resolve }) {
+  const antwort = await resolve(event);
+  for (const [name, wert] of Object.entries(antwortKoepfe({ entwicklung: dev }))) antwort.headers.set(name, wert);
+  return antwort;
 }

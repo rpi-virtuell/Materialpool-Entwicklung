@@ -36,7 +36,8 @@ import { faecherAusBegriffen, stufeAusBegriffen, stufenAusBegriffen, typAusBegri
  * @property {string} beschreibung
  * @property {string|null} url      `d`, sonst `encoding:contentUrl`, sonst erstes http-`r`
  * @property {string|null} bild     `image`, nur mit http(s)-Adresse
- * @property {string|null} lizenz   URL der Lizenz
+ * @property {string|null} lizenz   Lizenzangabe (`license:id`), wie im Event
+ * @property {string|null} lizenzUrl  dieselbe, nur mit http(s)-Adresse — sonst kein Link
  * @property {string|null} lizenzKuerzel  z. B. „CC BY-SA 4.0“, sonst null
  * @property {string[]} typen       AMB `type`, z. B. LearningResource
  * @property {string[]} schlagworte
@@ -181,6 +182,7 @@ export function materialAusEvent(event) {
     url,
     bild: istHttp(bildRoh) ? bildRoh : null,
     lizenz,
+    lizenzUrl: istHttp(lizenz) ? lizenz : null,
     lizenzKuerzel: lizenzKuerzel(lizenz),
     typen: alle(tags, 'type'),
     schlagworte,

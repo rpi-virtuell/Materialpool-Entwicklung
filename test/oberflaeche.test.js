@@ -298,4 +298,11 @@ describe('Detail', () => {
     expect(body).toContain('wss://eins/');
     expect(body).toContain(`${jericho.pfad}/json`);
   });
+  it('macht aus einer Lizenz ohne http(s)-Adresse keinen Link', () => {
+    const tags = beispiele[6].tags.map((t) => (t[0] === 'license:id' ? ['license:id', 'javascript:alert(1)'] : t));
+    const { body } = render(Detail, { props: { material: materialAusEvent({ ...beispiele[6], tags }), relays: [] } });
+    expect(body).toContain('javascript:alert(1)');
+    expect(body).not.toContain('href="javascript:');
+    expect(body).not.toContain('rel="license"');
+  });
 });
