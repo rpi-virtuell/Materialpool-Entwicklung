@@ -123,6 +123,13 @@ describe('startseiteLaden mit Konto (ADR-0006)', () => {
     expect(s.fuerDich?.karten.map((k) => k.material.datum)).toEqual(['2024-12-08', '2021-01-01', '2020-07-21']);
   });
 
+  it('behält die Kacheln, wenn im eigenen Bereich nichts liegt', () => {
+    // Keines der Fixture-Materialien ist katholisch und für die Grundschule.
+    const s = startseiteLaden({ inhalt, fehlschlag: null, relays, heute: september, konto: konto({ bereiche: ['grundschule'], faecher: ['katholisch'] }) });
+    expect(s.fuerDich).toBeNull();
+    expect(s.stufen).toHaveLength(4);
+  });
+
   it('behält die Kacheln, wenn das Profil keine Stufen kennt (Gemeinde)', () => {
     const s = startseiteLaden({ inhalt, fehlschlag: null, relays, heute: september, konto: konto({ bereiche: ['gemeinde'] }) });
     expect(s.fuerDich).toBeNull();

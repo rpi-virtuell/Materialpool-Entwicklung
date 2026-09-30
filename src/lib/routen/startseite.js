@@ -91,7 +91,9 @@ export const FUER_DICH_ANZAHL = 3;
  * „Neu für deine Arbeit …“: Kennt das Profil Stufen, fragen die
  * Alterskacheln nur ab, was schon feststeht — an ihre Stelle tritt das
  * Neueste aus dem eigenen Bereich. Ohne Stufen (Gemeinde, nur „Anderes“)
- * bleibt das Alter der beste Einstieg, die Kacheln also auch.
+ * bleibt das Alter der beste Einstieg, die Kacheln also auch — ebenso, wenn
+ * im eigenen Bereich nichts liegt: ein leerer Abschnitt ersetzte sonst die
+ * Kacheln.
  * @param {Material[]} materialien
  * @param {Konto} konto
  */
@@ -100,6 +102,7 @@ function fuerDichBilden(materialien, konto) {
   if (stufen.length === 0) return null;
   const filter = { ...leererFilter(), stufen, faecher, sortierung: /** @type {const} */ ('neu') };
   const treffer = sortieren(filterAnwenden(materialien, filter), 'neu');
+  if (treffer.length === 0) return null;
   return {
     ort: profilOrt(konto),
     profil: [...stufen.map((s) => STUFEN_LABEL[s]), ...faecher.map((f) => FACH_LABEL[f])],
