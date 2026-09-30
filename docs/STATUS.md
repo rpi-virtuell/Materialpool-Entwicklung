@@ -8,6 +8,40 @@ das Gesamtbild in `superpowers/specs/2026-09-28-materialpool-neustart-design.md`
 
 ---
 
+## 2026-09-30 — Nachzug aus dem Prototyp: Kacheln, Zielgruppen, Empfehlung
+
+**Passiert:** Christina hat den React-Prototyp „Materialpool 2.0“ nach
+dem Stand, der dieser Startseite zugrunde liegt, weiterentwickelt. Die
+drei kleinen Änderungen daraus sind übertragen (Branch
+`feat/prototyp-nachzug`), je ein Commit:
+
+- **Kacheln nach Alter:** „Nach Alter einsteigen“ mit Kinder /
+  Jugendliche / Junge Erwachsene / Erwachsene (`STUFEN_LABEL_ALTER` in
+  `models/typen.js`). Zuordnung und Links unverändert; die Facette der
+  Liste nennt weiter die Schulstufe.
+- **Zielgruppen gemischt:** Schule und Schulgottesdienste, Konfi- und
+  Jugendarbeit stehen nicht mehr nebeneinander, auch nicht über den
+  Umlauf; ein Test hält das fest.
+- **Empfehlungskarte:** Rücken, Hover-Rand und Label in `--blue` statt
+  in der Cover-Tinte, die neben einem Foto als einzelne Fremdfarbe stand.
+- **Architekturtest unter Windows:** `fileURLToPath` und Schrägstriche
+  statt `.pathname`; unter Linux unverändert.
+
+**Wo steht das Projekt:** `pnpm check` 0 Fehler, 133 Tests grün. Lokal
+gegen `amb-relay.edufeed.org` im Browser geprüft (7.701 Materialien).
+Aufgefallen: Die Dev-Seite `material.rpi-virtuell.net` zeigt 290
+Materialien von `relay.edufeed.org` und `relay-rpi.edufeed.org` — die
+`.env` auf dem Server weicht von `.env.example` ab.
+
+**Nächster Schritt:** Review und Merge durch Jörg. Aus dem Prototyp
+offen: die Suche in eigenen Worten (Sätze werden zu Filtern, passt
+serverseitig) und die Kontoebene mit Profil — Letztere widerspricht
+ADR-0001/0004 („keine Anmeldung“) und braucht zuerst eine ADR. Die
+Facette „Fach“ aus dem Prototyp bringt beim jetzigen Bestand nichts
+(alle 7.701 evangelisch).
+
+---
+
 ## 2026-09-29 (3) — Echte Daten: Materialpool-Bestand vom Relay, kein Mock mehr
 
 **Passiert:** Beim lokalen Prüfen fiel auf, dass `.env` seit dem 28.09. auf
