@@ -15,10 +15,12 @@ function gueltig(roh) {
 }
 
 /**
- * Welche Farbe gilt und was mit dem Cookie geschieht. Farbfeld und
- * Hex-Feld schicken beide `primaryColor`; es gilt der erste gültige Wert,
- * der sich von der bisherigen Farbe unterscheidet — das ist das Feld, das
- * geändert wurde. Leer oder unbrauchbar heißt: zurücksetzen.
+ * Welche Farbe gilt und was mit dem Cookie geschieht. Hex-Feld und
+ * Farbfeld schicken beide `primaryColor` (in dieser Reihenfolge); es gilt
+ * der erste gültige Wert, der sich von der angezeigten Farbe unterscheidet
+ * — das ist das Feld, das geändert wurde. Angezeigt war die Farbe aus dem
+ * Cookie, ohne Cookie das Standardblau. Leer oder unbrauchbar heißt:
+ * zurücksetzen.
  * @param {URLSearchParams} params
  * @param {string|undefined} cookie
  * @returns {{ farbe: string|null, cookie: 'setzen'|'loeschen'|null }}
@@ -28,13 +30,15 @@ export function farbwahlLesen(params, cookie) {
   if (!params.has(CI_PARAMETER)) return { farbe: bisher, cookie: null };
   const werte = params.getAll(CI_PARAMETER).map(gueltig).filter((w) => w !== null);
   if (werte.length === 0) return { farbe: null, cookie: 'loeschen' };
-  return { farbe: werte.find((w) => w !== bisher) ?? werte[0], cookie: 'setzen' };
+  const angezeigt = bisher ?? STANDARD_CI;
+  return { farbe: werte.find((w) => w !== angezeigt) ?? werte[0], cookie: 'setzen' };
 }
 
 /**
  * Daten des Formulars: Ziel ist die aktuelle Seite, ihre übrigen
  * Parameter reisen als versteckte Felder mit (ohne `seite` — eine neue
- * Farbe beginnt oben).
+ * Farbe beginnt oben). Führende Schrägstriche fallen auf einen zusammen:
+ * Ein Pfad `//evil.example` wäre als `action` eine fremde Adresse.
  * @param {URL} url
  * @param {string|null} farbe
  */
@@ -43,11 +47,12 @@ export function farbschalterBilden(url, farbe) {
   const felder = [...url.searchParams].filter(([name]) => name !== CI_PARAMETER && name !== 'seite');
   const zuruecksetzen = new URLSearchParams(felder);
   zuruecksetzen.append(CI_PARAMETER, '');
+  const pfad = url.pathname.replace(/^\/+/, '/');
   return {
-    aktion: url.pathname,
+    aktion: pfad,
     farbe: farbe ?? STANDARD_CI,
     felder,
-    zuruecksetzenPfad: `${url.pathname}?${zuruecksetzen}`,
+    zuruecksetzenPfad: `${pfad}?${zuruecksetzen}`,
     gesetzt: farbe !== null
   };
 }

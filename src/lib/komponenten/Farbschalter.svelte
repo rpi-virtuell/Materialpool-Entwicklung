@@ -1,8 +1,8 @@
 <script>
   /**
    * Farbschalter des Prototyps (Materialpool 2.0): CI-Farbe ausprobieren.
-   * Ohne JavaScript ein GET-Formular auf die aktuelle Seite; Farbfeld und
-   * Hex-Feld schicken beide `primaryColor`, der Server nimmt das geänderte
+   * Ohne JavaScript ein GET-Formular auf die aktuelle Seite; Hex-Feld und
+   * Farbfeld schicken beide `primaryColor`, der Server nimmt das geänderte
    * (routen/farbschalter.js) und merkt es sich im Cookie.
    * @type {{ schalter: ReturnType<typeof import('$lib/routen/farbschalter.js').farbschalterBilden> }}
    */
