@@ -8,7 +8,9 @@ services:
       - '8080:3000'
     volumes:
       # Der Spiegel schreibt seinen Stand nach daten/; ohne Volume wäre er
-      # nach jedem Neustart des Containers weg.
+      # nach jedem Neustart des Containers weg. Der Container läuft als
+      # node (uid 1000): ./daten muss für ihn beschreibbar sein
+      # (docs/betrieb.md).
       - ./daten:/app/daten
     environment:
       RELAYS: ${RELAYS}
@@ -20,3 +22,6 @@ services:
       SPIEGEL_LIMIT: ${SPIEGEL_LIMIT:-}
       HOST: 0.0.0.0
       PORT: '3000'
+      # Öffentliche Adresse, sonst lehnt SvelteKit POST-Formulare ab
+      # (.env.example, docs/betrieb.md). Lokal: der Port oben.
+      ORIGIN: ${ORIGIN:-http://localhost:8080}
