@@ -254,6 +254,12 @@ describe('listeLaden mit Relay-Suche (ADR-0005)', () => {
     expect(titel.karten.map((k) => k.material.name)[0]).toBe('Ein frischer Geist weht');
   });
 
+  it('Facetten-Links behalten den Suchtext, auch wenn die Treffer vom Relay kommen', () => {
+    const daten = listeLaden({ inhalt, fehlschlag: null, relays, filter: filter({ q: 'geist' }), suche: suche([geist, erntedank]) });
+    expect(daten.facetten.typen.find((o) => o.key === 'video')?.pfad).toBe('/materialien?q=geist&typ=video');
+    expect(daten.facetten.faecher.find((o) => o.key === 'evangelisch')?.pfad).toBe('/materialien?q=geist&fach=evangelisch');
+  });
+
   it('fällt ohne erreichbares Relay auf die Wortsuche im Spiegel zurück und sagt das', () => {
     const daten = listeLaden({ inhalt, fehlschlag: null, relays, filter: filter({ q: 'erntedank' }), suche: suche([], 'kein-relay-erreichbar') });
     expect(daten.karten.map((k) => k.material.name)).toEqual(['EKD: Erntedankfest']);

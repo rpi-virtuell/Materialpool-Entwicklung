@@ -176,9 +176,10 @@ export function filterAnwenden(materialien, filter) {
  * @param {(m: Material) => string[]} werteVon
  * @param {K[]} reihenfolge
  * @param {(key: K) => string} labelVon
+ * @param {Filter} pfadFilter  Grundlage der Umschalt-Pfade — mit Suchtext, auch wenn `filter` ihn für Relay-Treffer weglässt
  * @returns {Facettenwert[]}
  */
-function facette(materialien, filter, facette, werteVon, reihenfolge, labelVon) {
+function facette(materialien, filter, facette, werteVon, reihenfolge, labelVon, pfadFilter) {
   const q = filter.q.toLowerCase();
   const ohneEigene = { ...filter, [facette]: [] };
   const basis = materialien.filter((m) => passtZuText(m, q) && passtZuFacetten(m, ohneEigene));
@@ -198,7 +199,7 @@ function facette(materialien, filter, facette, werteVon, reihenfolge, labelVon) 
       anzahl,
       aktiv,
       leer,
-      pfad: leer ? null : listenPfad({ ...filter, [facette]: umgeschaltet, seite: 1 })
+      pfad: leer ? null : listenPfad({ ...pfadFilter, [facette]: umgeschaltet, seite: 1 })
     };
   });
 }
@@ -209,19 +210,20 @@ function facette(materialien, filter, facette, werteVon, reihenfolge, labelVon) 
  * höchstens SCHLAGWORTE_MAX.
  * @param {Material[]} materialien
  * @param {Filter} filter
+ * @param {Filter} [pfadFilter]  wenn die Zählung ohne Suchtext läuft (Relay-Treffer), die Links aber mit
  */
-export function facettenBilden(materialien, filter) {
+export function facettenBilden(materialien, filter, pfadFilter = filter) {
   /** @type {Map<string, number>} */
   const alleWorte = new Map();
   for (const m of materialien) for (const w of m.themen) alleWorte.set(w, (alleWorte.get(w) ?? 0) + 1);
   const worteReihenfolge = [...alleWorte.keys()];
-  const schlagworte = facette(materialien, filter, 'schlagworte', (m) => m.themen, worteReihenfolge, (w) => w)
+  const schlagworte = facette(materialien, filter, 'schlagworte', (m) => m.themen, worteReihenfolge, (w) => w, pfadFilter)
     .sort((a, b) => Number(b.aktiv) - Number(a.aktiv) || b.anzahl - a.anzahl || a.key.localeCompare(b.key, 'de'))
     .slice(0, SCHLAGWORTE_MAX);
   return {
-    faecher: facette(materialien, filter, 'faecher', (m) => m.fachKeys, FACH_REIHENFOLGE, (k) => FACH_LABEL[k]),
-    typen: facette(materialien, filter, 'typen', (m) => m.typKeys, TYP_REIHENFOLGE, (k) => TYP_LABEL[k]),
-    stufen: facette(materialien, filter, 'stufen', (m) => m.stufenKeys, STUFEN_REIHENFOLGE, (k) => STUFEN_LABEL[k]),
+    faecher: facette(materialien, filter, 'faecher', (m) => m.fachKeys, FACH_REIHENFOLGE, (k) => FACH_LABEL[k], pfadFilter),
+    typen: facette(materialien, filter, 'typen', (m) => m.typKeys, TYP_REIHENFOLGE, (k) => TYP_LABEL[k], pfadFilter),
+    stufen: facette(materialien, filter, 'stufen', (m) => m.stufenKeys, STUFEN_REIHENFOLGE, (k) => STUFEN_LABEL[k], pfadFilter),
     schlagworte
   };
 }
@@ -326,7 +328,7 @@ export function listeLaden({ inhalt, fehlschlag, relays, filter = leererFilter()
     seiten,
     filter,
     pillen: aktiveFilter(filter),
-    facetten: facettenBilden(grundmenge.materialien, facettenFilter),
+    facetten: facettenBilden(grundmenge.materialien, facettenFilter, filter),
     sortierungen: SORTIERUNGEN.map((s) => ({
       ...s,
       label: s.key === 'empfohlen' && grundmenge.quelle === 'relay' ? 'Relevanz' : s.label,
