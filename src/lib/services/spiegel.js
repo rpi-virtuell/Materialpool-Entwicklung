@@ -224,15 +224,26 @@ export async function relaySuche(konfig, text, optionen = {}) {
 async function sucheAmRelay(konfig, schluessel, optionen) {
   const jetzt = optionen.jetzt ?? Date.now;
   const { limit: _limit, ...grund } = filterBauen(konfig);
+  const holen = (optionen.pruefen ?? geprueft)(optionen.holen ?? eventsHolen, konfig);
+  // Je Relay die eigene Rangfolge, fürs Verzahnen unten.
+  /** @type {Map<string, Event[]>} */
+  const jeRelay = new Map();
   const ergebnis = await eventsVonAllen(
     konfig.relays,
     { ...grund, search: schluessel, limit: SUCHE_LIMIT },
-    { holen: (optionen.pruefen ?? geprueft)(optionen.holen ?? eventsHolen, konfig), zeitschrankeMs: 6000 }
+    {
+      holen: async (url, filter, o) => {
+        const antwort = await holen(url, filter, o);
+        jeRelay.set(url, antwort.events);
+        return antwort;
+      },
+      zeitschrankeMs: 6000
+    }
   );
   /** @type {Suchergebnis} */
   const antwort = {
     events: ersetzbareZusammenfassen(
-      ergebnis.events.filter((e) => e.kind === KIND_AMB),
+      reissverschluss(ergebnis.gefragt.map((url) => jeRelay.get(url) ?? [])).filter((e) => e.kind === KIND_AMB),
       { reihenfolgeBehalten: true }
     ),
     gefragteRelays: ergebnis.gefragt,
@@ -246,6 +257,27 @@ async function sucheAmRelay(konfig, schluessel, optionen) {
     sucheSpeicher.set(schluessel, { zeitpunkt: jetzt(), ergebnis: antwort });
   }
   return antwort;
+}
+
+/**
+ * Treffer mehrerer Relays nach Rang verzahnt: erster von jedem, dann
+ * zweiter von jedem … Ein Event mehrerer Relays steht bei seinem besten
+ * Rang. Aneinandergehängt stünden sonst alle Treffer des ersten Relays vor
+ * dem besten des zweiten.
+ * @param {Event[][]} listen  je Relay relevanzsortiert
+ * @returns {Event[]}
+ */
+export function reissverschluss(listen) {
+  /** @type {Map<string, Event>} */
+  const nachId = new Map();
+  const laenge = Math.max(0, ...listen.map((l) => l.length));
+  for (let rang = 0; rang < laenge; rang += 1) {
+    for (const liste of listen) {
+      const e = liste[rang];
+      if (e && !nachId.has(e.id)) nachId.set(e.id, e);
+    }
+  }
+  return [...nachId.values()];
 }
 
 /** Nur für Tests: Suchspeicher leeren. */

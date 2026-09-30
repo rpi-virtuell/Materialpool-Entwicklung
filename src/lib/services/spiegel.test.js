@@ -4,7 +4,7 @@ import { join } from 'node:path';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import beispiele from '../../../test/fixtures/amb-beispiele.json';
 import {
-  einmalLaufen, ersetzbareZusammenfassen, filterBauen, KIND_AMB, relaySuche, SEITENGROESSE, seitenweise, spiegelBereit, spiegelHolen,
+  einmalLaufen, ersetzbareZusammenfassen, filterBauen, KIND_AMB, reissverschluss, relaySuche, SEITENGROESSE, seitenweise, spiegelBereit, spiegelHolen,
   spiegelStarten, spiegelZuruecksetzen, standAufbauen, SUCHE_LIMIT, sucheZuruecksetzen
 } from './spiegel.js';
 import { SUCHTEXT_MAX } from '../models/text.js';
@@ -204,6 +204,14 @@ describe('relaySuche — Volltext am Relay (NIP-50, ADR-0005)', () => {
     const holen = vi.fn(async () => ({ erreicht: true, events: [a, { ...b, kind: 1 }, neuer] }));
     const ergebnis = await relaySuche(konfig(), 'x', { holen, pruefen: ungeprueft });
     expect(ergebnis.events.map((e) => e.id)).toEqual([neuer.id]);
+  });
+
+  it('verzahnt die Treffer mehrerer Relays nach ihrem Rang', async () => {
+    const [, , , d, e] = beispiele;
+    const holen = vi.fn(async (/** @type {string} */ url) => ({ erreicht: true, events: url === 'wss://eins/' ? [a, b, c] : [d, a, e] }));
+    const ergebnis = await relaySuche(konfig(), 'x', { holen });
+    expect(ergebnis.events.map((x) => x.id)).toEqual([a.id, d.id, b.id, c.id, e.id]);
+    expect(reissverschluss([[a], [], [b, c]]).map((x) => x.id)).toEqual([a.id, b.id, c.id]);
   });
 
   it('öffnet für dieselbe Suche, während sie läuft, keine zweiten Verbindungen', async () => {
