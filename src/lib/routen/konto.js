@@ -7,6 +7,7 @@
 import {
   BEREICH_GRUPPEN, BEREICH_KEYS, BUNDESLAENDER, fragtNachFach, LEERES_KONTO, profilFilter
 } from '../models/konto.js';
+import { kuerzen } from '../models/text.js';
 import { FACH_LABEL, FACH_REIHENFOLGE, STUFEN_LABEL } from '../models/typen.js';
 
 /** @typedef {import('../models/konto.js').Konto} Konto */
@@ -18,8 +19,8 @@ export const KONTO_COOKIE_DAUER_S = 60 * 60 * 24 * 365;
 const NAME_MAX = 60;
 const ANDERES_MAX = 80;
 
-/** @param {unknown} v @param {number} max */
-const text = (v, max) => (typeof v === 'string' ? v.trim().slice(0, max) : '');
+/** Getrimmt, höchstens `max` Zeichen — nach Codepoints, kein halbes Emoji. @param {unknown} v @param {number} max */
+const text = (v, max) => (typeof v === 'string' ? kuerzen(v.trim(), max).trim() : '');
 /** @template T @param {unknown} v @param {readonly T[]} erlaubt @returns {T[]} */
 const nurBekannte = (v, erlaubt) => (Array.isArray(v) ? erlaubt.filter((e) => v.includes(e)) : []);
 
