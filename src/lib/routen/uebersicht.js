@@ -322,9 +322,9 @@ export function seitenBilden(treffer, filter) {
  */
 
 /**
- * @param {{ inhalt: Inhalt, fehlschlag: Fehlschlag|null, relays: string[], filter?: Filter, suche?: Suchergebnis|null, frage?: FrageHinweis|null }} eingabe
+ * @param {{ inhalt: Inhalt, fehlschlag: Fehlschlag|null, relays: string[], filter?: Filter, suche?: Suchergebnis|null, frage?: FrageHinweis|null, profilHinweis?: string|null }} eingabe
  */
-export function listeLaden({ inhalt, fehlschlag, relays, filter = leererFilter(), suche = null, frage = null }) {
+export function listeLaden({ inhalt, fehlschlag, relays, filter = leererFilter(), suche = null, frage = null, profilHinweis = null }) {
   const grundmenge = grundmengeBilden(inhalt, filter, suche);
   // Relay-Treffer sind schon textgefiltert; die Facetten greifen darauf.
   const facettenFilter = grundmenge.textGefiltert ? { ...filter, q: '' } : filter;
@@ -350,6 +350,7 @@ export function listeLaden({ inhalt, fehlschlag, relays, filter = leererFilter()
     gesamt: materialienVon(inhalt).length,
     suche: { quelle: grundmenge.quelle, hinweis: grundmenge.hinweis },
     frage,
+    profilHinweis,
     leerstand: leerstandErklaeren(inhalt, fehlschlag, relays)
   };
 }

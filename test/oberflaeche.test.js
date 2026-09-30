@@ -10,7 +10,10 @@ import Farbschalter from '../src/lib/komponenten/Farbschalter.svelte';
 import Fusszeile from '../src/lib/komponenten/Fusszeile.svelte';
 import Icon, { ICON_NAMEN } from '../src/lib/komponenten/Icon.svelte';
 import IconSprite from '../src/lib/komponenten/IconSprite.svelte';
+import Konto from '../src/lib/komponenten/Konto.svelte';
 import Kopfzeile from '../src/lib/komponenten/Kopfzeile.svelte';
+import { LEERES_KONTO } from '../src/lib/models/konto.js';
+import { kontoSeite } from '../src/lib/routen/konto.js';
 import Startseite from '../src/lib/komponenten/startseite/Startseite.svelte';
 import { ZIELGRUPPEN } from '../src/lib/komponenten/startseite/HeroZielgruppe.svelte';
 import Uebersicht from '../src/lib/komponenten/Uebersicht.svelte';
@@ -62,13 +65,46 @@ describe('Icon', () => {
 });
 
 describe('Kopfzeile', () => {
+  const abgemeldet = { angemeldet: false, vorname: '', stoebernPfad: '/materialien' };
   it('verlinkt Start und Liste, ohne Merkliste', () => {
-    const { body } = render(Kopfzeile, { props: { aktiv: 'liste' } });
+    const { body } = render(Kopfzeile, { props: { aktiv: 'liste', kopf: abgemeldet } });
     expect(body).toContain('class="logo');
     expect(body).toContain('href="/"');
     expect(body).toMatch(/href="\/materialien"[^>]*class="[^"]*active/);
     expect(body).toContain('Stöbern');
     expect(body).not.toContain('Gemerkt');
+  });
+  it('bietet „Anmelden“ an und zeigt angemeldet den Vornamen (ADR-0006)', () => {
+    expect(render(Kopfzeile, { props: { aktiv: null, kopf: abgemeldet } }).body).toMatch(/href="\/konto"[^>]*aria-label="Anmelden"/);
+    const { body } = render(Kopfzeile, { props: { aktiv: 'konto', kopf: { angemeldet: true, vorname: 'Christina', stoebernPfad: '/materialien?profil=1' } } });
+    expect(body).toMatch(/href="\/konto"[^>]*aria-label="Profil von Christina"/);
+    expect(body).toMatch(/<span[^>]*>Christina<\/span>/);
+    expect(body).toContain('href="/materialien?profil=1"');
+  });
+});
+
+describe('Konto', () => {
+  it('abgemeldet: nur das Namensfeld, als POST-Formular', () => {
+    const { body } = render(Konto, { props: { seite: kontoSeite(LEERES_KONTO), gespeichert: false, fehler: null } });
+    expect(body).toContain('<h1 class="svelte-');
+    expect(body).toContain('Anmelden</h1>');
+    expect(body).toMatch(/<form[^>]*method="post"[^>]*action="\?\/anmelden"/);
+    expect(body).toMatch(/name="name"[^>]*required/);
+    expect(body).toContain('Deine Angaben bleiben nur in diesem Browser.');
+  });
+  it('angemeldet: Profil mit Bereichen und Fach, Speichern und Abmelden', () => {
+    /** @type {import('../src/lib/models/konto.js').Konto} */
+    const k = { ...LEERES_KONTO, angemeldet: true, name: 'Christina', bereiche: ['sek1'], faecher: ['katholisch'] };
+    const { body } = render(Konto, { props: { seite: kontoSeite(k), gespeichert: true, fehler: null } });
+    expect(body).toContain('Angemeldet als <strong>Christina</strong>');
+    expect(body).toMatch(/action="\?\/abmelden"/);
+    expect(body).toMatch(/<form[^>]*class="profil-form[^>]*method="post"[^>]*action="\?\/speichern"/);
+    expect(body).toMatch(/name="bereich" value="sek1"[^>]*checked/);
+    expect(body).toMatch(/name="fach" value="katholisch"[^>]*checked/);
+    expect(body).toContain('Welches Fach unterrichtest du?');
+    expect(body).toContain('Gespeichert.');
+    expect(body).toContain('Beim Stöbern stellen wir dir vorab ein: Sekundarstufe I, Katholische Religionslehre.');
+    expect(body).toContain('href="/materialien?profil=1"');
   });
 });
 

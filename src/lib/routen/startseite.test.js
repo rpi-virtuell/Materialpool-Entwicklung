@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import beispiele from '../../../test/fixtures/amb-beispiele.json';
 import { STUFEN_FARBE_DEFAULT } from '../models/farben.js';
+import { LEERES_KONTO } from '../models/konto.js';
 import { materialAusEvent } from '../models/material.js';
 import { leererInhalt } from '../services/spiegel.js';
 import { empfehlungWaehlen, startseiteLaden, themenZaehlen } from './startseite.js';
@@ -84,5 +85,46 @@ describe('startseiteLaden', () => {
     const s = startseiteLaden({ inhalt: leerMitStand, fehlschlag: null, relays, heute: september });
     expect(s.status?.warnung).toBe(true);
     expect(s.status?.text).toMatch(/QUELLE_AUTOREN/);
+  });
+});
+
+describe('startseiteLaden mit Konto (ADR-0006)', () => {
+  /** @param {Partial<import('../models/konto.js').Konto>} teil */
+  const konto = (teil) => ({ ...LEERES_KONTO, angemeldet: true, name: 'Christina Kreutz', ...teil });
+
+  it('ohne Anmeldung: keine Begrüßung, Kacheln, Links ohne Profil', () => {
+    const s = startseiteLaden({ inhalt, fehlschlag: null, relays, heute: september });
+    expect(s.begruessung).toBeNull();
+    expect(s.fuerDich).toBeNull();
+    expect(s.browsePfad).toBe('/materialien');
+    expect(s.stufen[0].pfad).toBe('/materialien?stufe=elem');
+    expect(s.sucheMitProfil).toBe(false);
+  });
+
+  it('begrüßt mit Vorname und Ort, Einstiege tragen das Profil', () => {
+    const s = startseiteLaden({ inhalt, fehlschlag: null, relays, heute: september, konto: konto({ bereiche: ['konfi'] }) });
+    expect(s.begruessung).toEqual({ vorname: 'Christina', ort: 'mit Konfis', profilText: 'Profil ändern' });
+    expect(s.browsePfad).toBe('/materialien?profil=1');
+    expect(s.themen[0].pfad).toBe('/materialien?q=Erntedank&profil=1');
+    expect(s.sucheMitProfil).toBe(true);
+    expect(startseiteLaden({ inhalt, fehlschlag: null, relays, heute: september, konto: konto({}) }).begruessung?.profilText).toBe('Profil ausfüllen');
+  });
+
+  it('zeigt mit Stufen im Profil das Neueste für die eigene Arbeit statt der Alterskacheln', () => {
+    const s = startseiteLaden({ inhalt, fehlschlag: null, relays, heute: september, konto: konto({ bereiche: ['grundschule'], faecher: ['evangelisch'] }) });
+    expect(s.fuerDich).toMatchObject({
+      ort: 'in der Grundschule',
+      profil: ['Elementar- & Primarbereich', 'Evangelische Religionslehre'],
+      anzahl: 3,
+      allePfad: '/materialien?stufe=elem&fach=evangelisch&sort=neu'
+    });
+    // neueste zuerst, nach datePublished/dateCreated
+    expect(s.fuerDich?.karten.map((k) => k.material.datum)).toEqual(['2024-12-08', '2021-01-01', '2020-07-21']);
+  });
+
+  it('behält die Kacheln, wenn das Profil keine Stufen kennt (Gemeinde)', () => {
+    const s = startseiteLaden({ inhalt, fehlschlag: null, relays, heute: september, konto: konto({ bereiche: ['gemeinde'] }) });
+    expect(s.fuerDich).toBeNull();
+    expect(s.stufen[0].pfad).toBe('/materialien?stufe=elem&profil=1');
   });
 });

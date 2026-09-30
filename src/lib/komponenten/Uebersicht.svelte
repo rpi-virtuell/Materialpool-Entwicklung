@@ -9,7 +9,7 @@
    * Spiegel (Erklärung), keine Treffer (aktive Filter), Treffer.
    * @type {ReturnType<typeof import('$lib/routen/uebersicht.js').listeLaden>}
    */
-  let { karten, treffer, seiten, filter, pillen, facetten, sortierungen, suche, frage, gesamt, leerstand } = $props();
+  let { karten, treffer, seiten, filter, pillen, facetten, sortierungen, suche, frage, profilHinweis, gesamt, leerstand } = $props();
   const trefferText = $derived(
     treffer === gesamt ? `${treffer} Treffer` : `${treffer} Treffer von ${gesamt}`
   );
@@ -73,6 +73,10 @@
           {/if}
         {/each}
       </div>
+
+      {#if profilHinweis}
+        <p class="profil-hinweis"><Icon name="user-check" /> {profilHinweis} <a href="/konto">Profil ändern</a></p>
+      {/if}
 
       {#if karten.length === 0}
         <div class="keine-treffer">
@@ -172,6 +176,10 @@
   .frage-kopf { display: inline-flex; align-items: center; gap: var(--sp-1); font-weight: 600; color: var(--text-dark); }
   .frage-kopf :global(.ti) { width: 16px; height: 16px; color: var(--blue); }
   .frage-zurueck { margin-left: auto; color: var(--blue); font-weight: 600; }
+  /* Solange die Voreinstellung aus dem Profil unverändert gilt (ADR-0006). */
+  .profil-hinweis { display: flex; flex-wrap: wrap; align-items: center; gap: var(--sp-2); font-size: var(--fs-200); color: var(--text-muted); margin: calc(-1 * var(--sp-3)) 0 var(--sp-4); }
+  .profil-hinweis :global(.ti) { width: 15px; height: 15px; color: var(--blue); }
+  .profil-hinweis a { color: var(--blue); }
   .facetten { display: flex; flex-direction: column; gap: var(--sp-3); margin-bottom: var(--sp-6); }
   .facette { border: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; align-items: baseline; gap: var(--sp-2) var(--sp-3); }
   .facette legend { float: left; font-size: var(--fs-200); font-weight: 600; color: var(--text-muted); min-width: 7.5em; padding: 0; }

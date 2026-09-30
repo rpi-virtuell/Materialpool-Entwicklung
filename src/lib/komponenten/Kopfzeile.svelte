@@ -1,18 +1,27 @@
 <script>
   import Icon from './Icon.svelte';
   /**
-   * Rahmen des Prototyps (Abschnitt 6): Logo → Start, „Stöbern“ → Liste.
-   * Keine Merkliste, kein „Gemerkt“ (ADR-0004). Navigation sind Links.
-   * @type {{ aktiv: 'start'|'liste'|null }}
+   * Rahmen des Prototyps (Abschnitt 6): Logo → Start, „Stöbern“ → Liste,
+   * „Anmelden“ bzw. der Vorname → Profil (ADR-0006). Keine Merkliste, kein
+   * „Gemerkt“ (ADR-0004). Navigation sind Links.
+   * @type {{ aktiv: 'start'|'liste'|'konto'|null, kopf: { angemeldet: boolean, vorname: string, stoebernPfad: string } }}
    */
-  let { aktiv } = $props();
+  let { aktiv, kopf } = $props();
 </script>
 
 <header class="site-header">
   <a class="logo" href="/"><Icon name="books" /> Materialpool Religion</a>
   <nav class="site-nav" aria-label="Hauptnavigation">
-    <a href="/materialien" class:active={aktiv === 'liste'} aria-label="Stöbern" aria-current={aktiv === 'liste' ? 'page' : undefined}>
+    <a href={kopf.stoebernPfad} class:active={aktiv === 'liste'} aria-label="Stöbern" aria-current={aktiv === 'liste' ? 'page' : undefined}>
       <Icon name="search" /><span>Stöbern</span>
+    </a>
+    <a
+      href="/konto"
+      class:active={aktiv === 'konto'}
+      aria-label={kopf.angemeldet ? `Profil von ${kopf.vorname}` : 'Anmelden'}
+      aria-current={aktiv === 'konto' ? 'page' : undefined}
+    >
+      <Icon name={kopf.angemeldet ? 'user-check' : 'user'} /><span>{kopf.angemeldet ? kopf.vorname : 'Anmelden'}</span>
     </a>
   </nav>
 </header>

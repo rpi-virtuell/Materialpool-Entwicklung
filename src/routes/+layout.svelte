@@ -10,7 +10,13 @@
   let { children, data } = $props();
 
   const aktiv = $derived(
-    page.url.pathname === '/' ? 'start' : page.url.pathname.startsWith('/materialien') ? 'liste' : null
+    page.url.pathname === '/'
+      ? 'start'
+      : page.url.pathname.startsWith('/materialien')
+        ? 'liste'
+        : page.url.pathname.startsWith('/konto')
+          ? 'konto'
+          : null
   );
   // CI-Farbe (Prototyp 9) als Inline-Variablen auf dem Rahmen: erbt in
   // Kopf, Seite und Fuß und liegt vor den Tokens aus app.css. Werte sind
@@ -20,7 +26,7 @@
 
 <div class="rahmen" style={ciStil}>
   <IconSprite />
-  <Kopfzeile {aktiv} />
+  <Kopfzeile {aktiv} kopf={data.kopf} />
   {@render children()}
   <Fusszeile spiegelstand={data.spiegelstand} />
   <Farbschalter schalter={data.farbschalter} />

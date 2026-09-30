@@ -1,7 +1,9 @@
 import { env } from '$env/dynamic/private';
 import { konfigLesen } from '$lib/konfig.js';
 import { ciFarbeLesen } from '$lib/models/farben.js';
+import { vorname } from '$lib/models/konto.js';
 import { CI_PARAMETER, farbschalterBilden, farbwahlLesen } from '$lib/routen/farbschalter.js';
+import { KONTO_COOKIE, kontoLesen, mitProfil } from '$lib/routen/konto.js';
 import { spiegelHolen } from '$lib/services/spiegel.js';
 
 /** Ein Jahr: Die ausprobierte Farbe bleibt, bis jemand zurücksetzt. */
@@ -20,7 +22,10 @@ export function load({ url, cookies }) {
   } else if (wahl.cookie === 'loeschen') {
     cookies.delete(CI_PARAMETER, { path: '/' });
   }
+  // Kontoebene (ADR-0006): nur, was die Kopfzeile braucht.
+  const konto = kontoLesen(cookies.get(KONTO_COOKIE));
   return {
+    kopf: { angemeldet: konto.angemeldet, vorname: vorname(konto), stoebernPfad: mitProfil('/materialien', konto) },
     ci: ciFarbeLesen(wahl.farbe),
     farbschalter: farbschalterBilden(url, wahl.farbe),
     spiegelstand: {

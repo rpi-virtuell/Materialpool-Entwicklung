@@ -5,11 +5,14 @@
  */
 import { coverFarben, hash, kontrastText, STUFEN_FARBE_DEFAULT } from '../models/farben.js';
 import { passtZurSaison, saisonKeywords } from '../models/saison.js';
-import { STUFEN_LABEL, STUFEN_LABEL_ALTER, STUFEN_SICHTBAR, TYPEN } from '../models/typen.js';
+import { LEERES_KONTO, profilFilter, profilOrt, vorname } from '../models/konto.js';
+import { FACH_LABEL, STUFEN_LABEL, STUFEN_LABEL_ALTER, STUFEN_SICHTBAR, TYPEN } from '../models/typen.js';
 import { materialienVon } from './bestand.js';
-import { leerstandErklaeren, listenPfad } from './uebersicht.js';
+import { mitProfil } from './konto.js';
+import { filterAnwenden, leerstandErklaeren, leererFilter, listenPfad, sortieren } from './uebersicht.js';
 
 /** @typedef {import('../services/spiegel.js').Inhalt} Inhalt */
+/** @typedef {import('../models/konto.js').Konto} Konto */
 /** @typedef {import('../services/spiegel.js').Fehlschlag} Fehlschlag */
 /** @typedef {import('../models/material.js').Material} Material */
 /** @typedef {import('../models/typen.js').StufeKey} StufeKey */
@@ -81,22 +84,48 @@ export function empfehlungWaehlen(materialien, heute) {
   return kandidaten[hash(tag, kandidaten.length)];
 }
 
+/** Karten in „Neu für deine Arbeit …“ (Prototyp). */
+export const FUER_DICH_ANZAHL = 3;
+
 /**
- * @param {{ inhalt: Inhalt, fehlschlag: Fehlschlag|null, relays: string[], heute?: Date, palette?: Record<StufeKey, string> }} eingabe
- * @returns {{ themen: Thema[], stufen: Stufe[], empfehlung: Empfehlung|null, status: { text: string, warnung: boolean }|null }}
+ * „Neu für deine Arbeit …“: Kennt das Profil Stufen, fragen die
+ * Alterskacheln nur ab, was schon feststeht — an ihre Stelle tritt das
+ * Neueste aus dem eigenen Bereich. Ohne Stufen (Gemeinde, nur „Anderes“)
+ * bleibt das Alter der beste Einstieg, die Kacheln also auch.
+ * @param {Material[]} materialien
+ * @param {Konto} konto
  */
-export function startseiteLaden({ inhalt, fehlschlag, relays, heute = new Date(), palette = STUFEN_FARBE_DEFAULT }) {
+function fuerDichBilden(materialien, konto) {
+  const { stufen, faecher } = profilFilter(konto);
+  if (stufen.length === 0) return null;
+  const filter = { ...leererFilter(), stufen, faecher, sortierung: /** @type {const} */ ('neu') };
+  const treffer = sortieren(filterAnwenden(materialien, filter), 'neu');
+  return {
+    ort: profilOrt(konto),
+    profil: [...stufen.map((s) => STUFEN_LABEL[s]), ...faecher.map((f) => FACH_LABEL[f])],
+    karten: treffer.slice(0, FUER_DICH_ANZAHL).map((material) => ({ material, icon: TYPEN[material.typ.key].icon, cover: coverFarben(material) })),
+    anzahl: treffer.length,
+    allePfad: listenPfad(filter)
+  };
+}
+
+/**
+ * @param {{ inhalt: Inhalt, fehlschlag: Fehlschlag|null, relays: string[], heute?: Date, palette?: Record<StufeKey, string>, konto?: Konto }} eingabe
+ */
+export function startseiteLaden({ inhalt, fehlschlag, relays, heute = new Date(), palette = STUFEN_FARBE_DEFAULT, konto = LEERES_KONTO }) {
   const materialien = materialienVon(inhalt);
   const keywords = saisonKeywords(heute);
 
+  // Einstiege in die Liste tragen angemeldet das Profil (routen/konto.js).
   const themen = themenZaehlen(materialien, keywords)
     .slice(0, THEMEN_ANZAHL)
-    .map((t) => ({ ...t, pfad: listenPfad({ q: t.wort }) }));
+    .map((t) => ({ ...t, pfad: mitProfil(listenPfad({ q: t.wort }), konto) }));
 
+  /** @type {Stufe[]} */
   const stufen = STUFEN_SICHTBAR.map((key) => ({
     key,
     label: STUFEN_LABEL_ALTER[key] ?? STUFEN_LABEL[key],
-    pfad: listenPfad({ stufen: [key] }),
+    pfad: mitProfil(listenPfad({ stufen: [key] }), konto),
     farbe: palette[key],
     text: kontrastText(palette[key])
   }));
@@ -123,5 +152,20 @@ export function startseiteLaden({ inhalt, fehlschlag, relays, heute = new Date()
       : { text: leerstandErklaeren(inhalt, fehlschlag, relays) ?? '', warnung: true };
   }
 
-  return { themen, stufen, empfehlung, status };
+  // Persönlich ist allein die Begrüßung; die Überschrift wechselt auch
+  // angemeldet durch alle Orte. Der Ort sagt mehr als das Bundesland.
+  const begruessung = konto.angemeldet
+    ? { vorname: vorname(konto), ort: profilOrt(konto), profilText: konto.bereiche.length > 0 ? 'Profil ändern' : 'Profil ausfüllen' }
+    : null;
+
+  return {
+    themen,
+    stufen,
+    empfehlung,
+    status,
+    begruessung,
+    fuerDich: fuerDichBilden(materialien, konto),
+    browsePfad: mitProfil('/materialien', konto),
+    sucheMitProfil: konto.angemeldet
+  };
 }
