@@ -158,7 +158,8 @@ describe('Uebersicht (Liste)', () => {
   it('rendert Facetten als Link-Chips mit Zählern, aktive gedrückt, leere ohne Link', () => {
     const daten = listeLaden({ inhalt, fehlschlag: null, relays, filter: { ...leererFilter(), stufen: ['elem'] } });
     const { body } = render(Uebersicht, { props: daten });
-    for (const name of ['Materialart', 'Bildungsstufe', 'Schlagworte']) expect(body).toMatch(new RegExp(`<legend[^>]*>${name}</legend>`));
+    for (const name of ['Fach', 'Materialart', 'Bildungsstufe', 'Schlagworte']) expect(body).toMatch(new RegExp(`<legend[^>]*>${name}</legend>`));
+    expect(body.indexOf('>Fach</legend>')).toBeLessThan(body.indexOf('>Materialart</legend>'));
     expect(body).toMatch(/class="chip[^"]*is-aktiv[^"]*" href="\/materialien" aria-current="true"/);
     expect(body).toMatch(/class="chip is-leer[^"]*" aria-disabled="true">Video/);
     expect(body).toContain('href="/materialien?stufe=elem&amp;typ=plan"');

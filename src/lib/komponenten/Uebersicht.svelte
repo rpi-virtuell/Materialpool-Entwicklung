@@ -2,8 +2,8 @@
   import Icon from './Icon.svelte';
   import Karte from './Karte.svelte';
   /**
-   * Liste (/materialien): Suche, Facetten (Materialart, Bildungsstufe,
-   * Schlagworte) als Link-Chips, Ergebnisleiste mit Treffern, aktiven
+   * Liste (/materialien): Suche, Facetten (Fach, Materialart,
+   * Bildungsstufe, Schlagworte) als Link-Chips, Ergebnisleiste mit Treffern, aktiven
    * Filtern als entfernbare Pillen und Sortierung als Link-Gruppe, Karten.
    * Alles GET-Links — ohne JavaScript vollständig. Zustände: leerer
    * Spiegel (Erklärung), keine Treffer (aktive Filter), Treffer.
@@ -15,6 +15,7 @@
   );
   const filterText = $derived(pillen.map((p) => p.label).join(' und '));
   const gruppen = $derived([
+    { name: 'Fach', werte: facetten.faecher },
     { name: 'Materialart', werte: facetten.typen },
     { name: 'Bildungsstufe', werte: facetten.stufen },
     { name: 'Schlagworte', werte: facetten.schlagworte }
@@ -29,6 +30,7 @@
       <input type="search" name="q" value={filter.q} placeholder="Suchen in Titel, Beschreibung, Herkunft und Schlagworten" aria-label="Materialien durchsuchen" />
       {#each filter.stufen as s (s)}<input type="hidden" name="stufe" value={s} />{/each}
       {#each filter.typen as t (t)}<input type="hidden" name="typ" value={t} />{/each}
+      {#each filter.faecher as f (f)}<input type="hidden" name="fach" value={f} />{/each}
       {#each filter.schlagworte as w (w)}<input type="hidden" name="t" value={w} />{/each}
       {#if filter.sortierung !== 'empfohlen'}<input type="hidden" name="sort" value={filter.sortierung} />{/if}
       <button type="submit">Suchen</button>

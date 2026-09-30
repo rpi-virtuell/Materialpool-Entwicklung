@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import {
-  LRT_ZU_TYP, STUFEN_LABEL, STUFEN_LABEL_ALTER, STUFEN_REIHENFOLGE, STUFEN_SICHTBAR, TYPEN, TYP_LABEL, TYP_REIHENFOLGE,
+  FACH_LABEL, FACH_REIHENFOLGE, faecherAusBegriffen, LRT_ZU_TYP, STUFEN_LABEL, STUFEN_LABEL_ALTER, STUFEN_REIHENFOLGE, STUFEN_SICHTBAR, TYPEN, TYP_LABEL, TYP_REIHENFOLGE,
   stufeAusBegriffen, stufenAusBegriffen, typAusBegriffen, typenAusBegriffen
 } from './typen.js';
 
@@ -33,6 +33,28 @@ describe('Typen', () => {
       { id: 'https://w3id.org/kim/hcrt/video', label: 'Video' }
     ];
     expect(typAusBegriffen(begriffe)).toEqual({ key: 'video', label: 'Video' });
+  });
+});
+
+describe('Fächer', () => {
+  /** @param {...string} ids */
+  const f = (...ids) => faecherAusBegriffen(ids.map((id) => ({ id: `http://w3id.org/kim/schulfaecher/${id}`, label: id })));
+  it('erkennt Konfessionen an der KIM-URI, alle passenden in fester Reihenfolge', () => {
+    expect(f('s1024', 's1055')).toEqual(['evangelisch']);
+    expect(f('s1026', 's1024')).toEqual(['evangelisch', 'katholisch']);
+    expect(f('s1025')).toEqual(['islamisch']);
+    expect(f('s1057', 's1056')).toEqual(['juedisch', 'alevitisch']);
+  });
+  it('ist überkonfessionell, wenn keine Konfession passt', () => {
+    expect(f('s1055')).toEqual(['allgemein']);
+    expect(f('s1008', 's1021')).toEqual(['allgemein']);
+    expect(faecherAusBegriffen([])).toEqual(['allgemein']);
+  });
+  it('heißt „Fach“, nicht „Konfession“, mit den Namen des Prototyps', () => {
+    expect(FACH_REIHENFOLGE.map((k) => FACH_LABEL[k])).toEqual([
+      'Evangelische Religionslehre', 'Katholische Religionslehre', 'Islamische Religionslehre',
+      'Jüdische Religionslehre', 'Alevitische Religionslehre', 'Religionslehre (überkonfessionell)'
+    ]);
   });
 });
 

@@ -12,9 +12,10 @@
  * gesäubert (CLAUDE.md).
  */
 
-import { stufeAusBegriffen, stufenAusBegriffen, typAusBegriffen, typenAusBegriffen } from './typen.js';
+import { faecherAusBegriffen, stufeAusBegriffen, stufenAusBegriffen, typAusBegriffen, typenAusBegriffen } from './typen.js';
 
 /** @typedef {import('../services/relay.js').Event} Event */
+/** @typedef {import('./typen.js').FachKey} FachKey */
 /** @typedef {import('./typen.js').TypKey} TypKey */
 /** @typedef {import('./typen.js').StufeKey} StufeKey */
 
@@ -51,6 +52,7 @@ import { stufeAusBegriffen, stufenAusBegriffen, typAusBegriffen, typenAusBegriff
  * @property {StufeKey[]} stufenKeys                     alle Stufen (Filter, Facetten)
  * @property {Begriff[]} bildungsstufen
  * @property {Begriff[]} faecher
+ * @property {FachKey[]} fachKeys                        Konfessionen aus `about:id`, sonst „allgemein“ (Filter, Facetten)
  * @property {Begriff[]} ressourcentypen
  * @property {string|null} datum    datePublished, sonst dateCreated
  */
@@ -194,6 +196,7 @@ export function materialAusEvent(event) {
     stufenKeys: stufenAusBegriffen(bildungsstufen),
     bildungsstufen,
     faecher,
+    fachKeys: faecherAusBegriffen(faecher),
     ressourcentypen,
     datum: erstes(tags, 'datePublished') ?? erstes(tags, 'dateCreated')
   };

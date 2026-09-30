@@ -6,7 +6,7 @@
  */
 import { coverFarben } from '../models/farben.js';
 import { materialAusEvent } from '../models/material.js';
-import { STUFEN_LABEL, STUFEN_REIHENFOLGE, TYP_LABEL, TYP_REIHENFOLGE, TYPEN } from '../models/typen.js';
+import { FACH_LABEL, FACH_REIHENFOLGE, STUFEN_LABEL, STUFEN_REIHENFOLGE, TYP_LABEL, TYP_REIHENFOLGE, TYPEN } from '../models/typen.js';
 import { ABFRAGEGRUND_TEXT as GRUND_TEXT } from '../services/spiegel.js';
 import { materialienVon } from './bestand.js';
 
@@ -16,6 +16,7 @@ import { materialienVon } from './bestand.js';
 /** @typedef {import('../models/material.js').Material} Material */
 /** @typedef {import('../models/typen.js').StufeKey} StufeKey */
 /** @typedef {import('../models/typen.js').TypKey} TypKey */
+/** @typedef {import('../models/typen.js').FachKey} FachKey */
 /** @typedef {'empfohlen'|'neu'|'titel'|'anbieter'} Sortierung */
 
 /**
@@ -23,6 +24,7 @@ import { materialienVon } from './bestand.js';
  * @property {string} q
  * @property {StufeKey[]} stufen
  * @property {TypKey[]} typen
+ * @property {FachKey[]} faecher
  * @property {string[]} schlagworte
  * @property {Sortierung} sortierung
  * @property {number} seite        1-basiert
@@ -44,7 +46,7 @@ export const SEITENGROESSE_LISTE = 24;
 
 /** @returns {Filter} */
 export function leererFilter() {
-  return { q: '', stufen: [], typen: [], schlagworte: [], sortierung: 'empfohlen', seite: 1 };
+  return { q: '', stufen: [], typen: [], faecher: [], schlagworte: [], sortierung: 'empfohlen', seite: 1 };
 }
 
 /**
@@ -75,6 +77,7 @@ export function listenPfad(filter = {}) {
   if (filter.q) p.set('q', filter.q);
   for (const s of filter.stufen ?? []) p.append('stufe', s);
   for (const t of filter.typen ?? []) p.append('typ', t);
+  for (const f of filter.faecher ?? []) p.append('fach', f);
   for (const w of filter.schlagworte ?? []) p.append('t', w);
   if (filter.sortierung && filter.sortierung !== 'empfohlen') p.set('sort', filter.sortierung);
   if (filter.seite && filter.seite > 1) p.set('seite', String(filter.seite));
@@ -100,6 +103,7 @@ export function filterLesen(params) {
     q: (params.get('q') ?? '').trim(),
     stufen: bekannte('stufe', STUFEN_REIHENFOLGE),
     typen: bekannte('typ', TYP_REIHENFOLGE),
+    faecher: bekannte('fach', FACH_REIHENFOLGE),
     schlagworte: [...new Set(params.getAll('t').map((w) => w.trim()).filter(Boolean))],
     sortierung,
     seite: Number.isInteger(seiteRoh) && seiteRoh > 1 ? seiteRoh : 1
@@ -135,10 +139,11 @@ function passtZuText(m, q) {
   return [m.name, m.beschreibung, m.herkunft, ...m.schlagworte].join(' ').toLowerCase().includes(q);
 }
 
-/** @param {Material} m @param {Pick<Filter, 'stufen'|'typen'|'schlagworte'>} f */
+/** @param {Material} m @param {Pick<Filter, 'stufen'|'typen'|'faecher'|'schlagworte'>} f */
 function passtZuFacetten(m, f) {
   if (f.stufen.length > 0 && !m.stufenKeys.some((k) => f.stufen.includes(k))) return false;
   if (f.typen.length > 0 && !m.typKeys.some((k) => f.typen.includes(k))) return false;
+  if (f.faecher.length > 0 && !m.fachKeys.some((k) => f.faecher.includes(k))) return false;
   if (f.schlagworte.length > 0 && !f.schlagworte.some((w) => m.themen.includes(w))) return false;
   return true;
 }
@@ -167,7 +172,7 @@ export function filterAnwenden(materialien, filter) {
  * @template {string} K
  * @param {Material[]} materialien
  * @param {Filter} filter
- * @param {'stufen'|'typen'|'schlagworte'} facette
+ * @param {'stufen'|'typen'|'faecher'|'schlagworte'} facette
  * @param {(m: Material) => string[]} werteVon
  * @param {K[]} reihenfolge
  * @param {(key: K) => string} labelVon
@@ -199,7 +204,7 @@ function facette(materialien, filter, facette, werteVon, reihenfolge, labelVon) 
 }
 
 /**
- * Facetten Materialart, Bildungsstufe, Schlagworte mit Zählern und
+ * Facetten Fach, Materialart, Bildungsstufe, Schlagworte mit Zählern und
  * Umschalt-Pfaden. Schlagworte: aktive zuerst, dann nach Häufigkeit,
  * höchstens SCHLAGWORTE_MAX.
  * @param {Material[]} materialien
@@ -214,6 +219,7 @@ export function facettenBilden(materialien, filter) {
     .sort((a, b) => Number(b.aktiv) - Number(a.aktiv) || b.anzahl - a.anzahl || a.key.localeCompare(b.key, 'de'))
     .slice(0, SCHLAGWORTE_MAX);
   return {
+    faecher: facette(materialien, filter, 'faecher', (m) => m.fachKeys, FACH_REIHENFOLGE, (k) => FACH_LABEL[k]),
     typen: facette(materialien, filter, 'typen', (m) => m.typKeys, TYP_REIHENFOLGE, (k) => TYP_LABEL[k]),
     stufen: facette(materialien, filter, 'stufen', (m) => m.stufenKeys, STUFEN_REIHENFOLGE, (k) => STUFEN_LABEL[k]),
     schlagworte
@@ -254,10 +260,10 @@ export function sortieren(materialien, sortierung) {
 /**
  * Aktive Filter als Pillen mit Pfad, der genau diesen Wert entfernt.
  * @param {Filter} filter
- * @returns {{ art: 'q'|'typ'|'stufe'|'t', label: string, entfernenPfad: string }[]}
+ * @returns {{ art: 'q'|'typ'|'stufe'|'fach'|'t', label: string, entfernenPfad: string }[]}
  */
 export function aktiveFilter(filter) {
-  /** @type {{ art: 'q'|'typ'|'stufe'|'t', label: string, entfernenPfad: string }[]} */
+  /** @type {{ art: 'q'|'typ'|'stufe'|'fach'|'t', label: string, entfernenPfad: string }[]} */
   const pillen = [];
   const ohne = { ...filter, seite: 1 };
   if (filter.q) pillen.push({ art: 'q', label: `„${filter.q}“`, entfernenPfad: listenPfad({ ...ohne, q: '' }) });
@@ -266,6 +272,9 @@ export function aktiveFilter(filter) {
   }
   for (const s of filter.stufen) {
     pillen.push({ art: 'stufe', label: STUFEN_LABEL[s], entfernenPfad: listenPfad({ ...ohne, stufen: filter.stufen.filter((k) => k !== s) }) });
+  }
+  for (const f of filter.faecher) {
+    pillen.push({ art: 'fach', label: FACH_LABEL[f], entfernenPfad: listenPfad({ ...ohne, faecher: filter.faecher.filter((k) => k !== f) }) });
   }
   for (const w of filter.schlagworte) {
     pillen.push({ art: 't', label: w, entfernenPfad: listenPfad({ ...ohne, schlagworte: filter.schlagworte.filter((k) => k !== w) }) });

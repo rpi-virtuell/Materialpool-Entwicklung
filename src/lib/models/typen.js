@@ -5,6 +5,7 @@
 
 /** @typedef {'plan'|'ab'|'proj'|'uebung'|'video'|'audio'|'webseite'|'sonstiges'} TypKey */
 /** @typedef {'elem'|'sek1'|'sek2'|'bbs'|'fortbildung'|'hochschule'|'unbekannt'} StufeKey */
+/** @typedef {'evangelisch'|'katholisch'|'islamisch'|'juedisch'|'alevitisch'|'allgemein'} FachKey */
 /** @typedef {import('./material.js').Begriff} Begriff */
 
 /** Icon je Typ (Tabler-Name, gerendert als Inline-SVG in Icon.svelte). */
@@ -62,6 +63,50 @@ const HCRT_ZU_TYP = /** @type {Record<string, TypKey>} */ ({
   web_page: 'webseite',
   portal: 'webseite'
 });
+
+/**
+ * Facette „Fach“ (Prototyp Materialpool 2.0) — bewusst „Fach“, nicht
+ * „Konfession“, damit Filter und Profil dieselben Namen tragen. Erkannt
+ * am KIM-Schulfach (`about:id`); für orthodoxe Religionslehre gibt es
+ * keine eigene Kennung.
+ * @type {FachKey[]}
+ */
+export const FACH_REIHENFOLGE = ['evangelisch', 'katholisch', 'islamisch', 'juedisch', 'alevitisch', 'allgemein'];
+
+/** @type {Record<FachKey, string>} */
+export const FACH_LABEL = {
+  evangelisch: 'Evangelische Religionslehre',
+  katholisch: 'Katholische Religionslehre',
+  islamisch: 'Islamische Religionslehre',
+  juedisch: 'Jüdische Religionslehre',
+  alevitisch: 'Alevitische Religionslehre',
+  allgemein: 'Religionslehre (überkonfessionell)'
+};
+
+/** Letzter Pfadteil der KIM-Schulfach-URI → Fach. s1055 (Religion, überkonfessionell) steht nicht hier: es ist der Rückfall. */
+const KIM_FACH = /** @type {Record<string, FachKey>} */ ({
+  s1024: 'evangelisch',
+  s1026: 'katholisch',
+  s1025: 'islamisch',
+  s1057: 'juedisch',
+  s1056: 'alevitisch'
+});
+
+/**
+ * Alle Konfessionen, die die Fach-Begriffe nennen, in FACH_REIHENFOLGE.
+ * Viele Materialien tragen die konfessionelle UND die überkonfessionelle
+ * Kennung; „allgemein“ gilt nur, wenn keine Konfession passt.
+ * @param {Begriff[]} begriffe
+ * @returns {FachKey[]}
+ */
+export function faecherAusBegriffen(begriffe) {
+  const keys = new Set(begriffe.flatMap((b) => {
+    const key = KIM_FACH[pfadteil(b.id)];
+    return key ? [key] : [];
+  }));
+  const geordnet = FACH_REIHENFOLGE.filter((k) => keys.has(k));
+  return geordnet.length > 0 ? geordnet : ['allgemein'];
+}
 
 /**
  * Reihenfolge in Facetten. `fortbildung` und `hochschule` kommen im

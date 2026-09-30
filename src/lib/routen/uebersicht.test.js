@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import beispiele from '../../../test/fixtures/amb-beispiele.json';
+import faecherBeispiele from '../../../test/fixtures/amb-faecher.json';
 import { materialAusEvent } from '../models/material.js';
 import { leererInhalt } from '../services/spiegel.js';
 import {
@@ -11,6 +12,8 @@ const relays = ['wss://amb-relay.edufeed.org/'];
 const materialien = beispiele.map(materialAusEvent);
 /** @param {Partial<import('./uebersicht.js').Filter>} teil */
 const filter = (teil = {}) => ({ ...leererFilter(), ...teil });
+const lesepause = 'Lesepause – Magazin für Religionslehrkräfte im Erzbistum Paderborn. Ausgabe 1 | Februar 2026';
+const frieden = 'Modul für den Religionsunterricht: Kein Frieden ohne Frieden der Religionen';
 
 describe('leerstandErklaeren — nie eine leere Liste ohne Erklärung', () => {
   it('schweigt, wenn Material da ist', () => {
@@ -37,13 +40,13 @@ describe('listenPfad und filterLesen', () => {
   it('baut Pfade ohne leere Parameter, mehrfach je Facette, und liest sie zurück', () => {
     expect(listenPfad()).toBe('/materialien');
     expect(listenPfad({ q: 'Erntedank', stufen: ['elem'] })).toBe('/materialien?q=Erntedank&stufe=elem');
-    const voll = filter({ q: 'x', stufen: ['elem', 'sek1'], typen: ['video'], schlagworte: ['kita'], sortierung: 'neu', seite: 3 });
-    expect(listenPfad(voll)).toBe('/materialien?q=x&stufe=elem&stufe=sek1&typ=video&t=kita&sort=neu&seite=3');
+    const voll = filter({ q: 'x', stufen: ['elem', 'sek1'], typen: ['video'], faecher: ['katholisch'], schlagworte: ['kita'], sortierung: 'neu', seite: 3 });
+    expect(listenPfad(voll)).toBe('/materialien?q=x&stufe=elem&stufe=sek1&typ=video&fach=katholisch&t=kita&sort=neu&seite=3');
     expect(filterLesen(new URLSearchParams(listenPfad(voll).slice(13)))).toEqual(voll);
   });
   it('lässt Standardsortierung und Seite 1 im Pfad weg und ignoriert Unbekanntes', () => {
     expect(listenPfad(filter({ sortierung: 'empfohlen', seite: 1 }))).toBe('/materialien');
-    expect(filterLesen(new URLSearchParams('q=+Ostern+&stufe=weiterbildung&typ=nix&sort=nix&seite=0'))).toEqual(filter({ q: 'Ostern' }));
+    expect(filterLesen(new URLSearchParams('q=+Ostern+&stufe=weiterbildung&typ=nix&fach=orthodox&sort=nix&seite=0'))).toEqual(filter({ q: 'Ostern' }));
     expect(filterLesen(new URLSearchParams('seite=abc')).seite).toBe(1);
   });
 });
@@ -72,6 +75,13 @@ describe('filterAnwenden', () => {
   it('lässt ohne Filter alles durch', () => {
     expect(filterAnwenden(materialien, filter())).toHaveLength(materialien.length);
   });
+  it('filtert nach Fach, ein Material mit zwei Konfessionen zählt in beiden', () => {
+    const mitFaechern = [...materialien, ...faecherBeispiele.map(materialAusEvent)];
+    expect(filterAnwenden(mitFaechern, filter({ faecher: ['katholisch'] })).map((m) => m.name)).toEqual([lesepause]);
+    expect(filterAnwenden(mitFaechern, filter({ faecher: ['evangelisch'] }))).toHaveLength(8);
+    expect(filterAnwenden(mitFaechern, filter({ faecher: ['allgemein'] })).map((m) => m.name)).toEqual([frieden]);
+    expect(filterAnwenden(mitFaechern, filter({ faecher: ['katholisch', 'allgemein'] }))).toHaveLength(2);
+  });
 });
 
 describe('facettenBilden', () => {
@@ -97,6 +107,15 @@ describe('facettenBilden', () => {
     expect(f.typen.find((o) => o.key === 'plan')?.pfad).toBe('/materialien?stufe=elem&typ=plan');
     expect(f.stufen[0].pfad).toBe('/materialien');
     expect(f.stufen[4].pfad).toBe('/materialien?stufe=elem&stufe=fortbildung');
+  });
+  it('zählt die Fach-Facette in fester Reihenfolge', () => {
+    const mitFaechern = [...materialien, ...faecherBeispiele.map(materialAusEvent)];
+    const f = facettenBilden(mitFaechern, filter({ faecher: ['katholisch'] }));
+    expect(f.faecher.map((o) => [o.key, o.anzahl])).toEqual([
+      ['evangelisch', 8], ['katholisch', 1], ['islamisch', 0], ['juedisch', 0], ['alevitisch', 0], ['allgemein', 1]
+    ]);
+    expect(f.faecher[1]).toMatchObject({ aktiv: true, pfad: '/materialien' });
+    expect(f.faecher[5].pfad).toBe('/materialien?fach=katholisch&fach=allgemein');
   });
   it('zeigt höchstens zwölf Schlagworte, aktive zuerst, dann nach Häufigkeit', () => {
     const viele = Array.from({ length: 20 }, (_, i) => ({ ...materialien[0], id: `m${i}`, themen: [`w${i}`, 'gemeinsam'] }));
@@ -145,6 +164,9 @@ describe('aktiveFilter', () => {
       { art: 'typ', label: 'Video', entfernenPfad: '/materialien?q=Ostern&stufe=sek1&t=kita' },
       { art: 'stufe', label: 'Sekundarstufe I', entfernenPfad: '/materialien?q=Ostern&typ=video&t=kita' },
       { art: 't', label: 'kita', entfernenPfad: '/materialien?q=Ostern&stufe=sek1&typ=video' }
+    ]);
+    expect(aktiveFilter(filter({ faecher: ['katholisch'] }))).toEqual([
+      { art: 'fach', label: 'Katholische Religionslehre', entfernenPfad: '/materialien' }
     ]);
     expect(aktiveFilter(filter())).toEqual([]);
   });
