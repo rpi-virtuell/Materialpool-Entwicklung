@@ -115,13 +115,13 @@ export function faecherAusBegriffen(begriffe) {
 /**
  * Reihenfolge in Facetten. `fortbildung` und `hochschule` kommen im
  * Materialpool-Bestand vor (KIM level_C, level_A) und stehen darum in der
- * Facette — aber nicht als Kachel der Startseite (Prototyp).
+ * Facette; `fortbildung` ist die Kachel „Erwachsene“, `bbs` keine.
  * @type {StufeKey[]}
  */
 export const STUFEN_REIHENFOLGE = ['elem', 'sek1', 'sek2', 'bbs', 'fortbildung', 'hochschule', 'unbekannt'];
 
-/** Die Kacheln der Startseite — nie „unbekannt“. @type {StufeKey[]} */
-export const STUFEN_SICHTBAR = ['elem', 'sek1', 'sek2', 'bbs'];
+/** Die Kacheln der Startseite — nie „unbekannt“. „Erwachsene“ ist Fortbildung, nicht Berufsbildung. @type {StufeKey[]} */
+export const STUFEN_SICHTBAR = ['elem', 'sek1', 'sek2', 'fortbildung'];
 
 /** @type {Record<StufeKey, string>} */
 export const STUFEN_LABEL = {
@@ -147,7 +147,7 @@ export const STUFEN_LABEL_ALTER = {
   elem: 'Kinder',
   sek1: 'Jugendliche',
   sek2: 'Junge Erwachsene',
-  bbs: 'Erwachsene'
+  fortbildung: 'Erwachsene'
 };
 
 /** educationalLevel-Label → Stufe; alles andere ist „unbekannt“. */

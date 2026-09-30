@@ -30,7 +30,8 @@ describe('themenZaehlen', () => {
 describe('startseiteLaden', () => {
   it('liefert vier Stufen-Kacheln in fester Reihenfolge mit Farben und Link', () => {
     const { stufen } = startseiteLaden({ inhalt, fehlschlag: null, relays, heute: september });
-    expect(stufen.map((s) => s.key)).toEqual(['elem', 'sek1', 'sek2', 'bbs']);
+    expect(stufen.map((s) => s.key)).toEqual(['elem', 'sek1', 'sek2', 'fortbildung']);
+    expect(stufen[3]).toMatchObject({ label: 'Erwachsene', pfad: '/materialien?stufe=fortbildung' });
     expect(stufen[0]).toEqual({
       key: 'elem', label: 'Kinder', pfad: '/materialien?stufe=elem',
       farbe: STUFEN_FARBE_DEFAULT.elem, text: '#16181b'

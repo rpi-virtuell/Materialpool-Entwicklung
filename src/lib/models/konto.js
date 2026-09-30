@@ -42,7 +42,7 @@ export const BUNDESLAENDER = [
  * Bereiche nach den Einsatzorten der Startseite, „Schule“ aber nach Stufe
  * aufgeteilt: Eine Grundschul- und eine Oberstufenlehrkraft suchen völlig
  * Verschiedenes, „Schule“ allein hätte nichts eingegrenzt. Die Stufen
- * folgen den Alterskacheln (bbs = Erwachsene). Gemeinde hat bewusst keine —
+ * folgen den Alterskacheln (fortbildung = Erwachsene). Gemeinde hat bewusst keine —
  * Gemeindearbeit reicht von der Krabbelgruppe bis zum Seniorenkreis.
  * Konfi- und Jugendarbeit heißen im Ort „mit Konfis“/„mit Jugendlichen“ —
  * „deine Arbeit in der Jugendarbeit“ doppelt sich.
@@ -71,7 +71,7 @@ export const BEREICH_GRUPPEN = [
       { key: 'gemeinde', label: 'Gemeinde', ort: 'in der Gemeinde', stufen: null },
       { key: 'konfi', label: 'Konfi-Arbeit', ort: 'mit Konfis', stufen: ['sek1'] },
       { key: 'jugend', label: 'Jugendarbeit', ort: 'mit Jugendlichen', stufen: ['sek1', 'sek2'] },
-      { key: 'erwachsene', label: 'Erwachsenenbildung', ort: 'in der Erwachsenenbildung', stufen: ['bbs'] }
+      { key: 'erwachsene', label: 'Erwachsenenbildung', ort: 'in der Erwachsenenbildung', stufen: ['fortbildung'] }
     ]
   }
 ];

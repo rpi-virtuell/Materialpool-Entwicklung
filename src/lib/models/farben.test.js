@@ -26,7 +26,7 @@ describe('stufenPalette', () => {
     const p = stufenPalette('#1d5a8c');
     expect(p.sek2).toBe('#1d5a8c');
     expect(p.elem).toBe(mix('#1d5a8c', '#ffffff', 0.55));
-    expect(p.bbs).toBe(mix('#1d5a8c', '#000000', 0.3));
+    expect(p.fortbildung).toBe(mix('#1d5a8c', '#000000', 0.3));
     expect(p.unbekannt).toBe(STUFEN_FARBE_DEFAULT.unbekannt);
   });
 });

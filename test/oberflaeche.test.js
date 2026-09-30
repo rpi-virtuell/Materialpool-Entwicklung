@@ -138,7 +138,8 @@ describe('Startseite', () => {
     expect(body).toContain('Nach Alter einsteigen');
     expect(body).toContain('Junge Erwachsene');
     expect((body.match(/class="stufe-kachel /g) ?? []).length).toBe(4);
-    expect(body).toContain('href="/materialien?stufe=bbs"');
+    expect(body).toContain('href="/materialien?stufe=fortbildung"');
+    expect(body).not.toContain('href="/materialien?stufe=bbs"');
     expect(body).toContain('Materialien werden geladen …');
     expect(body).not.toContain('status-warn');
     expect(body).not.toContain('themen-row');

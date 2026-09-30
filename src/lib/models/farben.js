@@ -27,8 +27,8 @@ export const STUFEN_FARBE_DEFAULT = {
   elem: '#7FB0D9',
   sek1: '#4A85B8',
   sek2: '#1D5A8C',
-  bbs: '#123F63',
-  fortbildung: '#6B7F93',
+  bbs: '#6B7F93',
+  fortbildung: '#123F63',
   hochschule: '#4F5D6B',
   unbekannt: '#9AA5AF'
 };
@@ -85,8 +85,9 @@ export function stufenPalette(ci) {
     elem: mix(ci, WEISS, 0.55),
     sek1: mix(ci, WEISS, 0.25),
     sek2: ci,
-    bbs: mix(ci, SCHWARZ, 0.3),
-    fortbildung: STUFEN_FARBE_DEFAULT.fortbildung,
+    // Die vierte Kachel („Erwachsene“) ist die dunkelste.
+    fortbildung: mix(ci, SCHWARZ, 0.3),
+    bbs: STUFEN_FARBE_DEFAULT.bbs,
     hochschule: STUFEN_FARBE_DEFAULT.hochschule,
     unbekannt: STUFEN_FARBE_DEFAULT.unbekannt
   };

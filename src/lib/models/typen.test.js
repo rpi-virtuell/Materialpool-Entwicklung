@@ -64,7 +64,7 @@ describe('Fächer', () => {
 describe('Stufen', () => {
   it('kennt sieben Stufen, vier davon als Kachel sichtbar', () => {
     expect(STUFEN_REIHENFOLGE).toEqual(['elem', 'sek1', 'sek2', 'bbs', 'fortbildung', 'hochschule', 'unbekannt']);
-    expect(STUFEN_SICHTBAR).toEqual(['elem', 'sek1', 'sek2', 'bbs']);
+    expect(STUFEN_SICHTBAR).toEqual(['elem', 'sek1', 'sek2', 'fortbildung']);
     expect(STUFEN_LABEL.unbekannt).toBe('Stufe nicht angegeben');
   });
 

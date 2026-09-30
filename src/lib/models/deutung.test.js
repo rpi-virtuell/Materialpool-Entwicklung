@@ -12,6 +12,9 @@ describe('deuteSuche', () => {
   });
   it('liest Wendungen, Klassen und Altersangaben', () => {
     expect(deuteSuche('Material für junge Erwachsene zum Thema Tod').stufen).toEqual(['sek2']);
+    expect(deuteSuche('Andacht für Senioren im Advent').stufen).toEqual(['fortbildung']);
+    expect(deuteSuche('Material für die Erwachsenenbildung zu Taufe').stufen).toEqual(['fortbildung']);
+    expect(deuteSuche('Arbeitsblatt Ostern für die Berufsschule').stufen).toEqual(['bbs']);
     expect(deuteSuche('Arbeitsblatt Schöpfung Klasse 3').stufen).toEqual(['elem']);
     expect(deuteSuche('Gebete für 12-Jährige').stufen).toEqual(['sek1']);
     expect(deuteSuche('etwas zu Weihnachten für 8 Jahre').stufen).toEqual(['elem']);
