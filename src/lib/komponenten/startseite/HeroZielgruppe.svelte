@@ -1,8 +1,12 @@
 <script module>
-  /** Zielgruppen, die im H1 rotieren (Prototyp 5.3). */
+  /**
+   * Zielgruppen, die im H1 rotieren (Prototyp 5.3). Reihenfolge absichtlich
+   * gemischt: Verwandtes (Schule/Schulgottesdienste, Konfi-/Jugendarbeit)
+   * steht auch über den Umlauf hinweg nie nebeneinander (Prototyp, 28.09.2026).
+   */
   export const ZIELGRUPPEN = [
-    'für die Schule', 'für die Kita', 'für die Gemeinde', 'für die Konfi-Arbeit',
-    'für die Jugendarbeit', 'für die Erwachsenenbildung', 'für Schulgottesdienste'
+    'für die Schule', 'für die Gemeinde', 'für die Kita', 'für die Konfi-Arbeit',
+    'für Schulgottesdienste', 'für die Erwachsenenbildung', 'für die Jugendarbeit'
   ];
   /** Sekunden je Wort. */
   export const TAKT_S = 3;

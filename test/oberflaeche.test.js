@@ -62,6 +62,15 @@ describe('Fusszeile', () => {
 });
 
 describe('Startseite', () => {
+  it('mischt die Zielgruppen: Verwandtes steht auch über den Umlauf nie nebeneinander', () => {
+    const verwandt = [['für die Schule', 'für Schulgottesdienste'], ['für die Konfi-Arbeit', 'für die Jugendarbeit']];
+    const n = ZIELGRUPPEN.length;
+    for (const [a, b] of verwandt) {
+      const abstand = Math.abs(ZIELGRUPPEN.indexOf(a) - ZIELGRUPPEN.indexOf(b));
+      expect(Math.min(abstand, n - abstand), `${a} / ${b}`).toBeGreaterThan(1);
+    }
+  });
+
   it('rendert ohne Daten sofort: Kopf, Suche, Kacheln, Hinweis „wird geladen“', () => {
     const daten = startseiteLaden({ inhalt: leererInhalt(), fehlschlag: null, relays, heute: september });
     const { body } = render(Startseite, { props: daten });
