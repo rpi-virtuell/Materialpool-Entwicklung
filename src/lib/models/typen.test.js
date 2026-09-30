@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import {
-  LRT_ZU_TYP, STUFEN_LABEL, STUFEN_REIHENFOLGE, STUFEN_SICHTBAR, TYPEN, TYP_LABEL, TYP_REIHENFOLGE,
+  LRT_ZU_TYP, STUFEN_LABEL, STUFEN_LABEL_ALTER, STUFEN_REIHENFOLGE, STUFEN_SICHTBAR, TYPEN, TYP_LABEL, TYP_REIHENFOLGE,
   stufeAusBegriffen, stufenAusBegriffen, typAusBegriffen, typenAusBegriffen
 } from './typen.js';
 
@@ -41,6 +41,12 @@ describe('Stufen', () => {
     expect(STUFEN_REIHENFOLGE).toEqual(['elem', 'sek1', 'sek2', 'bbs', 'fortbildung', 'hochschule', 'unbekannt']);
     expect(STUFEN_SICHTBAR).toEqual(['elem', 'sek1', 'sek2', 'bbs']);
     expect(STUFEN_LABEL.unbekannt).toBe('Stufe nicht angegeben');
+  });
+
+  it('benennt die Kacheln nach Alter, die Facette bleibt bei der Schulstufe', () => {
+    expect(STUFEN_SICHTBAR.map((key) => STUFEN_LABEL_ALTER[key]))
+      .toEqual(['Kinder', 'Jugendliche', 'Junge Erwachsene', 'Erwachsene']);
+    expect(STUFEN_LABEL.sek1).toBe('Sekundarstufe I');
   });
 
   it('bildet educationalLevel-Labels auf Stufen ab', () => {

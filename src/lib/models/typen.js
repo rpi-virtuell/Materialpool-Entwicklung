@@ -85,6 +85,22 @@ export const STUFEN_LABEL = {
   unbekannt: 'Stufe nicht angegeben'
 };
 
+/**
+ * Nur für die Kacheln der Startseite: Die Zeile darüber verspricht schon
+ * „für die Kita“, „für die Gemeinde“, „für die Konfi-Arbeit“ — Schulstufen
+ * direkt darunter wirkten dagegen rein schulisch. Die Zuordnung bleibt
+ * dieselbe, nur die Beschriftung nennt das Alter statt der Schulform. Die
+ * Facette der Liste bleibt bei `STUFEN_LABEL`, dort ist die genaue Stufe
+ * gefragt. (Prototyp Materialpool 2.0, 22.09.2026)
+ * @type {Partial<Record<StufeKey, string>>}
+ */
+export const STUFEN_LABEL_ALTER = {
+  elem: 'Kinder',
+  sek1: 'Jugendliche',
+  sek2: 'Junge Erwachsene',
+  bbs: 'Erwachsene'
+};
+
 /** educationalLevel-Label → Stufe; alles andere ist „unbekannt“. */
 export const LEVEL_ZU_STUFE = /** @type {Record<string, StufeKey>} */ ({
   Primarbereich: 'elem',

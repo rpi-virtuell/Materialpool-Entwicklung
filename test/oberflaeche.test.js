@@ -68,7 +68,8 @@ describe('Startseite', () => {
     expect(body).toContain('Materialpool Religion');
     for (const z of ZIELGRUPPEN) expect(body).toContain(z);
     expect(body).toMatch(/<form[^>]*class="hero-search[^>]*action="\/materialien"[^>]*method="get"/);
-    expect(body).toContain('Nach Bildungsstufe einsteigen');
+    expect(body).toContain('Nach Alter einsteigen');
+    expect(body).toContain('Junge Erwachsene');
     expect((body.match(/class="stufe-kachel /g) ?? []).length).toBe(4);
     expect(body).toContain('href="/materialien?stufe=bbs"');
     expect(body).toContain('Materialien werden geladen …');

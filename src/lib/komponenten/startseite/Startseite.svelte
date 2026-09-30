@@ -29,7 +29,7 @@
 
   <section class="stufen-section">
     <div class="home-inner">
-      <h2>Nach Bildungsstufe einsteigen</h2>
+      <h2>Nach Alter einsteigen</h2>
       <StufenKacheln {stufen} />
     </div>
   </section>

@@ -5,7 +5,7 @@
  */
 import { coverFarben, hash, kontrastText, STUFEN_FARBE_DEFAULT } from '../models/farben.js';
 import { passtZurSaison, saisonKeywords } from '../models/saison.js';
-import { STUFEN_LABEL, STUFEN_SICHTBAR, TYPEN } from '../models/typen.js';
+import { STUFEN_LABEL, STUFEN_LABEL_ALTER, STUFEN_SICHTBAR, TYPEN } from '../models/typen.js';
 import { materialienVon } from './bestand.js';
 import { leerstandErklaeren, listenPfad } from './uebersicht.js';
 
@@ -95,7 +95,7 @@ export function startseiteLaden({ inhalt, fehlschlag, relays, heute = new Date()
 
   const stufen = STUFEN_SICHTBAR.map((key) => ({
     key,
-    label: STUFEN_LABEL[key],
+    label: STUFEN_LABEL_ALTER[key] ?? STUFEN_LABEL[key],
     pfad: listenPfad({ stufen: [key] }),
     farbe: palette[key],
     text: kontrastText(palette[key])

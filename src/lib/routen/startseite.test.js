@@ -31,7 +31,7 @@ describe('startseiteLaden', () => {
     const { stufen } = startseiteLaden({ inhalt, fehlschlag: null, relays, heute: september });
     expect(stufen.map((s) => s.key)).toEqual(['elem', 'sek1', 'sek2', 'bbs']);
     expect(stufen[0]).toEqual({
-      key: 'elem', label: 'Elementar- & Primarbereich', pfad: '/materialien?stufe=elem',
+      key: 'elem', label: 'Kinder', pfad: '/materialien?stufe=elem',
       farbe: STUFEN_FARBE_DEFAULT.elem, text: '#16181b'
     });
     expect(stufen[2].text).toBe('#fff');
