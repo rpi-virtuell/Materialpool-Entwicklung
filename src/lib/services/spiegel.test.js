@@ -80,6 +80,29 @@ describe('seitenweise — das Relay liefert je REQ höchstens 250 Events', () =>
     expect(holen.mock.calls[1][1]).toMatchObject({ limit: 50 });
   });
 
+  it('geht unter eine volle Sekunde, wenn eine volle Seite nichts Neues bringt, und warnt', async () => {
+    // 300 Events in derselben Sekunde (wie ein Import), darunter 100 ältere.
+    const gleich = Array.from({ length: 300 }, (_, i) => ({ ...beispiele[0], id: String(i).padStart(64, '0'), created_at: 1000 }));
+    const bestand = [...gleich, ...events(100, 999)];
+    const holen = vi.fn(async (_url, filter) => ({
+      erreicht: true,
+      events: bestand.filter((e) => filter.until === undefined || e.created_at <= filter.until).slice(0, /** @type {number} */ (filter.limit))
+    }));
+    const warnung = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    const ergebnis = await seitenweise(holen, 10000)('wss://eins/', {}, {});
+    expect(ergebnis.events).toHaveLength(350);
+    expect(holen.mock.calls.map((c) => c[1].until)).toEqual([undefined, 1000, 999]);
+    expect(warnung).toHaveBeenCalledTimes(1);
+  });
+
+  it('hört auf, wenn das Relay until nicht beachtet', async () => {
+    const holen = vi.fn(async () => ({ erreicht: true, events: events(SEITENGROESSE, 1000) }));
+    vi.spyOn(console, 'warn').mockImplementation(() => {});
+    const ergebnis = await seitenweise(holen, 10000)('wss://eins/', {}, {});
+    expect(ergebnis.events).toHaveLength(SEITENGROESSE);
+    expect(holen).toHaveBeenCalledTimes(3);
+  });
+
   it('gilt als nicht erreicht, wenn schon die erste Seite ausfällt — mit Teilstand, wenn eine spätere ausfällt', async () => {
     const nie = vi.fn(async () => ({ erreicht: false, events: [] }));
     expect((await seitenweise(nie, 1000)('wss://eins/', {}, {})).erreicht).toBe(false);

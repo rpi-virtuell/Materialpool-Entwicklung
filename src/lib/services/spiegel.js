@@ -96,9 +96,12 @@ export function geprueft(holen, konfig) {
 }
 
 /**
- * Blättert über `until`, bis eine Seite kleiner als die Seitengröße ist,
- * nichts Neues mehr kommt oder `limit` erreicht ist. `until` ist
- * einschließlich, darum die Deduplizierung nach id. Ein Relay, das nach
+ * Blättert über `until`, bis eine Seite kleiner als die Seitengröße ist
+ * oder `limit` erreicht ist. `until` ist einschließlich, darum die
+ * Deduplizierung nach id. Bringt eine volle Seite nichts Neues, teilen sich
+ * mehr als 250 Events dieselbe Sekunde (Import): Dann geht es unterhalb
+ * dieser Sekunde weiter, mit Warnung — was dort über der Seitengröße liegt,
+ * fehlt. Rückt `until` nicht vor (Relay ohne `until`), endet es. Ein Relay, das nach
  * der ersten Seite ausfällt, gilt mit dem Teilstand als erreicht — besser
  * ein Teil als nichts; die nächste Runde holt den Rest.
  *
@@ -127,8 +130,15 @@ export function seitenweise(holen, limit) {
           neu++;
         }
       }
-      if (seite.events.length < groesse || neu === 0) break;
-      until = Math.min(...lesbar.map((e) => e.created_at));
+      if (seite.events.length < groesse || lesbar.length === 0) break;
+      const aeltestes = Math.min(...lesbar.map((e) => e.created_at));
+      if (neu > 0) {
+        until = aeltestes;
+        continue;
+      }
+      if (until !== undefined && aeltestes - 1 >= until) break;
+      console.warn(`Spiegel: ${url} hat mehr als ${groesse} Events mit created_at ${aeltestes}; Events dieser Sekunde können fehlen.`);
+      until = aeltestes - 1;
     }
     return { erreicht, events: [...gesehen.values()] };
   };
