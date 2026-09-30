@@ -8,6 +8,11 @@ import {
   spiegelStarten, spiegelZuruecksetzen, standAufbauen, SUCHE_LIMIT, sucheZuruecksetzen
 } from './spiegel.js';
 
+/** Schlüssel des Materialpools, von dem die Fixtures stammen. */
+const MATERIALPOOL = beispiele[0].pubkey;
+/** Für Tests, die mit veränderten Kopien die Zusammenführung prüfen — die Prüfung selbst steht in pruefung.test.js. */
+const ungeprueft = /** @type {typeof import('./spiegel.js').geprueft} */ ((holen) => holen);
+
 /** @returns {import('../konfig.js').Konfig} */
 function konfig(teil = {}) {
   return {
@@ -140,6 +145,16 @@ describe('standAufbauen', () => {
     expect(ergebnis.gefragteRelays).toEqual(['wss://eins/', 'wss://zwei/']);
   });
 
+  it('lässt gefälschte und unlesbare Events nicht in den Stand, mit QUELLE_AUTOREN nur deren Schlüssel', async () => {
+    const gefaelscht = { ...beispiele[1], tags: [...beispiele[1].tags, ['name', 'Übernommen']] };
+    const holen = vi.fn(async () => ({ erreicht: true, events: [beispiele[0], gefaelscht, /** @type {any} */ ({ ...beispiele[2], tags: null })] }));
+    const ergebnis = await standAufbauen(konfig(), { holen });
+    expect(ergebnis.inhalt?.materialien.map((e) => e.id)).toEqual([beispiele[0].id]);
+    expect(Object.keys(ergebnis.inhalt?.quellen ?? {})).toEqual([beispiele[0].id]);
+    const fremd = await standAufbauen(konfig({ autoren: ['0'.repeat(64)] }), { holen });
+    expect(fremd.inhalt?.materialien).toEqual([]);
+  });
+
   it('lässt fremde Kinds nicht in den Stand', async () => {
     const holen = vi.fn(async () => ({ erreicht: true, events: [{ ...beispiele[0], kind: 30023 }] }));
     const ergebnis = await standAufbauen(konfig(), { holen });
@@ -152,9 +167,9 @@ describe('relaySuche — Volltext am Relay (NIP-50, ADR-0005)', () => {
 
   it('schickt search mit den Einschränkungen des Spiegels und behält die Relevanz-Reihenfolge', async () => {
     const holen = vi.fn(async (/** @type {string} */ _url, /** @type {Record<string, unknown>} */ _filter) => ({ erreicht: true, events: [c, a, b] }));
-    const k = konfig({ relays: ['wss://eins/'], autoren: ['a'.repeat(64)] });
+    const k = konfig({ relays: ['wss://eins/'], autoren: [MATERIALPOOL] });
     const ergebnis = await relaySuche(k, '  Reformation  Luther ', { holen });
-    expect(holen.mock.calls[0][1]).toEqual({ kinds: [KIND_AMB], authors: ['a'.repeat(64)], search: 'reformation luther', limit: SUCHE_LIMIT });
+    expect(holen.mock.calls[0][1]).toEqual({ kinds: [KIND_AMB], authors: [MATERIALPOOL], search: 'reformation luther', limit: SUCHE_LIMIT });
     expect(ergebnis.grund).toBeNull();
     expect(ergebnis.events.map((e) => e.id)).toEqual([c.id, a.id, b.id]);
   });
@@ -162,8 +177,14 @@ describe('relaySuche — Volltext am Relay (NIP-50, ADR-0005)', () => {
   it('führt je (pubkey, d) zusammen und lässt fremde Kinds weg', async () => {
     const neuer = { ...a, id: '9'.repeat(64), created_at: a.created_at + 1 };
     const holen = vi.fn(async () => ({ erreicht: true, events: [a, { ...b, kind: 1 }, neuer] }));
-    const ergebnis = await relaySuche(konfig(), 'x', { holen });
+    const ergebnis = await relaySuche(konfig(), 'x', { holen, pruefen: ungeprueft });
     expect(ergebnis.events.map((e) => e.id)).toEqual([neuer.id]);
+  });
+
+  it('zeigt nur geprüfte Treffer und wirft nicht bei unlesbaren', async () => {
+    const holen = vi.fn(async () => ({ erreicht: true, events: [/** @type {any} */ ({ ...c, tags: null }), a, { ...b, content: 'anders' }] }));
+    const ergebnis = await relaySuche(konfig({ relays: ['wss://eins/'] }), 'x', { holen });
+    expect(ergebnis.events.map((e) => e.id)).toEqual([a.id]);
   });
 
   it('merkt sich Antworten je Suchtext für SPIEGEL_INTERVALL_S, Fehlschläge nicht', async () => {
@@ -200,6 +221,21 @@ describe('spiegelStarten', () => {
     await spiegelBereit();
     expect(Date.now() - begonnen).toBeLessThan(1000);
     expect(spiegelHolen().lesen().materialien).toHaveLength(1);
+    await rm(ordner, { recursive: true, force: true });
+  });
+
+  it('liest aus dem gesicherten Stand nur Lesbares und, mit QUELLE_AUTOREN, nur deren Schlüssel', async () => {
+    const ordner = await mkdtemp(join(tmpdir(), 'spiegel-'));
+    const pfad = join(ordner, 'spiegel.json');
+    const stand = { zeitpunkt: '2026-09-29T00:00:00Z', dauerMs: 1, gefragteRelays: ['wss://eins/'], nichtErreichbar: [], anzahl: { materialien: 2 } };
+    await writeFile(pfad, JSON.stringify({ stand, materialien: [beispiele[0], { ...beispiele[1], tags: null }], quellen: {} }));
+    spiegelStarten(konfig({ spiegelPfad: pfad }), { holen: langsam });
+    await spiegelBereit();
+    expect(spiegelHolen().lesen().materialien.map((e) => e.id)).toEqual([beispiele[0].id]);
+    spiegelZuruecksetzen();
+    spiegelStarten(konfig({ spiegelPfad: pfad, autoren: ['0'.repeat(64)] }), { holen: langsam });
+    await spiegelBereit();
+    expect(spiegelHolen().lesen().materialien).toEqual([]);
     await rm(ordner, { recursive: true, force: true });
   });
 

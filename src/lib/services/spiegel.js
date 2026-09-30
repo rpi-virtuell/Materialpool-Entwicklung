@@ -8,12 +8,16 @@
  * ungültiger Lauf ersetzt nichts und wird als Fehlschlag gemerkt, damit die
  * Fußzeile das Alter des angezeigten Stands nennen kann.
  *
+ * Jedes Event wird vorher geprüft (`services/pruefung.js`, ADR-0008):
+ * Form, id, Signatur und, mit QUELLE_AUTOREN, der Schlüssel.
+ *
  * Diese Datei ist die EINZIGE, die `services/relay.js` importiert
  * (test/architektur.test.js). Sie kennt die Oberfläche nicht.
  */
 
 import { mkdir, readFile, rename, writeFile } from 'node:fs/promises';
 import { dirname } from 'node:path';
+import { eventsPruefen, formGueltig, formUndAutorGueltig } from './pruefung.js';
 import { eventsHolen, eventsVonAllen } from './relay.js';
 
 export { ABFRAGEGRUND_TEXT } from './relay.js';
@@ -73,6 +77,20 @@ export function filterBauen(konfig) {
 }
 
 /**
+ * Nur geprüfte Events weiterreichen (ADR-0008). Außen um das Blättern, weil
+ * das Blättern an der vollen Seite des Relays erkennt, ob es weitergeht.
+ * @param {typeof eventsHolen} holen
+ * @param {Konfig} konfig
+ * @returns {typeof eventsHolen}
+ */
+export function geprueft(holen, konfig) {
+  return async (url, filter, optionen) => {
+    const antwort = await holen(url, filter, optionen);
+    return { ...antwort, events: await eventsPruefen(antwort.events, konfig.autoren) };
+  };
+}
+
+/**
  * Blättert über `until`, bis eine Seite kleiner als die Seitengröße ist,
  * nichts Neues mehr kommt oder `limit` erreicht ist. `until` ist
  * einschließlich, darum die Deduplizierung nach id. Ein Relay, das nach
@@ -96,14 +114,16 @@ export function seitenweise(holen, limit) {
       if (!seite.erreicht) break;
       erreicht = true;
       let neu = 0;
-      for (const e of seite.events) {
+      // Unlesbares zählt für die volle Seite, aber nicht für `until`.
+      const lesbar = seite.events.filter(formGueltig);
+      for (const e of lesbar) {
         if (!gesehen.has(e.id)) {
           gesehen.set(e.id, e);
           neu++;
         }
       }
       if (seite.events.length < groesse || neu === 0) break;
-      until = Math.min(...seite.events.map((e) => e.created_at));
+      until = Math.min(...lesbar.map((e) => e.created_at));
     }
     return { erreicht, events: [...gesehen.values()] };
   };
@@ -160,7 +180,7 @@ export function sucheSchluessel(text) {
  *
  * @param {Konfig} konfig
  * @param {string} text
- * @param {{ holen?: typeof eventsHolen, jetzt?: () => number }} [optionen]
+ * @param {{ holen?: typeof eventsHolen, jetzt?: () => number, pruefen?: typeof geprueft }} [optionen]
  * @returns {Promise<Suchergebnis>}
  */
 export async function relaySuche(konfig, text, optionen = {}) {
@@ -174,7 +194,7 @@ export async function relaySuche(konfig, text, optionen = {}) {
   const ergebnis = await eventsVonAllen(
     konfig.relays,
     { ...grund, search: schluessel, limit: SUCHE_LIMIT },
-    { holen: optionen.holen ?? eventsHolen, zeitschrankeMs: 6000 }
+    { holen: (optionen.pruefen ?? geprueft)(optionen.holen ?? eventsHolen, konfig), zeitschrankeMs: 6000 }
   );
   /** @type {Suchergebnis} */
   const antwort = {
@@ -211,7 +231,7 @@ export function sucheZuruecksetzen() {
 export async function standAufbauen(konfig, optionen = {}) {
   const begonnen = Date.now();
   const ergebnis = await eventsVonAllen(konfig.relays, filterBauen(konfig), {
-    holen: seitenweise(optionen.holen ?? eventsHolen, konfig.spiegelLimit)
+    holen: geprueft(seitenweise(optionen.holen ?? eventsHolen, konfig.spiegelLimit), konfig)
   });
   if (ergebnis.grund !== null) {
     return { ok: false, inhalt: null, gefragteRelays: ergebnis.gefragt, grund: ergebnis.grund };
@@ -253,12 +273,19 @@ export function spiegelHolen() {
   };
 }
 
-/** @param {string} pfad @returns {Promise<Inhalt|null>} */
-async function vonPlatteLesen(pfad) {
+/**
+ * Der gesicherte Stand ist schon geprüft geschrieben; hier nur Form und
+ * Autorenfilter (billig), falls sich QUELLE_AUTOREN seitdem geändert hat.
+ * Die Signaturen prüft der nächste Lauf.
+ * @param {Konfig} konfig @returns {Promise<Inhalt|null>}
+ */
+async function vonPlatteLesen(konfig) {
   try {
-    const daten = JSON.parse(await readFile(pfad, 'utf8'));
+    const daten = JSON.parse(await readFile(konfig.spiegelPfad, 'utf8'));
     if (daten && Array.isArray(daten.materialien) && daten.stand) {
-      return { stand: daten.stand, materialien: daten.materialien, quellen: daten.quellen ?? {} };
+      /** @type {Event[]} */
+      const materialien = daten.materialien.filter((/** @type {unknown} */ e) => formUndAutorGueltig(e, konfig.autoren));
+      return { stand: daten.stand, materialien, quellen: daten.quellen ?? {} };
     }
   } catch {
     // Keine oder kaputte Datei: der erste Lauf baut den Stand neu.
@@ -312,7 +339,7 @@ export async function einmalLaufen(konfig, optionen = {}) {
  */
 export function spiegelStarten(konfig, optionen = {}) {
   bereit = (async () => {
-    const gesichert = await vonPlatteLesen(konfig.spiegelPfad);
+    const gesichert = await vonPlatteLesen(konfig);
     if (gesichert) aktuell = gesichert;
     const ersterLauf = einmalLaufen(konfig, optionen).catch(() => false);
     if (!gesichert) {
