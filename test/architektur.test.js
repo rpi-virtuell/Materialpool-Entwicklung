@@ -6,15 +6,20 @@
  */
 import { readdirSync, readFileSync, statSync } from 'node:fs';
 import { join, relative } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { describe, expect, it } from 'vitest';
 
-const WURZEL = new URL('../src/lib', import.meta.url).pathname;
-const SRC = new URL('../src', import.meta.url).pathname;
+// fileURLToPath statt .pathname und Schrägstriche statt Backslashes, damit
+// der Test auch unter Windows die Dateien findet und die Pfadmuster greifen.
+/** @param {string} pfad */
+const vorwaerts = (pfad) => pfad.replaceAll('\\', '/');
+const WURZEL = vorwaerts(fileURLToPath(new URL('../src/lib', import.meta.url)));
+const SRC = vorwaerts(fileURLToPath(new URL('../src', import.meta.url)));
 
 /** @param {string} verzeichnis @param {(name: string) => boolean} passt @returns {string[]} */
 function dateien(verzeichnis, passt) {
   return readdirSync(verzeichnis).flatMap((name) => {
-    const pfad = join(verzeichnis, name);
+    const pfad = vorwaerts(join(verzeichnis, name));
     if (statSync(pfad).isDirectory()) return dateien(pfad, passt);
     return passt(name) ? [pfad] : [];
   });
