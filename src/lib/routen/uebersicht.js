@@ -4,6 +4,7 @@
  * ODER innerhalb einer Facette, UND dazwischen; Zähler je Facette ohne
  * die eigene Facette. Alles reine Funktionen.
  */
+import { deutungPruefen } from '../models/deutung.js';
 import { coverFarben } from '../models/farben.js';
 import { kuerzen, SUCHTEXT_MAX } from '../models/text.js';
 import { FACH_LABEL, FACH_REIHENFOLGE, STUFEN_LABEL, STUFEN_REIHENFOLGE, TYP_LABEL, TYP_REIHENFOLGE, TYPEN } from '../models/typen.js';
@@ -29,6 +30,14 @@ import { materialienVon, materialImBestand } from './bestand.js';
  * @property {Sortierung} sortierung
  * @property {number} seite        1-basiert
  * @property {string} wortlaut     gleich `q`: dieser Satz wird nicht gedeutet (routen/frage.js)
+ * @property {string} frage        der gedeutete Satz, solange die Suche aus ihm folgt (routen/frage.js)
+ * @property {Facettenwahl} vorher  was der Satz an Facetten ersetzt hat — „Rückgängig“ bringt es zurück
+ */
+/**
+ * @typedef {object} Facettenwahl
+ * @property {StufeKey[]} stufen
+ * @property {TypKey[]} typen
+ * @property {FachKey[]} faecher
  */
 
 /** @type {{ key: Sortierung, label: string }[]} */
@@ -45,9 +54,33 @@ export const SCHLAGWORTE_MAX = 12;
 /** Karten je Seite. */
 export const SEITENGROESSE_LISTE = 24;
 
+/** @returns {Facettenwahl} */
+export function leereWahl() {
+  return { stufen: [], typen: [], faecher: [] };
+}
+
 /** @returns {Filter} */
 export function leererFilter() {
-  return { q: '', stufen: [], typen: [], faecher: [], schlagworte: [], sortierung: 'empfohlen', seite: 1, wortlaut: '' };
+  return { q: '', stufen: [], typen: [], faecher: [], schlagworte: [], sortierung: 'empfohlen', seite: 1, wortlaut: '', frage: '', vorher: leereWahl() };
+}
+
+/** @param {Partial<Facettenwahl>} wahl @param {URLSearchParams} [p] */
+function wahlSchreiben(wahl, p = new URLSearchParams()) {
+  for (const s of wahl.stufen ?? []) p.append('stufe', s);
+  for (const t of wahl.typen ?? []) p.append('typ', t);
+  for (const f of wahl.faecher ?? []) p.append('fach', f);
+  return p;
+}
+
+/** @param {URLSearchParams} params @returns {Facettenwahl} */
+function wahlLesen(params) {
+  /** @template T @param {string} name @param {readonly T[]} erlaubt @returns {T[]} */
+  const bekannte = (name, erlaubt) =>
+    [...new Set(params.getAll(name))].flatMap((v) => {
+      const treffer = erlaubt.find((e) => e === v);
+      return treffer === undefined ? [] : [treffer];
+    });
+  return { stufen: bekannte('stufe', STUFEN_REIHENFOLGE), typen: bekannte('typ', TYP_REIHENFOLGE), faecher: bekannte('fach', FACH_REIHENFOLGE) };
 }
 
 /**
@@ -76,14 +109,19 @@ export function leerstandErklaeren(inhalt, fehlschlag, relays) {
 export function listenPfad(filter = {}) {
   const p = new URLSearchParams();
   if (filter.q) p.set('q', filter.q);
-  for (const s of filter.stufen ?? []) p.append('stufe', s);
-  for (const t of filter.typen ?? []) p.append('typ', t);
-  for (const f of filter.faecher ?? []) p.append('fach', f);
+  wahlSchreiben(filter, p);
   for (const w of filter.schlagworte ?? []) p.append('t', w);
   if (filter.sortierung && filter.sortierung !== 'empfohlen') p.set('sort', filter.sortierung);
   if (filter.seite && filter.seite > 1) p.set('seite', String(filter.seite));
   // Nur solange die Suche noch derselbe Satz ist; ein neuer wird gedeutet.
   if (filter.wortlaut && filter.wortlaut === filter.q) p.set('wortlaut', filter.wortlaut);
+  // Der gedeutete Satz reist mit, solange die Suche aus ihm folgt.
+  const suche = { q: filter.q ?? '', stufen: filter.stufen ?? [], typen: filter.typen ?? [], faecher: filter.faecher ?? [] };
+  if (filter.frage && deutungPruefen(filter.frage, suche)) {
+    p.set('frage', filter.frage);
+    const vorher = wahlSchreiben(filter.vorher ?? {}).toString();
+    if (vorher) p.set('vorher', vorher);
+  }
   const s = p.toString();
   return s ? `/materialien?${s}` : '/materialien';
 }
@@ -98,23 +136,17 @@ const suchtext = (roh) => kuerzen((roh ?? '').trim(), SUCHTEXT_MAX).trim();
  * @returns {Filter}
  */
 export function filterLesen(params) {
-  /** @template T @param {string} name @param {readonly T[]} erlaubt @returns {T[]} */
-  const bekannte = (name, erlaubt) =>
-    [...new Set(params.getAll(name))].flatMap((v) => {
-      const treffer = erlaubt.find((e) => e === v);
-      return treffer === undefined ? [] : [treffer];
-    });
   const sortierung = SORTIERUNGEN.find((s) => s.key === params.get('sort'))?.key ?? 'empfohlen';
   const seiteRoh = Number(params.get('seite') ?? '1');
   return {
     q: suchtext(params.get('q')),
-    stufen: bekannte('stufe', STUFEN_REIHENFOLGE),
-    typen: bekannte('typ', TYP_REIHENFOLGE),
-    faecher: bekannte('fach', FACH_REIHENFOLGE),
+    ...wahlLesen(params),
     schlagworte: [...new Set(params.getAll('t').map((w) => w.trim()).filter(Boolean))],
     sortierung,
     seite: Number.isInteger(seiteRoh) && seiteRoh > 1 ? seiteRoh : 1,
-    wortlaut: suchtext(params.get('wortlaut'))
+    wortlaut: suchtext(params.get('wortlaut')),
+    frage: suchtext(params.get('frage')),
+    vorher: wahlLesen(new URLSearchParams(params.get('vorher') ?? ''))
   };
 }
 

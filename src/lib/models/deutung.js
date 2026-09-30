@@ -207,6 +207,25 @@ function stufeFuerKlasse(klasse) {
  */
 
 /**
+ * Die Deutung von `frage`, solange die Suche noch aus ihr folgt: die
+ * Themenwörter sind `q`, und jede gedeutete Facette ist gewählt (weitere
+ * dürfen dazukommen). Sonst null — dann darf die Liste auch nicht
+ * behaupten, sie habe den Satz so verstanden.
+ * @param {string} frage
+ * @param {{ q: string, stufen: string[], typen: string[], faecher: string[] }} suche
+ * @returns {Deutung|null}
+ */
+export function deutungPruefen(frage, suche) {
+  if (!frage) return null;
+  const d = deuteSuche(frage);
+  if (!d.istSatz || d.begriffe.join(' ') !== suche.q) return null;
+  /** @param {string[]} gedeutet @param {string[]} gewaehlt */
+  const gewaehlt = (gedeutet, gewaehlt) => gedeutet.every((w) => gewaehlt.includes(w));
+  if (!gewaehlt(d.stufen, suche.stufen) || !gewaehlt(d.typen, suche.typen) || !gewaehlt(d.faecher, suche.faecher)) return null;
+  return d;
+}
+
+/**
  * @param {string} text
  * @returns {Deutung}
  */
