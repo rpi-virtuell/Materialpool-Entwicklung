@@ -54,7 +54,7 @@ import { faecherAusBegriffen, stufeAusBegriffen, stufenAusBegriffen, typAusBegri
  * @property {StufeKey[]} stufenKeys                     alle Stufen (Filter, Facetten)
  * @property {Begriff[]} bildungsstufen
  * @property {Begriff[]} faecher
- * @property {FachKey[]} fachKeys                        Konfessionen aus `about:id`, sonst „allgemein“ (Filter, Facetten)
+ * @property {FachKey[]} fachKeys                        Konfessionen aus `about:id`, sonst mit s1055 „allgemein“, sonst leer (Filter, Facetten)
  * @property {Begriff[]} ressourcentypen
  * @property {string|null} datum    datePublished, sonst dateCreated
  */

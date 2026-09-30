@@ -45,10 +45,13 @@ describe('Fächer', () => {
     expect(f('s1025')).toEqual(['islamisch']);
     expect(f('s1057', 's1056')).toEqual(['juedisch', 'alevitisch']);
   });
-  it('ist überkonfessionell, wenn keine Konfession passt', () => {
+  it('ist überkonfessionell nur mit s1055 und ohne Konfession', () => {
     expect(f('s1055')).toEqual(['allgemein']);
-    expect(f('s1008', 's1021')).toEqual(['allgemein']);
-    expect(faecherAusBegriffen([])).toEqual(['allgemein']);
+    expect(f('s1008', 's1055')).toEqual(['allgemein']);
+  });
+  it('nennt kein Fach, wenn keine Religions-Kennung dasteht', () => {
+    expect(f('s1008', 's1021')).toEqual([]);
+    expect(faecherAusBegriffen([])).toEqual([]);
   });
   it('heißt „Fach“, nicht „Konfession“, mit den Namen des Prototyps', () => {
     expect(FACH_REIHENFOLGE.map((k) => FACH_LABEL[k])).toEqual([

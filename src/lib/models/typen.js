@@ -83,7 +83,7 @@ export const FACH_LABEL = {
   allgemein: 'Religionslehre (überkonfessionell)'
 };
 
-/** Letzter Pfadteil der KIM-Schulfach-URI → Fach. s1055 (Religion, überkonfessionell) steht nicht hier: es ist der Rückfall. */
+/** Letzter Pfadteil der KIM-Schulfach-URI → Konfession. s1055 (Religion, überkonfessionell) steht nicht hier, siehe unten. */
 const KIM_FACH = /** @type {Record<string, FachKey>} */ ({
   s1024: 'evangelisch',
   s1026: 'katholisch',
@@ -92,20 +92,24 @@ const KIM_FACH = /** @type {Record<string, FachKey>} */ ({
   s1056: 'alevitisch'
 });
 
+/** KIM-Kennung für Religion, überkonfessionell. */
+const KIM_UEBERKONFESSIONELL = 's1055';
+
 /**
  * Alle Konfessionen, die die Fach-Begriffe nennen, in FACH_REIHENFOLGE.
  * Viele Materialien tragen die konfessionelle UND die überkonfessionelle
- * Kennung; „allgemein“ gilt nur, wenn keine Konfession passt.
+ * Kennung; „allgemein“ gilt nur, wenn keine Konfession passt und s1055
+ * dasteht. Ein anderes Fach (Ethik, Geschichte) ist kein Religionsfach —
+ * dann bleibt die Liste leer.
  * @param {Begriff[]} begriffe
  * @returns {FachKey[]}
  */
 export function faecherAusBegriffen(begriffe) {
-  const keys = new Set(begriffe.flatMap((b) => {
-    const key = KIM_FACH[pfadteil(b.id)];
-    return key ? [key] : [];
-  }));
+  const teile = begriffe.map((b) => pfadteil(b.id));
+  const keys = new Set(teile.flatMap((t) => (KIM_FACH[t] ? [KIM_FACH[t]] : [])));
   const geordnet = FACH_REIHENFOLGE.filter((k) => keys.has(k));
-  return geordnet.length > 0 ? geordnet : ['allgemein'];
+  if (geordnet.length > 0) return geordnet;
+  return teile.includes(KIM_UEBERKONFESSIONELL) ? ['allgemein'] : [];
 }
 
 /**
