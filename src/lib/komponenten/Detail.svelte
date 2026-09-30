@@ -38,7 +38,7 @@
     <summary>Entwickleransicht</summary>
     <p>Event <code>{material.id}</code> von <code>{material.pubkey}</code>, kind 30142, d = <code>{material.d}</code>.</p>
     <p>Geliefert von: {relays.length > 0 ? relays.join(', ') : 'unbekannt (Stand aus der Datei)'}.</p>
-    <p><a href={`${material.pfad}/json`}>Rohes Event als JSON</a></p>
+    <p><a href={material.jsonPfad}>Rohes Event als JSON</a></p>
   </details>
 </article>
 

@@ -19,6 +19,7 @@ function konfig(teil = {}) {
     relays: ['wss://eins/', 'wss://zwei/'],
     autoren: [],
     faecher: [],
+    vorrang: [],
     spiegelPfad: 'daten/test.json',
     spiegelIntervallS: 600,
     spiegelStartwartezeitS: 1,

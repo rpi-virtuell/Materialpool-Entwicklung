@@ -24,6 +24,7 @@ describe('konfigLesen', () => {
     expect(k.relays).toEqual(['wss://a/', 'wss://b/']);
     expect(k.autoren).toEqual([]);
     expect(k.faecher).toEqual([]);
+    expect(k.vorrang).toEqual([]);
     expect(k.spiegelPfad).toBe('daten/spiegel.json');
     expect(k.spiegelIntervallS).toBe(600);
     expect(k.spiegelStartwartezeitS).toBe(20);
@@ -37,6 +38,11 @@ describe('konfigLesen', () => {
 
   it('lehnt einen Autor ab, der kein Hex-Schlüssel ist', () => {
     expect(() => konfigLesen({ RELAYS: 'wss://a/', QUELLE_AUTOREN: 'npub1abc' })).toThrow(/QUELLE_AUTOREN/);
+  });
+
+  it('nimmt QUELLE_VORRANG wie QUELLE_AUTOREN als Hex-Liste und lehnt anderes ab', () => {
+    expect(konfigLesen({ RELAYS: 'wss://a/', QUELLE_VORRANG: `${HEX.toUpperCase()},${'b'.repeat(64)}` }).vorrang).toEqual([HEX, 'b'.repeat(64)]);
+    expect(() => konfigLesen({ RELAYS: 'wss://a/', QUELLE_VORRANG: 'npub1abc' })).toThrow(/QUELLE_VORRANG/);
   });
 
   it('nimmt Fächer als URI-Liste und lehnt anderes ab', () => {

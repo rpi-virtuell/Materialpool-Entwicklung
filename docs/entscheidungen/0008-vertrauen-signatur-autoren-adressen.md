@@ -28,6 +28,19 @@ kommt (`services/pruefung.js`, benutzt nur von `services/spiegel.js`):
   Event eines anderen Schlüssels weg — auch wenn das Relay es trotz
   `authors` schickt, und beim Laden des gesicherten Stands.
 
+**Adresse ist (pubkey, d).** Ein `d` kann jeder Schlüssel publizieren;
+bisher zeigte `/m/<d>` das jüngste Event mit diesem `d` — jeder hätte
+eine Seite übernehmen können, indem er dasselbe `d` neu publiziert.
+Jetzt:
+
+- `/m/<d>?von=<pubkey>` (und `/json?von=`) meint genau diesen Schlüssel.
+- Die Pfade nennen `?von=` nur, wenn das `d` im Bestand mehrdeutig ist
+  (oder ein Suchtreffer ein `d` trägt, das im Bestand ein anderer
+  Schlüssel hält). Alle bisherigen Adressen bleiben gleich.
+- Ohne `von` gilt bei mehreren Kandidaten der erste Schlüssel aus
+  `QUELLE_VORRANG` (neu, optional, geprüft wie `QUELLE_AUTOREN`), sonst
+  das früheste Event (kleinstes `created_at`, dann kleinere `id`).
+
 Eine Signaturprüfung kostet rund 1,5 ms, bei 8.400 Events also etwa
 13 s Rechenzeit. Das Ergebnis je (id, sig) merkt sich der Prozess
 (höchstens 50.000), ein Lauf alle zehn Minuten prüft so nur Neues; die
@@ -44,5 +57,11 @@ auf Form und Autoren gelesen; die Signaturen prüft der erste Lauf.
   Ein Test kann keine „neuere Fassung“ eines Fixture-Events bauen, weil
   der Schlüssel fehlt; Tests der Zusammenführung umgehen die Prüfung
   ausdrücklich (`pruefen: ungeprueft`).
+- Grenze: `created_at` setzt der Publizierende selbst. Wer ein `d`
+  übernehmen will, kann sein Event zurückdatieren; „das früheste“
+  schützt nur vor dem bloßen Neu-Publizieren. Verlässlich sind
+  `QUELLE_VORRANG` oder `QUELLE_AUTOREN`; für den Materialpool-Bestand
+  gehört `610df6d6…` in `QUELLE_VORRANG`, sobald ADR-0003 den Schlüssel
+  bestätigt.
 - Falsch wäre die Entscheidung, wenn ein Relay Events absichtlich
   verändert ausliefern soll (etwa gekürzt) — dann fielen sie weg.

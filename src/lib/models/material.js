@@ -31,7 +31,8 @@ import { faecherAusBegriffen, stufeAusBegriffen, stufenAusBegriffen, typAusBegri
  * @property {number} createdAt
  * @property {string} d             AMB-id, meist die URL der Ressource
  * @property {string} kennung       URL-sicherer Pfadteil aus `d`
- * @property {string} pfad          /m/<kennung>
+ * @property {string} pfad          /m/<kennung>, mit `?von=<pubkey>`, wenn mehrere Schlüssel dieses `d` publizieren (ADR-0008)
+ * @property {string} jsonPfad      rohes Event: /m/<kennung>/json, ebenso mit `?von=`
  * @property {string} name
  * @property {string} beschreibung
  * @property {string|null} url      `d`, sonst `encoding:contentUrl`, sonst erstes http-`r`
@@ -148,6 +149,17 @@ export function herkunftBilden(m) {
 }
 
 /**
+ * Dasselbe Material mit Pfaden, die den Schlüssel nennen — wenn `d` allein
+ * mehrdeutig ist (routen/bestand.js entscheidet, ADR-0008).
+ * @param {Material} m
+ * @returns {Material}
+ */
+export function mitVon(m) {
+  const von = `?${new URLSearchParams({ von: m.pubkey })}`;
+  return { ...m, pfad: `/m/${m.kennung}${von}`, jsonPfad: `/m/${m.kennung}/json${von}` };
+}
+
+/**
  * @param {Event} event
  * @returns {Material}
  */
@@ -174,6 +186,7 @@ export function materialAusEvent(event) {
     d,
     kennung,
     pfad: `/m/${kennung}`,
+    jsonPfad: `/m/${kennung}/json`,
     name: erstes(tags, 'name') ?? (d || '(ohne Titel)'),
     beschreibung: erstes(tags, 'description') ?? '',
     url,

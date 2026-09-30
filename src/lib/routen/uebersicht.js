@@ -5,10 +5,9 @@
  * die eigene Facette. Alles reine Funktionen.
  */
 import { coverFarben } from '../models/farben.js';
-import { materialAusEvent } from '../models/material.js';
 import { FACH_LABEL, FACH_REIHENFOLGE, STUFEN_LABEL, STUFEN_REIHENFOLGE, TYP_LABEL, TYP_REIHENFOLGE, TYPEN } from '../models/typen.js';
 import { ABFRAGEGRUND_TEXT as GRUND_TEXT } from '../services/spiegel.js';
-import { materialienVon } from './bestand.js';
+import { materialienVon, materialImBestand } from './bestand.js';
 
 /** @typedef {import('../services/spiegel.js').Inhalt} Inhalt */
 /** @typedef {import('../services/spiegel.js').Fehlschlag} Fehlschlag */
@@ -126,7 +125,7 @@ export function filterLesen(params) {
 export function grundmengeBilden(inhalt, filter, suche) {
   if (!filter.q) return { materialien: materialienVon(inhalt), textGefiltert: false, quelle: 'spiegel', hinweis: null };
   if (suche && suche.grund === null) {
-    return { materialien: suche.events.map(materialAusEvent), textGefiltert: true, quelle: 'relay', hinweis: null };
+    return { materialien: suche.events.map((e) => materialImBestand(inhalt, e)), textGefiltert: true, quelle: 'relay', hinweis: null };
   }
   const grund = suche?.grund ? GRUND_TEXT[suche.grund] : 'Die Suche am Relay ist nicht gelaufen.';
   return {

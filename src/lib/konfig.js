@@ -3,6 +3,7 @@
  * @property {string[]} relays               wss-Adressen, mindestens eine (Pflicht)
  * @property {string[]} autoren              Hex-Pubkeys der Quelle; leer = alle Autoren (ADR-0003, offen)
  * @property {string[]} faecher              URIs für `#about:id`; leer = kein Fachfilter (ADR-0004)
+ * @property {string[]} vorrang              Hex-Pubkeys, die bei gleichem `d` ohne `?von=` gewinnen, in dieser Reihenfolge (ADR-0008)
  * @property {string} spiegelPfad            JSON-Datei des Spiegels
  * @property {number} spiegelIntervallS      Abstand zwischen zwei Läufen
  * @property {number} spiegelStartwartezeitS wie lange der Start auf den ersten Lauf wartet
@@ -50,6 +51,19 @@ function liste(roh) {
 }
 
 /**
+ * Hex-Pubkeys, kleingeschrieben; ein anderer Eintrag bricht ab.
+ * @param {string|undefined} roh @param {string} name
+ */
+function schluessel(roh, name) {
+  const werte = liste(roh).map((a) => a.toLowerCase());
+  const keinSchluessel = werte.filter((a) => !HEX64.test(a));
+  if (keinSchluessel.length > 0) {
+    throw new Error(`${name}: kein 64-stelliger Hex-Schlüssel: ${keinSchluessel.join(', ')}`);
+  }
+  return werte;
+}
+
+/**
  * Liest die Konfiguration und bricht bei fehlendem Pflichtwert ab.
  * Lieber hier abbrechen als später leere Seiten liefern (CLAUDE.md).
  *
@@ -72,13 +86,8 @@ export function konfigLesen(quelle) {
     );
   }
 
-  const autoren = liste(quelle.QUELLE_AUTOREN).map((a) => a.toLowerCase());
-  const keinSchluessel = autoren.filter((a) => !HEX64.test(a));
-  if (keinSchluessel.length > 0) {
-    throw new Error(
-      `QUELLE_AUTOREN: kein 64-stelliger Hex-Schlüssel: ${keinSchluessel.join(', ')}`
-    );
-  }
+  const autoren = schluessel(quelle.QUELLE_AUTOREN, 'QUELLE_AUTOREN');
+  const vorrang = schluessel(quelle.QUELLE_VORRANG, 'QUELLE_VORRANG');
 
   const faecher = liste(quelle.QUELLE_FAECHER);
   const keineUri = faecher.filter((f) => !/^https?:\/\//.test(f));
@@ -90,6 +99,7 @@ export function konfigLesen(quelle) {
     relays,
     autoren,
     faecher,
+    vorrang,
     spiegelPfad: (quelle.SPIEGEL_PFAD ?? '').trim() || 'daten/spiegel.json',
     spiegelIntervallS: positiveGanzzahl(quelle.SPIEGEL_INTERVALL_S, 600, 'SPIEGEL_INTERVALL_S'),
     spiegelStartwartezeitS: positiveGanzzahl(
