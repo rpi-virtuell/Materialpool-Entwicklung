@@ -50,7 +50,11 @@ des gezeigten Stands. Einzige Ausnahme vom „nie direkt“: die Volltextsuche
 auf den Spiegel.
 
 `kind:30142` ist ersetzbar: je `(pubkey, d)` zählt nur das jüngste Event,
-bei gleichem `created_at` die kleinere `id`.
+bei gleichem `created_at` die kleinere `id`. **Jedes Event wird vorher
+geprüft** — id, Signatur, mit QUELLE_AUTOREN der Schlüssel
+(`services/pruefung.js`, ADR-0008). Ein Material ist über `(pubkey, d)`
+adressiert: `/m/<d>`, bei mehrdeutigem `d` mit `?von=<pubkey>`; ohne
+`von` gilt QUELLE_VORRANG, sonst das früheste Event.
 
 ## Daten
 
@@ -67,7 +71,7 @@ der Bestand aber gefunden:** 7.701 Events von `610df6d6…` auf
 `amb-relay.edufeed.org`. Vorgeschlagen (ADR-0007): alle Religionsfächer
 von amb-relay, sodix und oersi, ohne Autorenfilter — die Facette „Fach“
 liest dieselben KIM-Kennungen. Schlüssel und Fächer stehen in der `.env`
-(`QUELLE_AUTOREN`, `QUELLE_FAECHER`) — nie im Code.
+(`QUELLE_AUTOREN`, `QUELLE_VORRANG`, `QUELLE_FAECHER`) — nie im Code.
 
 **Events werden nie verändert.** Was zu säubern ist, wird beim Rendern
 gesäubert.
@@ -115,7 +119,7 @@ installiert, aber nicht importiert — ungenutzt, ADR-0004) · JavaScript mit
 JSDoc, `checkJs` und `strict` über `svelte-check` · pnpm ·
 `@sveltejs/adapter-node` · Relay-Abfrage ist eigener, schlanker Servercode
 (`services/relay.js`, aus oer-community übernommen) — kein `nostr-tools`
-für Relay-Kommunikation.
+für Relay-Kommunikation; Signaturen prüft `@noble/curves`.
 
 ## Arbeitsweise
 

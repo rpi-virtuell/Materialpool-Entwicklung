@@ -8,6 +8,56 @@ das Gesamtbild in `superpowers/specs/2026-09-28-materialpool-neustart-design.md`
 
 ---
 
+## 2026-09-30 (3) — Review-Befunde behoben: Signaturen, Adressen, Suche, Farbschalter, Betrieb
+
+**Passiert:** Ein Review von `feat/prototyp-nachzug` fand Sicherheits-
+und Robustheitslücken. Behoben auf `fix/review-befunde`, je Befund ein
+Commit mit Test:
+
+- **Sicherheit:** Lizenz nur mit http(s) als Link (`javascript:` in
+  `license:id` war ein Skript in der Seite); Content-Security-Policy
+  ohne Skripte (`routen/koepfe.js`). Jedes Event wird vor Spiegel und
+  Suchtreffern geprüft — Form, id, Schnorr-Signatur, mit QUELLE_AUTOREN
+  auch lokal der Schlüssel (`services/pruefung.js`, `@noble/curves`,
+  ADR-0008, offen). Materialien sind über (pubkey, d) adressiert:
+  `?von=` bei mehrdeutigem `d`, sonst `QUELLE_VORRANG`, sonst das
+  früheste Event — nie mehr das jüngste.
+- **Robustheit:** Ein abgebrochener Lauf ist ein Fehlschlag mit Grund
+  statt stillem Stillstand; ein `d` mit `%` findet sein Material (nur
+  noch einmal dekodiert); der Spiegel blättert über Sekunden mit mehr
+  als 250 Events; Suchtext höchstens 200 Zeichen, keine Umleitung über
+  4.000 Zeichen (431), gleiche Suchen teilen eine Anfrage; `CLOSED`
+  mit Grund zählt als nicht erreicht (`relay.js`); „überkonfessionell“
+  nur mit s1055; Treffer der drei Relays nach Rang verzahnt.
+- **Satzsuche, Konto, Farbschalter:** Zahlen bleiben Themenwörter
+  („Psalm 23“), NFD wird gelesen, Erwachsene/Senioren sind Fortbildung
+  (auch Kachel und Profilbereich); `frage` reist über Seiten und
+  Facetten mit, „Rückgängig“ bringt ersetzte Facetten zurück (`vorher`),
+  der Hinweis erscheint nur, wenn die Deutung die Suche ergibt; der
+  Farbwähler gilt auch ohne Cookie, `//evil.example` wird keine fremde
+  `action`; leeres „Neu für deine Arbeit“ ersetzt die Kacheln nicht
+  mehr; persönliche Seiten `cache-control: private, no-store`; Name
+  und Freitext nach Zeichen gekürzt.
+- **Betrieb:** `ORIGIN` in `.env.example`, `docs/betrieb.md` und
+  `docker-compose.yml` (sonst 403 auf `/konto` hinter Apache); der
+  Container läuft als `node`.
+
+**Wo steht das Projekt:** `pnpm check` 0 Fehler, 232 Tests grün,
+`pnpm build` läuft. Gebauter Server gegen das Mock-Relay geprüft:
+Startseite, Liste, Detail und `/json` 200, CSP auf jeder Seite, keine
+fremden Ressourcen außer Materialbildern, „Psalm 23 für Kinder“ →
+`q=Psalm 23` mit Stufe, `//evil.example` rendert `action="/evil.example"`.
+
+**Nächster Schritt:** Offen bleiben — die Frage, ob „Anmelden“ als
+Menüpunkt bleibt (ADR-0006, Entscheidung Jörg); ADR-0008 bestätigen und
+danach `QUELLE_VORRANG` (Materialpool-Schlüssel) und `ORIGIN` in die
+`.env` des Servers; `./daten` auf dem Server für uid 1000 beschreibbar
+machen; die `relay.js`-Änderung (CLOSED mit Grund) in oer-community
+nachziehen. `docker-compose.yml` reicht `QUELLE_FAECHER` nicht durch —
+eigener Befund, nicht behoben.
+
+---
+
 ## 2026-09-30 (2) — Nachzug aus dem Prototyp: Fächer, Farbschalter, Suche in eigenen Worten, Kontoebene
 
 **Passiert:** Christina wollte alle ihre Weiterentwicklungen im Prototyp
