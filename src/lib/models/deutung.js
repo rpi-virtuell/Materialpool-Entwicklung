@@ -202,7 +202,7 @@ function stufeFuerKlasse(klasse) {
  * @property {FachKey[]} faecher
  * @property {string[]} begriffe   übrige Themenwörter, in Originalschreibung
  * @property {Erkannt[]} erkannt
- * @property {boolean} istSatz     ab drei Wörtern mit etwas Erkanntem, oder ab vier, wenn Füllwörter wegfallen
+ * @property {boolean} istSatz     ab drei Wörtern mit etwas Erkanntem, oder ab vier, wenn Füllwörter wegfallen — Zahlen zählen nicht mit
  */
 
 /**
@@ -210,7 +210,8 @@ function stufeFuerKlasse(klasse) {
  * @returns {Deutung}
  */
 export function deuteSuche(text) {
-  const woerter = kuerzen(text || '', SUCHTEXT_MAX).split(/[^\p{L}\p{N}-]+/u).filter(Boolean);
+  // NFC, damit „für“ aus zerlegtem u + ¨ (macOS, manche Tastaturen) ein Wort bleibt.
+  const woerter = kuerzen(text || '', SUCHTEXT_MAX).normalize('NFC').split(/[^\p{L}\p{N}-]+/u).filter(Boolean);
   const k = woerter.map(klein);
   const verbraucht = new Array(woerter.length).fill(false);
   /** @type {Erkannt[]} */
@@ -268,7 +269,12 @@ export function deuteSuche(text) {
     }
   }
 
-  const begriffe = woerter.filter((w, i) => !verbraucht[i] && !FUELLWOERTER.has(k[i]) && !/^\d+$/.test(w));
+  // Zahlen bleiben Themenwörter („Psalm 23“, „Römer 8“), außer eine Klassen-
+  // oder Altersregel hat sie verbraucht.
+  const begriffe = woerter.filter((w, i) => !verbraucht[i] && !FUELLWOERTER.has(k[i]));
+  /** @param {string} w */
+  const keineZahl = (w) => !/^\d+$/.test(w);
+  const worte = woerter.filter(keineZahl).length;
   /** @param {Erkannt['facette']} facette */
   const werte = (facette) => erkannt.filter((e) => e.facette === facette).map((e) => e.wert);
 
@@ -280,6 +286,6 @@ export function deuteSuche(text) {
     erkannt,
     // „Martin Luther“, „Ostern Kita“ und „Tod und Trauer“ bleiben
     // Stichwortsuchen wie bisher.
-    istSatz: (woerter.length >= 3 && erkannt.length > 0) || (woerter.length >= 4 && begriffe.length < woerter.length)
+    istSatz: (worte >= 3 && erkannt.length > 0) || (worte >= 4 && begriffe.filter(keineZahl).length < worte)
   };
 }
