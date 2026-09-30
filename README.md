@@ -24,9 +24,9 @@ Betrieb in `docs/betrieb.md`.
 Voraussetzung: Node ≥ 22.13 (`.nvmrc`: 24), pnpm über corepack.
 
 ```
-cp .env.example .env      # zeigt auf amb-relay.edufeed.org und den Materialpool-Schlüssel
+cp .env.example .env      # drei edufeed-Relays, alle Religionsfächer (ADR-0007)
 pnpm install
-pnpm dev                  # http://localhost:5173 — der erste Spiegel-Lauf holt ~7.700 Events (~1 min)
+pnpm dev                  # http://localhost:5173 — der erste Spiegel-Lauf holt ~8.400 Events (~1 min)
 ```
 
 Prüfen vor jedem Merge:
@@ -46,7 +46,7 @@ RELAYS=ws://127.0.0.1:3790/ pnpm build && RELAYS=ws://127.0.0.1:3790/ pnpm start
 ## Wie es zusammenhängt
 
 ```
-Relays (amb-relay.edufeed.org)
+Relays (amb-relay, sodix, oersi — edufeed.org)
       │  kind:30142 (AMB-Metadaten, ein Event je Ressource)
       ▼
 Spiegel  src/lib/services/spiegel.js   ← einziger Nutzer von relay.js
@@ -56,13 +56,17 @@ Modell   src/lib/models/material.js     AMB-Tags → Material
       ▼
 Routen   /            Startseite (Suche, Themen, Stufen, Empfehlung)
          /materialien Liste; ?q=<Text> (NIP-50 am Relay, ADR-0005),
-                      stufe=, typ=, t= (mehrfach), sort=, seite=
+                      stufe=, typ=, fach=, t= (mehrfach), sort=, seite=;
+                      ein Satz wird zu Facetten + Themenwörtern (frage=,
+                      wortlaut=); profil=1 setzt Stufe/Fach aus dem Profil
          /m/<kennung> Detail; /m/<kennung>/json rohes Event
+         /konto       Anmelden und Profil, prototypisch (ADR-0006)
 ```
 
 Serverseitig gerendert, ohne JavaScript lesbar, keine Relay-Verbindung im
 Browser. Gestaltung nach dem Materialpool-2.0-Prototyp (ADR-0004);
-CI-Farbe zum Ausprobieren per `?primaryColor=%23C1272D`. Adressen und Schlüssel kommen aus `.env`, nie aus dem Code.
+CI-Farbe zum Ausprobieren mit dem Farbschalter unten rechts oder per
+`?primaryColor=%23C1272D`, gemerkt im Cookie. Adressen und Schlüssel kommen aus `.env`, nie aus dem Code.
 
 ## Ausliefern
 

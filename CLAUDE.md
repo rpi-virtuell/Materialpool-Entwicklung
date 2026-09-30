@@ -19,8 +19,12 @@ Jede Arbeitssitzung beginnt dort und endet mit einem Eintrag dort.
 Nur Lesen: Startseite, Liste und Detailansicht der Materialien aus dem
 Spiegel. Die Suche ist ein GET-Formular; bei Suchtext fragt der Server
 die Relays per NIP-50 und rendert die Treffer aus dem Spiegel-Modell
-(ADR-0005), ohne Suchtext filtert er den Spiegel. **Nicht Teil dieses
-Vorhabens (Stand ADR-0001/0004):** Eingabe, Bewertung, Anmeldung,
+(ADR-0005), ohne Suchtext filtert er den Spiegel. Ein ganzer Satz wird
+vorher in Facetten und Themenwörter zerlegt (`routen/frage.js`).
+**Vorgeschlagen, noch offen (ADR-0006):** eine prototypische Kontoebene
+ohne echte Konten — Name und Profil im Cookie des Browsers, `/konto`,
+Voreinstellung der Liste mit `profil=1`. **Nicht Teil dieses Vorhabens
+(Stand ADR-0001/0004):** Eingabe, Bewertung, echte Konten mit Passwort,
 Merkliste, Import aus dem WordPress-Materialpool.
 **Was es nicht gibt, wird auch nicht angedeutet** — keine Schaltflächen oder
 Menüpunkte für nicht vorhandene Funktionen, auch nicht abgeblendet.
@@ -60,8 +64,10 @@ den Test daneben.
 
 **Wer den Materialpool-Schlüssel verwahrt, ist noch offen (ADR-0003),
 der Bestand aber gefunden:** 7.701 Events von `610df6d6…` auf
-`amb-relay.edufeed.org`. Der Schlüssel steht als `QUELLE_AUTOREN` in der
-`.env` — nie im Code.
+`amb-relay.edufeed.org`. Vorgeschlagen (ADR-0007): alle Religionsfächer
+von amb-relay, sodix und oersi, ohne Autorenfilter — die Facette „Fach“
+liest dieselben KIM-Kennungen. Schlüssel und Fächer stehen in der `.env`
+(`QUELLE_AUTOREN`, `QUELLE_FAECHER`) — nie im Code.
 
 **Events werden nie verändert.** Was zu säubern ist, wird beim Rendern
 gesäubert.
@@ -133,7 +139,7 @@ Prüfung des gebauten Servers ohne Netz — `.env` zeigt auf das echte Relay.
 
 | Umgebung | Quelle | Datenquelle |
 |---|---|---|
-| lokal (`pnpm dev`) | Arbeitskopie | `amb-relay.edufeed.org` |
-| `material.rpi-virtuell.net` (Dev) | `main`, bei jedem Push per Woodpecker | `amb-relay.edufeed.org` |
+| lokal (`pnpm dev`) | Arbeitskopie | wie `.env.example`: amb-relay, sodix, oersi (ADR-0007) |
+| `material.rpi-virtuell.net` (Dev) | `main`, bei jedem Push per Woodpecker | `.env` auf dem Server — am 30.09. `relay.edufeed.org`, `relay-rpi.edufeed.org` |
 
 Der Deploy-Weg und was ihm noch fehlt: `docs/betrieb.md`.

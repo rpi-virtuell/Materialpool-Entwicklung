@@ -8,6 +8,45 @@ das Gesamtbild in `superpowers/specs/2026-09-28-materialpool-neustart-design.md`
 
 ---
 
+## 2026-09-30 (2) — Nachzug aus dem Prototyp: Fächer, Farbschalter, Suche in eigenen Worten, Kontoebene
+
+**Passiert:** Christina wollte alle ihre Weiterentwicklungen im Prototyp
+hier haben. Übertragen auf `feat/prototyp-nachzug`, je ein Commit:
+
+- **Fach-Facette und drei Relays (ADR-0007, offen):** Facette „Fach“
+  vorne in der Liste (evangelisch … überkonfessionell, `fach=`), erkannt
+  an `about:id`. `.env.example` fragt wie der Prototyp amb-relay, sodix
+  und oersi nach allen sechs Religions-Kennungen, ohne Autorenfilter:
+  8.382 Materialien, davon ~7.710 evangelisch, ~670 überkonfessionell,
+  4 katholisch. Zwei echte Events als Fixtures (`amb-faecher.json`).
+- **Farbschalter:** unten rechts Hex-Feld, Farbwähler, Übernehmen,
+  Zurücksetzen — ein GET-Formular; die Farbe bleibt per Cookie beim
+  Weiterklicken (bisher galt `?primaryColor` nur für eine Seite).
+- **Suche in eigenen Worten:** `models/deutung.js` zerlegt einen Satz
+  nach den Regeln des Prototyps; `routen/frage.js` leitet auf die
+  gedeutete Suche um, zeigt „… haben wir so verstanden“ und
+  „Rückgängig“ zum Wortlaut. Ohne JavaScript kein Zwischenschritt „So
+  suchen“ in der Liste.
+- **Behebung aus dem Bestand:** Bei der Relay-Suche verloren die
+  Facetten-Links den Suchtext (Zählung ohne `q` war richtig, die Links
+  nicht). Eigener Commit mit Test.
+- **Prototypische Kontoebene (ADR-0006, offen):** `/konto` mit Anmelden
+  nur per Name, Profil im Cookie, Begrüßung und „Neu für deine Arbeit …“
+  auf der Startseite, Voreinstellung der Liste per `profil=1` mit
+  Hinweis. `CLAUDE.md` und `README.md` nachgezogen.
+
+**Wo steht das Projekt:** `pnpm check` 0 Fehler, 185 Tests grün, `pnpm
+build` läuft. Im Browser gegen die drei Relays geprüft: Facette, Farbe
+über Seitenwechsel und Zurücksetzen, Satz → Filter → Rückgängig,
+Anmelden → Profil → Startseite → Liste → Abmelden, Handybreite.
+
+**Nächster Schritt:** Review durch Jörg, vor allem ADR-0006 (Anmeldung
+war ausgeschlossen) und ADR-0007 (Quelle breiter als der Materialpool).
+Die `.env` auf dem Entwicklungsserver muss danach angepasst werden. Aus
+dem Prototyp nicht übertragen: die Merkliste (ADR-0004 schließt sie aus).
+
+---
+
 ## 2026-09-30 — Nachzug aus dem Prototyp: Kacheln, Zielgruppen, Empfehlung
 
 **Passiert:** Christina hat den React-Prototyp „Materialpool 2.0“ nach
