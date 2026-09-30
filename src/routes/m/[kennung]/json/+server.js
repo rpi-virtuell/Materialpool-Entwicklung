@@ -8,7 +8,7 @@ import { spiegelHolen } from '$lib/services/spiegel.js';
  * @type {import('./$types').RequestHandler}
  */
 export function GET({ params }) {
-  const treffer = eventFinden({ inhalt: spiegelHolen().lesen(), kennung: params.kennung });
+  const treffer = eventFinden({ inhalt: spiegelHolen().lesen(), d: params.kennung });
   if (!treffer) error(404, 'Kein Material mit dieser Kennung im Spiegel.');
   return json(treffer);
 }

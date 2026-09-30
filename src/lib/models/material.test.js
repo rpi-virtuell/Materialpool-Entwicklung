@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import beispiele from '../../../test/fixtures/amb-beispiele.json';
-import { begriffe, dAusKennung, herkunftBilden, kennungAusD, letzterPfadteil, lizenzKuerzel, materialAusEvent } from './material.js';
+import { begriffe, herkunftBilden, kennungAusD, letzterPfadteil, lizenzKuerzel, materialAusEvent } from './material.js';
 
 // Echte Events vom Materialpool-Schlüssel (test/fixtures/README.md).
 const [arbeitsheft, berufsorientierung, erntedank, geist, jenseits, fluechtlinge, jericho] = beispiele;
@@ -111,8 +111,8 @@ describe('materialAusEvent', () => {
     const m = materialAusEvent(arbeitsheft);
     expect(m.pfad).toBe(`/m/${m.kennung}`);
     expect(m.kennung).not.toContain('/');
-    expect(dAusKennung(m.kennung)).toBe(m.d);
-    expect(dAusKennung('%E0%A4%A')).toBeNull();
+    // So dekodiert SvelteKit params.kennung — einmal.
+    expect(decodeURIComponent(m.kennung)).toBe(m.d);
     expect(kennungAusD('a b')).toBe('a%20b');
   });
 

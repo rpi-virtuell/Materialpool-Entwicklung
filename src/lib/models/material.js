@@ -95,18 +95,15 @@ export function begriffe(tags, praefix) {
   return ids.map((id, i) => ({ id, label: de[i] ?? en[i] ?? letzterPfadteil(id) }));
 }
 
-/** @param {string} d */
+/**
+ * Pfadteil aus `d`. Zurück geht es ohne eigenes Dekodieren: SvelteKit
+ * liefert `params.kennung` schon dekodiert, ein zweites
+ * `decodeURIComponent` machte aus `%20` in `d` ein Leerzeichen und ließe
+ * ein `d` mit `%` gar nicht mehr finden.
+ * @param {string} d
+ */
 export function kennungAusD(d) {
   return encodeURIComponent(d);
-}
-
-/** @param {string} kennung @returns {string|null} */
-export function dAusKennung(kennung) {
-  try {
-    return decodeURIComponent(kennung);
-  } catch {
-    return null;
-  }
 }
 
 /**
