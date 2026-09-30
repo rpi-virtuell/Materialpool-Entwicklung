@@ -18,13 +18,18 @@
 import { mkdir, readFile, rename, writeFile } from 'node:fs/promises';
 import { dirname } from 'node:path';
 import { eventsPruefen, formGueltig, formUndAutorGueltig } from './pruefung.js';
-import { eventsHolen, eventsVonAllen } from './relay.js';
-
-export { ABFRAGEGRUND_TEXT } from './relay.js';
+import { ABFRAGEGRUND_TEXT as RELAYGRUND_TEXT, eventsHolen, eventsVonAllen } from './relay.js';
 
 /** @typedef {import('./relay.js').Event} Event */
 /** @typedef {import('./relay.js').Abfragegrund} Abfragegrund */
 /** @typedef {import('../konfig.js').Konfig} Konfig */
+/** @typedef {Abfragegrund|'lauf-abgebrochen'} Laufgrund */
+
+/** Warum eine Abfrage oder ein Lauf nichts lieferte, als Satz. @type {Record<Exclude<Laufgrund, null>, string>} */
+export const ABFRAGEGRUND_TEXT = {
+  ...RELAYGRUND_TEXT,
+  'lauf-abgebrochen': 'Der letzte Lauf des Spiegels ist mit einem Fehler abgebrochen (siehe Server-Log).'
+};
 
 /** AMB-Metadaten als ersetzbares Event (edufeed-AMB-NIP). */
 export const KIND_AMB = 30142;
@@ -52,7 +57,7 @@ export const SUCHE_SPEICHER_MAX = 200;
  * @property {Event[]} materialien           ein Event je (pubkey, d), jüngstes zuerst
  * @property {Record<string, string[]>} quellen  Event-id → Relays, die es lieferten
  */
-/** @typedef {{ zeitpunkt: string, gefragteRelays: string[], grund: Abfragegrund }} Fehlschlag */
+/** @typedef {{ zeitpunkt: string, gefragteRelays: string[], grund: Laufgrund }} Fehlschlag */
 
 /** @returns {Inhalt} */
 export function leererInhalt() {
@@ -302,13 +307,21 @@ async function aufPlatteSchreiben(pfad, inhalt) {
 }
 
 /**
- * Ein Lauf: neuen Stand bauen, bei Erfolg einwechseln und sichern.
+ * Ein Lauf: neuen Stand bauen, bei Erfolg einwechseln und sichern. Wirft
+ * nie: Auch ein Programmfehler im Lauf wird als Fehlschlag gemerkt, sonst
+ * bliebe der Spiegel stumm auf altem Stand stehen.
  * @param {Konfig} konfig
  * @param {{ holen?: typeof eventsHolen }} [optionen]
  * @returns {Promise<boolean>} ob der Lauf gültig war
  */
 export async function einmalLaufen(konfig, optionen = {}) {
-  const ergebnis = await standAufbauen(konfig, optionen);
+  let ergebnis;
+  try {
+    ergebnis = await standAufbauen(konfig, optionen);
+  } catch (fehler) {
+    console.warn('Spiegel: Lauf abgebrochen:', fehler);
+    ergebnis = { ok: false, inhalt: null, gefragteRelays: konfig.relays, grund: /** @type {Laufgrund} */ ('lauf-abgebrochen') };
+  }
   if (ergebnis.ok && ergebnis.inhalt) {
     aktuell = ergebnis.inhalt;
     fehlschlag = null;

@@ -4,7 +4,7 @@ import { join } from 'node:path';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import beispiele from '../../../test/fixtures/amb-beispiele.json';
 import {
-  ersetzbareZusammenfassen, filterBauen, KIND_AMB, relaySuche, SEITENGROESSE, seitenweise, spiegelBereit, spiegelHolen,
+  einmalLaufen, ersetzbareZusammenfassen, filterBauen, KIND_AMB, relaySuche, SEITENGROESSE, seitenweise, spiegelBereit, spiegelHolen,
   spiegelStarten, spiegelZuruecksetzen, standAufbauen, SUCHE_LIMIT, sucheZuruecksetzen
 } from './spiegel.js';
 
@@ -204,6 +204,17 @@ describe('relaySuche — Volltext am Relay (NIP-50, ADR-0005)', () => {
     expect(fehl.grund).toBe('kein-relay-erreichbar');
     await relaySuche(k, 'pfingsten', { holen: nie, jetzt });
     expect(nie).toHaveBeenCalledTimes(4);
+  });
+});
+
+describe('einmalLaufen', () => {
+  it('merkt sich auch einen abgebrochenen Lauf als Fehlschlag, statt zu werfen', async () => {
+    const holen = vi.fn(async () => {
+      throw new Error('kaputt');
+    });
+    vi.spyOn(console, 'warn').mockImplementation(() => {});
+    expect(await einmalLaufen(konfig(), { holen })).toBe(false);
+    expect(spiegelHolen().letzterFehlschlag()).toMatchObject({ grund: 'lauf-abgebrochen', gefragteRelays: ['wss://eins/', 'wss://zwei/'] });
   });
 });
 

@@ -24,6 +24,10 @@ describe('leerstandErklaeren — nie eine leere Liste ohne Erklärung', () => {
     const fehlschlag = { zeitpunkt: 'x', gefragteRelays: relays, grund: /** @type {const} */ ('kein-relay-erreichbar') };
     expect(leerstandErklaeren(leererInhalt(), fehlschlag, relays)).toMatch(/Kein Relay war erreichbar.*amb-relay/);
   });
+  it('nennt einen abgebrochenen Lauf', () => {
+    const fehlschlag = { zeitpunkt: 'x', gefragteRelays: relays, grund: /** @type {const} */ ('lauf-abgebrochen') };
+    expect(leerstandErklaeren(leererInhalt(), fehlschlag, relays)).toMatch(/mit einem Fehler abgebrochen.*amb-relay/);
+  });
   it('erklärt den fehlenden ersten Lauf', () => {
     expect(leerstandErklaeren(leererInhalt(), null, relays)).toMatch(/noch keinen Stand/);
   });
