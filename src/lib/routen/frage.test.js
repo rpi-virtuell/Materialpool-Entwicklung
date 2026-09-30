@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { frageHinweis, frageUmleitung } from './frage.js';
+import { SUCHTEXT_MAX } from '../models/text.js';
+import { frageHinweis, frageUmleitung, UMLEITUNG_MAX } from './frage.js';
 import { filterLesen, listenPfad } from './uebersicht.js';
 
 /** @param {string} query */
@@ -19,6 +20,14 @@ describe('frageUmleitung', () => {
     expect(frageUmleitung(p(''))).toBeNull();
     expect(frageUmleitung(p('q=Ostern&stufe=sek1&typ=video&frage=Video+zu+Ostern+f%C3%BCr+Konfis'))).toBeNull();
     expect(frageUmleitung(p('q=Video+zu+Ostern+f%C3%BCr+Konfis&wortlaut=Video+zu+Ostern+f%C3%BCr+Konfis'))).toBeNull();
+  });
+  it('deutet höchstens SUCHTEXT_MAX Zeichen und leitet nie auf eine überlange Adresse um', () => {
+    const lang = frageUmleitung(p(`q=${encodeURIComponent('Ich suche ein Video über Ostern für Kinder '.repeat(400))}`));
+    expect(lang).not.toBeNull();
+    expect(/** @type {string} */ (lang).length).toBeLessThanOrEqual(UMLEITUNG_MAX);
+    expect(new URL(`http://x${lang}`).searchParams.get('frage')?.length).toBeLessThanOrEqual(SUCHTEXT_MAX);
+    const vieleSchlagworte = Array.from({ length: 400 }, (_, i) => `t=Schlagwort${i}`).join('&');
+    expect(frageUmleitung(p(`q=Video+zu+Ostern+f%C3%BCr+Konfis&${vieleSchlagworte}`))).toBeNull();
   });
   it('deutet einen neuen Satz, auch wenn ein früherer im Wortlaut stand', () => {
     expect(frageUmleitung(p('q=Film+%C3%BCber+Taufe+f%C3%BCr+Kinder&wortlaut=Video+zu+Ostern+f%C3%BCr+Konfis')))

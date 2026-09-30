@@ -15,6 +15,8 @@
  * Reine Funktionen, kennt keine Komponente.
  */
 
+import { kuerzen, SUCHTEXT_MAX } from './text.js';
+
 /** @typedef {import('./typen.js').StufeKey} StufeKey */
 /** @typedef {import('./typen.js').TypKey} TypKey */
 /** @typedef {import('./typen.js').FachKey} FachKey */
@@ -208,7 +210,7 @@ function stufeFuerKlasse(klasse) {
  * @returns {Deutung}
  */
 export function deuteSuche(text) {
-  const woerter = (text || '').split(/[^\p{L}\p{N}-]+/u).filter(Boolean);
+  const woerter = kuerzen(text || '', SUCHTEXT_MAX).split(/[^\p{L}\p{N}-]+/u).filter(Boolean);
   const k = woerter.map(klein);
   const verbraucht = new Array(woerter.length).fill(false);
   /** @type {Erkannt[]} */

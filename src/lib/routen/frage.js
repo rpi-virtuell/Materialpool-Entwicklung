@@ -7,11 +7,18 @@
  * gedeutet wird. Reine Funktionen, kennt keine Komponente.
  */
 import { deuteSuche } from '../models/deutung.js';
+import { kuerzen, SUCHTEXT_MAX } from '../models/text.js';
 import { FACH_LABEL, STUFEN_LABEL, TYP_LABEL } from '../models/typen.js';
 import { filterLesen, listenPfad } from './uebersicht.js';
 
 /** @type {Record<'stufe'|'typ'|'fach', Record<string, string>>} */
 const LABEL = { stufe: STUFEN_LABEL, typ: TYP_LABEL, fach: FACH_LABEL };
+
+/**
+ * Länger wird keine Umleitung: Node nimmt höchstens 16 KB Kopfzeilen an,
+ * eine längere Location endete beim nächsten Aufruf in 431.
+ */
+export const UMLEITUNG_MAX = 4000;
 
 /** @param {string} pfad @param {string} frage */
 function mitFrage(pfad, frage) {
@@ -39,7 +46,8 @@ export function frageUmleitung(params) {
     wortlaut: '',
     seite: 1
   };
-  return mitFrage(listenPfad(gedeutet), filter.q);
+  const ziel = mitFrage(listenPfad(gedeutet), filter.q);
+  return ziel.length > UMLEITUNG_MAX ? null : ziel;
 }
 
 /**
@@ -49,7 +57,7 @@ export function frageUmleitung(params) {
  * @param {URLSearchParams} params
  */
 export function frageHinweis(params) {
-  const text = (params.get('frage') ?? '').trim();
+  const text = kuerzen((params.get('frage') ?? '').trim(), SUCHTEXT_MAX).trim();
   if (!text) return null;
   const filter = filterLesen(params);
   const d = deuteSuche(text);

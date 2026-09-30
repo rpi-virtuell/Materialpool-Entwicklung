@@ -7,6 +7,7 @@ import {
   einmalLaufen, ersetzbareZusammenfassen, filterBauen, KIND_AMB, relaySuche, SEITENGROESSE, seitenweise, spiegelBereit, spiegelHolen,
   spiegelStarten, spiegelZuruecksetzen, standAufbauen, SUCHE_LIMIT, sucheZuruecksetzen
 } from './spiegel.js';
+import { SUCHTEXT_MAX } from '../models/text.js';
 
 /** Schlüssel des Materialpools, von dem die Fixtures stammen. */
 const MATERIALPOOL = beispiele[0].pubkey;
@@ -203,6 +204,31 @@ describe('relaySuche — Volltext am Relay (NIP-50, ADR-0005)', () => {
     const holen = vi.fn(async () => ({ erreicht: true, events: [a, { ...b, kind: 1 }, neuer] }));
     const ergebnis = await relaySuche(konfig(), 'x', { holen, pruefen: ungeprueft });
     expect(ergebnis.events.map((e) => e.id)).toEqual([neuer.id]);
+  });
+
+  it('öffnet für dieselbe Suche, während sie läuft, keine zweiten Verbindungen', async () => {
+    /** @type {() => void} */
+    let freigeben = () => {};
+    const tor = new Promise((/** @type {(wert?: unknown) => void} */ f) => { freigeben = f; });
+    const holen = vi.fn(async () => {
+      await tor;
+      return { erreicht: true, events: [a] };
+    });
+    const k = konfig();
+    const erste = relaySuche(k, 'Ostern', { holen });
+    const zweite = relaySuche(k, ' ostern ', { holen });
+    freigeben();
+    const [x, y] = await Promise.all([erste, zweite]);
+    expect(x).toBe(y);
+    expect(holen).toHaveBeenCalledTimes(2); // zwei Relays, eine Suche
+    await relaySuche(k, 'pfingsten', { holen });
+    expect(holen).toHaveBeenCalledTimes(4);
+  });
+
+  it('schickt höchstens SUCHTEXT_MAX Zeichen ans Relay', async () => {
+    const holen = vi.fn(async (/** @type {string} */ _url, /** @type {Record<string, unknown>} */ _filter) => ({ erreicht: true, events: [] }));
+    await relaySuche(konfig({ relays: ['wss://eins/'] }), 'ostern '.repeat(500), { holen });
+    expect(String(holen.mock.calls[0][1].search).length).toBeLessThanOrEqual(SUCHTEXT_MAX);
   });
 
   it('zeigt nur geprüfte Treffer und wirft nicht bei unlesbaren', async () => {

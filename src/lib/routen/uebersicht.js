@@ -5,6 +5,7 @@
  * die eigene Facette. Alles reine Funktionen.
  */
 import { coverFarben } from '../models/farben.js';
+import { kuerzen, SUCHTEXT_MAX } from '../models/text.js';
 import { FACH_LABEL, FACH_REIHENFOLGE, STUFEN_LABEL, STUFEN_REIHENFOLGE, TYP_LABEL, TYP_REIHENFOLGE, TYPEN } from '../models/typen.js';
 import { ABFRAGEGRUND_TEXT as GRUND_TEXT } from '../services/spiegel.js';
 import { materialienVon, materialImBestand } from './bestand.js';
@@ -87,8 +88,12 @@ export function listenPfad(filter = {}) {
   return s ? `/materialien?${s}` : '/materialien';
 }
 
+/** @param {string|null} roh */
+const suchtext = (roh) => kuerzen((roh ?? '').trim(), SUCHTEXT_MAX).trim();
+
 /**
- * Query-Parameter → Filter. Unbekannte Werte zählen als kein Filter.
+ * Query-Parameter → Filter. Unbekannte Werte zählen als kein Filter;
+ * Suchtext höchstens SUCHTEXT_MAX Zeichen.
  * @param {URLSearchParams} params
  * @returns {Filter}
  */
@@ -102,14 +107,14 @@ export function filterLesen(params) {
   const sortierung = SORTIERUNGEN.find((s) => s.key === params.get('sort'))?.key ?? 'empfohlen';
   const seiteRoh = Number(params.get('seite') ?? '1');
   return {
-    q: (params.get('q') ?? '').trim(),
+    q: suchtext(params.get('q')),
     stufen: bekannte('stufe', STUFEN_REIHENFOLGE),
     typen: bekannte('typ', TYP_REIHENFOLGE),
     faecher: bekannte('fach', FACH_REIHENFOLGE),
     schlagworte: [...new Set(params.getAll('t').map((w) => w.trim()).filter(Boolean))],
     sortierung,
     seite: Number.isInteger(seiteRoh) && seiteRoh > 1 ? seiteRoh : 1,
-    wortlaut: (params.get('wortlaut') ?? '').trim()
+    wortlaut: suchtext(params.get('wortlaut'))
   };
 }
 

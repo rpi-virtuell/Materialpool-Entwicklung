@@ -17,6 +17,7 @@
 
 import { mkdir, readFile, rename, writeFile } from 'node:fs/promises';
 import { dirname } from 'node:path';
+import { kuerzen, SUCHTEXT_MAX } from '../models/text.js';
 import { eventsPruefen, formGueltig, formUndAutorGueltig } from './pruefung.js';
 import { ABFRAGEGRUND_TEXT as RELAYGRUND_TEXT, eventsHolen, eventsVonAllen } from './relay.js';
 
@@ -181,17 +182,20 @@ export function ersetzbareZusammenfassen(events, optionen = {}) {
 
 /** @type {Map<string, { zeitpunkt: number, ergebnis: Suchergebnis }>} */
 let sucheSpeicher = new Map();
+/** Suchen, die gerade laufen: dieselbe öffnet keine zweiten Verbindungen. @type {Map<string, Promise<Suchergebnis>>} */
+let sucheLaufend = new Map();
 
-/** @param {string} text */
+/** Höchstens SUCHTEXT_MAX Zeichen, klein, Leerraum zusammengezogen. @param {string} text */
 export function sucheSchluessel(text) {
-  return text.trim().toLowerCase().replace(/\s+/g, ' ');
+  return kuerzen(text.trim(), SUCHTEXT_MAX).trim().toLowerCase().replace(/\s+/g, ' ');
 }
 
 /**
  * Volltextsuche über alle konfigurierten Relays mit denselben Einschränkungen
  * wie der Spiegel (Autoren, Fächer). Das Relay sortiert nach Relevanz; die
  * Reihenfolge bleibt erhalten. Ergebnisse liegen SPIEGEL_INTERVALL_S im
- * Speicher, weil Facetten und Seitenumbruch dieselbe Suche wiederholen.
+ * Speicher, weil Facetten und Seitenumbruch dieselbe Suche wiederholen;
+ * kommt dieselbe Suche, während sie noch läuft, wartet sie auf die erste.
  *
  * @param {Konfig} konfig
  * @param {string} text
@@ -204,7 +208,21 @@ export async function relaySuche(konfig, text, optionen = {}) {
   const frisch = konfig.spiegelIntervallS * 1000;
   const gemerkt = sucheSpeicher.get(schluessel);
   if (gemerkt && jetzt() - gemerkt.zeitpunkt < frisch) return gemerkt.ergebnis;
+  const laufend = sucheLaufend.get(schluessel);
+  if (laufend) return laufend;
+  const suche = sucheAmRelay(konfig, schluessel, optionen).finally(() => sucheLaufend.delete(schluessel));
+  sucheLaufend.set(schluessel, suche);
+  return suche;
+}
 
+/**
+ * @param {Konfig} konfig
+ * @param {string} schluessel
+ * @param {{ holen?: typeof eventsHolen, jetzt?: () => number, pruefen?: typeof geprueft }} optionen
+ * @returns {Promise<Suchergebnis>}
+ */
+async function sucheAmRelay(konfig, schluessel, optionen) {
+  const jetzt = optionen.jetzt ?? Date.now;
   const { limit: _limit, ...grund } = filterBauen(konfig);
   const ergebnis = await eventsVonAllen(
     konfig.relays,
@@ -233,6 +251,7 @@ export async function relaySuche(konfig, text, optionen = {}) {
 /** Nur für Tests: Suchspeicher leeren. */
 export function sucheZuruecksetzen() {
   sucheSpeicher = new Map();
+  sucheLaufend = new Map();
 }
 
 /**
