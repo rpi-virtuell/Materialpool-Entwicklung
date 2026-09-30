@@ -20,7 +20,7 @@
       <p class="hero-sub">Finde passende und aktuelle Materialien für deine Arbeit.</p>
       <form class="hero-search" action="/materialien" method="get" role="search">
         <Icon name="search" />
-        <input type="search" name="q" placeholder="z.B. Schöpfung, Reformation, Pfingsten …" aria-label="Materialien durchsuchen" />
+        <input type="search" name="q" placeholder="z.B. Pfingsten – oder: Video zu Ostern für Kinder" aria-label="Materialien durchsuchen" />
         <button type="submit">Suchen</button>
       </form>
       <ThemenRow {themen} />

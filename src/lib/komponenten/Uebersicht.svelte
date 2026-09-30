@@ -9,7 +9,7 @@
    * Spiegel (Erklärung), keine Treffer (aktive Filter), Treffer.
    * @type {ReturnType<typeof import('$lib/routen/uebersicht.js').listeLaden>}
    */
-  let { karten, treffer, seiten, filter, pillen, facetten, sortierungen, suche, gesamt, leerstand } = $props();
+  let { karten, treffer, seiten, filter, pillen, facetten, sortierungen, suche, frage, gesamt, leerstand } = $props();
   const trefferText = $derived(
     treffer === gesamt ? `${treffer} Treffer` : `${treffer} Treffer von ${gesamt}`
   );
@@ -27,7 +27,8 @@
     <h1>Materialien</h1>
     <form class="liste-suche" action="/materialien" method="get" role="search">
       <Icon name="search" />
-      <input type="search" name="q" value={filter.q} placeholder="Suchen in Titel, Beschreibung, Herkunft und Schlagworten" aria-label="Materialien durchsuchen" />
+      <input type="search" name="q" value={filter.q} placeholder="Stichwort oder in eigenen Worten …" aria-label="Materialien durchsuchen" />
+      {#if filter.wortlaut && filter.wortlaut === filter.q}<input type="hidden" name="wortlaut" value={filter.wortlaut} />{/if}
       {#each filter.stufen as s (s)}<input type="hidden" name="stufe" value={s} />{/each}
       {#each filter.typen as t (t)}<input type="hidden" name="typ" value={t} />{/each}
       {#each filter.faecher as f (f)}<input type="hidden" name="fach" value={f} />{/each}
@@ -39,6 +40,18 @@
     {#if leerstand}
       <p class="status-hint status-warn">{leerstand}</p>
     {:else}
+      {#if frage}
+        <p class="frage-hinweis">
+          <span class="frage-kopf"><Icon name="sparkles" /> „{frage.text}“ haben wir so verstanden:</span>
+          {#each frage.teile as teil (teil.label)}
+            <span class="deutung-teil">„{teil.woerter}“ <span aria-label="wird zu">→</span> {teil.label}</span>
+          {/each}
+          {#if frage.themen.length > 0}
+            <span class="deutung-teil">{frage.themen.length === 1 ? 'Thema' : 'Themen'}: <strong>{frage.themen.join(', ')}</strong></span>
+          {/if}
+          <a class="frage-zurueck" href={frage.rueckgaengigPfad}>Rückgängig</a>
+        </p>
+      {/if}
       {#if suche.hinweis}<p class="status-hint status-warn suche-hinweis">{suche.hinweis}</p>{/if}
       <div class="facetten">
         {#each gruppen as gruppe (gruppe.name)}
@@ -143,6 +156,22 @@
   .liste-suche button:hover { background: var(--blue-darker); }
 
   .suche-hinweis { margin-bottom: var(--sp-4); }
+  .frage-hinweis {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: var(--sp-1) var(--sp-3);
+    margin: 0 0 var(--sp-5);
+    padding: var(--sp-3) var(--sp-4);
+    border-left: 3px solid var(--blue);
+    background: var(--fb-flaeche);
+    border-radius: 0 var(--radius) var(--radius) 0;
+    font-size: var(--fs-300);
+    color: var(--text-body);
+  }
+  .frage-kopf { display: inline-flex; align-items: center; gap: var(--sp-1); font-weight: 600; color: var(--text-dark); }
+  .frage-kopf :global(.ti) { width: 16px; height: 16px; color: var(--blue); }
+  .frage-zurueck { margin-left: auto; color: var(--blue); font-weight: 600; }
   .facetten { display: flex; flex-direction: column; gap: var(--sp-3); margin-bottom: var(--sp-6); }
   .facette { border: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; align-items: baseline; gap: var(--sp-2) var(--sp-3); }
   .facette legend { float: left; font-size: var(--fs-200); font-weight: 600; color: var(--text-muted); min-width: 7.5em; padding: 0; }

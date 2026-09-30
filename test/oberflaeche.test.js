@@ -17,8 +17,9 @@ import Uebersicht from '../src/lib/komponenten/Uebersicht.svelte';
 import { materialAusEvent } from '../src/lib/models/material.js';
 import { TYPEN } from '../src/lib/models/typen.js';
 import { farbschalterBilden } from '../src/lib/routen/farbschalter.js';
+import { frageHinweis, frageUmleitung } from '../src/lib/routen/frage.js';
 import { startseiteLaden } from '../src/lib/routen/startseite.js';
-import { leererFilter, listeLaden } from '../src/lib/routen/uebersicht.js';
+import { filterLesen, leererFilter, listeLaden } from '../src/lib/routen/uebersicht.js';
 import { leererInhalt } from '../src/lib/services/spiegel.js';
 
 const relays = ['wss://amb-relay.edufeed.org/'];
@@ -174,6 +175,26 @@ describe('Uebersicht (Liste)', () => {
     expect(body).toMatch(/name="stufe"[^>]*value="elem"/);
     expect(body).toMatch(/name="sort"[^>]*value="titel"/);
     expect(body).toMatch(/name="q"[^>]*value="jericho"/);
+  });
+
+  it('zeigt bei einer Frage in eigenen Worten, wie sie verstanden wurde, mit Rückgängig', () => {
+    const ziel = /** @type {string} */ (frageUmleitung(new URLSearchParams('q=Erntedank+f%C3%BCr+Kinder+in+der+Kita+bitte')));
+    const params = new URL(`http://x${ziel}`).searchParams;
+    const daten = listeLaden({ inhalt, fehlschlag: null, relays, filter: filterLesen(params), frage: frageHinweis(params) });
+    const { body } = render(Uebersicht, { props: daten });
+    expect(body).toContain('„Erntedank für Kinder in der Kita bitte“ haben wir so verstanden:');
+    expect(body).toContain('„Kinder“ <span aria-label="wird zu">→</span> Elementar- &amp; Primarbereich');
+    expect(body).toContain('Thema: <strong>Erntedank</strong>');
+    expect(body).toMatch(/class="frage-zurueck[^"]*" href="\/materialien\?q=Erntedank\+f%C3%BCr\+Kinder[^"]*wortlaut=/);
+    expect(body).toMatch(/name="q"[^>]*value="Erntedank"/);
+  });
+
+  it('hält den Wortlaut nach „Rückgängig“ im Formular, damit er nicht wieder gedeutet wird', () => {
+    const satz = 'Erntedank für Kinder in der Kita bitte';
+    const daten = listeLaden({ inhalt, fehlschlag: null, relays, filter: { ...leererFilter(), q: satz, wortlaut: satz } });
+    const { body } = render(Uebersicht, { props: daten });
+    expect(body).toMatch(/type="hidden" name="wortlaut" value="Erntedank für Kinder in der Kita bitte"/);
+    expect(body).not.toContain('haben wir so verstanden');
   });
 
   it('rendert Facetten als Link-Chips mit Zählern, aktive gedrückt, leere ohne Link', () => {

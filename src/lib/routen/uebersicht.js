@@ -28,6 +28,7 @@ import { materialienVon } from './bestand.js';
  * @property {string[]} schlagworte
  * @property {Sortierung} sortierung
  * @property {number} seite        1-basiert
+ * @property {string} wortlaut     gleich `q`: dieser Satz wird nicht gedeutet (routen/frage.js)
  */
 
 /** @type {{ key: Sortierung, label: string }[]} */
@@ -46,7 +47,7 @@ export const SEITENGROESSE_LISTE = 24;
 
 /** @returns {Filter} */
 export function leererFilter() {
-  return { q: '', stufen: [], typen: [], faecher: [], schlagworte: [], sortierung: 'empfohlen', seite: 1 };
+  return { q: '', stufen: [], typen: [], faecher: [], schlagworte: [], sortierung: 'empfohlen', seite: 1, wortlaut: '' };
 }
 
 /**
@@ -81,6 +82,8 @@ export function listenPfad(filter = {}) {
   for (const w of filter.schlagworte ?? []) p.append('t', w);
   if (filter.sortierung && filter.sortierung !== 'empfohlen') p.set('sort', filter.sortierung);
   if (filter.seite && filter.seite > 1) p.set('seite', String(filter.seite));
+  // Nur solange die Suche noch derselbe Satz ist; ein neuer wird gedeutet.
+  if (filter.wortlaut && filter.wortlaut === filter.q) p.set('wortlaut', filter.wortlaut);
   const s = p.toString();
   return s ? `/materialien?${s}` : '/materialien';
 }
@@ -106,7 +109,8 @@ export function filterLesen(params) {
     faecher: bekannte('fach', FACH_REIHENFOLGE),
     schlagworte: [...new Set(params.getAll('t').map((w) => w.trim()).filter(Boolean))],
     sortierung,
-    seite: Number.isInteger(seiteRoh) && seiteRoh > 1 ? seiteRoh : 1
+    seite: Number.isInteger(seiteRoh) && seiteRoh > 1 ? seiteRoh : 1,
+    wortlaut: (params.get('wortlaut') ?? '').trim()
   };
 }
 
@@ -310,9 +314,17 @@ export function seitenBilden(treffer, filter) {
 }
 
 /**
- * @param {{ inhalt: Inhalt, fehlschlag: Fehlschlag|null, relays: string[], filter?: Filter, suche?: Suchergebnis|null }} eingabe
+ * @typedef {object} FrageHinweis   „… haben wir so verstanden“ (routen/frage.js)
+ * @property {string} text
+ * @property {{ woerter: string, label: string }[]} teile
+ * @property {string[]} themen
+ * @property {string} rueckgaengigPfad
  */
-export function listeLaden({ inhalt, fehlschlag, relays, filter = leererFilter(), suche = null }) {
+
+/**
+ * @param {{ inhalt: Inhalt, fehlschlag: Fehlschlag|null, relays: string[], filter?: Filter, suche?: Suchergebnis|null, frage?: FrageHinweis|null }} eingabe
+ */
+export function listeLaden({ inhalt, fehlschlag, relays, filter = leererFilter(), suche = null, frage = null }) {
   const grundmenge = grundmengeBilden(inhalt, filter, suche);
   // Relay-Treffer sind schon textgefiltert; die Facetten greifen darauf.
   const facettenFilter = grundmenge.textGefiltert ? { ...filter, q: '' } : filter;
@@ -337,6 +349,7 @@ export function listeLaden({ inhalt, fehlschlag, relays, filter = leererFilter()
     })),
     gesamt: materialienVon(inhalt).length,
     suche: { quelle: grundmenge.quelle, hinweis: grundmenge.hinweis },
+    frage,
     leerstand: leerstandErklaeren(inhalt, fehlschlag, relays)
   };
 }

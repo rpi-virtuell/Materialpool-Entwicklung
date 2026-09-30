@@ -14,13 +14,14 @@
   import notebook from '@tabler/icons/outline/notebook.svg?raw';
   import pencil from '@tabler/icons/outline/pencil.svg?raw';
   import search from '@tabler/icons/outline/search.svg?raw';
+  import sparkles from '@tabler/icons/outline/sparkles.svg?raw';
   import video from '@tabler/icons/outline/video.svg?raw';
   import world from '@tabler/icons/outline/world.svg?raw';
 
   /** @type {Record<string, string>} */
   const ROH = {
     'arrow-right': arrowRight, books, bulb, file, 'file-text': fileText,
-    headphones, notebook, pencil, search, video, world
+    headphones, notebook, pencil, search, sparkles, video, world
   };
 
   /** Icons, die es gibt — für Sprite, Tests und Typprüfung. */
