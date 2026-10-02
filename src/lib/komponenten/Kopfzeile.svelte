@@ -2,9 +2,9 @@
   import Icon from './Icon.svelte';
   /**
    * Rahmen des Prototyps (Abschnitt 6): Logo → Start, „Stöbern“ → Liste,
-   * „Anmelden“ bzw. der Vorname → Profil (ADR-0006). Keine Merkliste, kein
-   * „Gemerkt“ (ADR-0004). Navigation sind Links.
-   * @type {{ aktiv: 'start'|'liste'|'konto'|null, kopf: { angemeldet: boolean, vorname: string, stoebernPfad: string } }}
+   * „Gemerkt“ → Merkliste (ADR-0008), „Anmelden“ bzw. der Vorname →
+   * Profil (ADR-0006). Navigation sind Links.
+   * @type {{ aktiv: 'start'|'liste'|'merkliste'|'konto'|null, kopf: { angemeldet: boolean, vorname: string, stoebernPfad: string } }}
    */
   let { aktiv, kopf } = $props();
 </script>
@@ -14,6 +14,9 @@
   <nav class="site-nav" aria-label="Hauptnavigation">
     <a href={kopf.stoebernPfad} class:active={aktiv === 'liste'} aria-label="Stöbern" aria-current={aktiv === 'liste' ? 'page' : undefined}>
       <Icon name="search" /><span>Stöbern</span>
+    </a>
+    <a href="/merkliste" class:active={aktiv === 'merkliste'} aria-label="Gemerkt" aria-current={aktiv === 'merkliste' ? 'page' : undefined}>
+      <Icon name="bookmark" /><span>Gemerkt</span>
     </a>
     <a
       href="/konto"

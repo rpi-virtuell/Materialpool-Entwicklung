@@ -9,7 +9,7 @@
    * Spiegel (Erklärung), keine Treffer (aktive Filter), Treffer.
    * @type {ReturnType<typeof import('$lib/routen/uebersicht.js').listeLaden>}
    */
-  let { karten, treffer, seiten, filter, pillen, facetten, sortierungen, suche, frage, profilHinweis, gesamt, leerstand } = $props();
+  let { karten, treffer, seiten, zurueck, filter, pillen, facetten, sortierungen, suche, frage, profilHinweis, gesamt, leerstand } = $props();
   const trefferText = $derived(
     treffer === gesamt ? `${treffer} Treffer` : `${treffer} Treffer von ${gesamt}`
   );
@@ -99,7 +99,7 @@
         </div>
         <div class="material-grid">
           {#each karten as karte (karte.material.id)}
-            <Karte {karte} />
+            <Karte {karte} {zurueck} />
           {/each}
         </div>
         {#if seiten.anzahl > 1}

@@ -1,6 +1,10 @@
 <script>
-  /** @type {{ material: import('$lib/models/material.js').Material, relays: string[] }} */
-  let { material, relays } = $props();
+  import Icon from './Icon.svelte';
+  /**
+   * `merken` (ADR-0008): Lesezeichen als POST-Formular, zurück auf diese Seite.
+   * @type {{ material: import('$lib/models/material.js').Material, relays: string[], merken?: { schluessel: string, gemerkt: boolean }|null }}
+   */
+  let { material, relays, merken = null } = $props();
 </script>
 
 <article>
@@ -8,6 +12,15 @@
   <h1>{material.name}</h1>
   {#if material.url}
     <p><a href={material.url} rel="external noopener">{material.url}</a></p>
+  {/if}
+  {#if merken}
+    <form class="merken" method="post" action="/merkliste?/umschalten">
+      <input type="hidden" name="m" value={merken.schluessel} />
+      <input type="hidden" name="zurueck" value={material.pfad} />
+      <button class="merken-btn" class:ist-gemerkt={merken.gemerkt} type="submit" aria-pressed={merken.gemerkt}>
+        <Icon name={merken.gemerkt ? 'bookmark-gefuellt' : 'bookmark'} /> {merken.gemerkt ? 'Gemerkt' : 'Merken'}
+      </button>
+    </form>
   {/if}
   {#if material.bild}
     <img class="bild" src={material.bild} alt="" />
@@ -43,6 +56,26 @@
 
 <style>
   h1 { font-size: var(--fs-700); margin-bottom: var(--sp-3); }
+  .merken { margin: var(--sp-3) 0; }
+  /* Wie im Prototyp: weiß mit Rand, gemerkt blau gefüllt. */
+  .merken-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--sp-2);
+    min-height: 44px;
+    background: var(--weiss);
+    border: 1px solid var(--border);
+    border-radius: 5px;
+    padding: var(--sp-3) var(--sp-5);
+    font: inherit;
+    font-size: var(--fs-300);
+    font-weight: 600;
+    color: var(--text-dark);
+    cursor: pointer;
+    transition: border-color 0.15s ease, background-color 0.15s ease, color 0.15s ease;
+  }
+  .merken-btn:hover { border-color: var(--blue); }
+  .merken-btn.ist-gemerkt { background: var(--blue); border-color: var(--blue); color: var(--weiss); }
   .bild { max-width: 100%; border-radius: var(--radius); border: 1px solid var(--fb-rahmen); margin: 1rem 0; }
   .beschreibung { font-size: 1.05rem; }
   dl { display: grid; grid-template-columns: max-content 1fr; gap: 0.35rem 1.25rem; margin: 1.5rem 0; }

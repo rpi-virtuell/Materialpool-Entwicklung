@@ -50,7 +50,7 @@
         </div>
         <div class="fuer-dich-grid">
           {#each fuerDich.karten as karte (karte.material.id)}
-            <Karte {karte} />
+            <Karte {karte} zurueck="/" />
           {/each}
         </div>
       </div>

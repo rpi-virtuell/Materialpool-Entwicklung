@@ -23,9 +23,11 @@ die Relays per NIP-50 und rendert die Treffer aus dem Spiegel-Modell
 vorher in Facetten und Themenwörter zerlegt (`routen/frage.js`).
 **Vorgeschlagen, noch offen (ADR-0006):** eine prototypische Kontoebene
 ohne echte Konten — Name und Profil im Cookie des Browsers, `/konto`,
-Voreinstellung der Liste mit `profil=1`. **Nicht Teil dieses Vorhabens
-(Stand ADR-0001/0004):** Eingabe, Bewertung, echte Konten mit Passwort,
-Merkliste, Import aus dem WordPress-Materialpool.
+Voreinstellung der Liste mit `profil=1`. **Ebenso (ADR-0008):** die
+Merkliste „Gemerkt“ — Lesezeichen als POST-Formular, Liste im Cookie,
+`/merkliste`. **Nicht Teil dieses Vorhabens (Stand ADR-0001/0004):**
+Eingabe, Bewertung, echte Konten mit Passwort, Import aus dem
+WordPress-Materialpool.
 **Was es nicht gibt, wird auch nicht angedeutet** — keine Schaltflächen oder
 Menüpunkte für nicht vorhandene Funktionen, auch nicht abgeblendet.
 

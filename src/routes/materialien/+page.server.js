@@ -3,6 +3,7 @@ import { env } from '$env/dynamic/private';
 import { konfigLesen } from '$lib/konfig.js';
 import { frageHinweis, frageUmleitung } from '$lib/routen/frage.js';
 import { KONTO_COOKIE, kontoLesen, profilEinsetzen, profilHinweis } from '$lib/routen/konto.js';
+import { MERKLISTE_COOKIE, merklisteLesen } from '$lib/routen/merkliste.js';
 import { filterLesen, listeLaden, listenPfad } from '$lib/routen/uebersicht.js';
 import { relaySuche, spiegelHolen } from '$lib/services/spiegel.js';
 
@@ -33,6 +34,7 @@ export async function load({ url, cookies }) {
     filter,
     suche,
     frage: frageHinweis(url.searchParams),
-    profilHinweis: profilHinweis(filter, konto)
+    profilHinweis: profilHinweis(filter, konto),
+    merkKeys: merklisteLesen(cookies.get(MERKLISTE_COOKIE))
   });
 }

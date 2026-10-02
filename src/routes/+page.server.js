@@ -1,6 +1,7 @@
 import { env } from '$env/dynamic/private';
 import { konfigLesen } from '$lib/konfig.js';
 import { KONTO_COOKIE, kontoLesen } from '$lib/routen/konto.js';
+import { MERKLISTE_COOKIE, merklisteLesen } from '$lib/routen/merkliste.js';
 import { startseiteLaden } from '$lib/routen/startseite.js';
 import { spiegelHolen } from '$lib/services/spiegel.js';
 
@@ -15,6 +16,7 @@ export async function load({ parent, cookies }) {
     fehlschlag: spiegel.letzterFehlschlag(),
     relays: konfigLesen(env).relays,
     palette: ci?.palette,
-    konto: kontoLesen(cookies.get(KONTO_COOKIE))
+    konto: kontoLesen(cookies.get(KONTO_COOKIE)),
+    merkKeys: merklisteLesen(cookies.get(MERKLISTE_COOKIE))
   });
 }

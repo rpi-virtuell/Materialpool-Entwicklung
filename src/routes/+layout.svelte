@@ -14,9 +14,11 @@
       ? 'start'
       : page.url.pathname.startsWith('/materialien')
         ? 'liste'
-        : page.url.pathname.startsWith('/konto')
-          ? 'konto'
-          : null
+        : page.url.pathname.startsWith('/merkliste')
+          ? 'merkliste'
+          : page.url.pathname.startsWith('/konto')
+            ? 'konto'
+            : null
   );
   // CI-Farbe (Prototyp 9) als Inline-Variablen auf dem Rahmen: erbt in
   // Kopf, Seite und Fuß und liegt vor den Tokens aus app.css. Werte sind

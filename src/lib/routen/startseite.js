@@ -9,6 +9,7 @@ import { LEERES_KONTO, profilFilter, profilOrt, vorname } from '../models/konto.
 import { FACH_LABEL, STUFEN_LABEL, STUFEN_LABEL_ALTER, STUFEN_SICHTBAR, TYPEN } from '../models/typen.js';
 import { materialienVon } from './bestand.js';
 import { mitProfil } from './konto.js';
+import { karteMitMerken } from './merkliste.js';
 import { filterAnwenden, leerstandErklaeren, leererFilter, listenPfad, sortieren } from './uebersicht.js';
 
 /** @typedef {import('../services/spiegel.js').Inhalt} Inhalt */
@@ -94,8 +95,9 @@ export const FUER_DICH_ANZAHL = 3;
  * bleibt das Alter der beste Einstieg, die Kacheln also auch.
  * @param {Material[]} materialien
  * @param {Konto} konto
+ * @param {string[]} merkKeys
  */
-function fuerDichBilden(materialien, konto) {
+function fuerDichBilden(materialien, konto, merkKeys) {
   const { stufen, faecher } = profilFilter(konto);
   if (stufen.length === 0) return null;
   const filter = { ...leererFilter(), stufen, faecher, sortierung: /** @type {const} */ ('neu') };
@@ -103,16 +105,16 @@ function fuerDichBilden(materialien, konto) {
   return {
     ort: profilOrt(konto),
     profil: [...stufen.map((s) => STUFEN_LABEL[s]), ...faecher.map((f) => FACH_LABEL[f])],
-    karten: treffer.slice(0, FUER_DICH_ANZAHL).map((material) => ({ material, icon: TYPEN[material.typ.key].icon, cover: coverFarben(material) })),
+    karten: treffer.slice(0, FUER_DICH_ANZAHL).map((material) => karteMitMerken(material, merkKeys)),
     anzahl: treffer.length,
     allePfad: listenPfad(filter)
   };
 }
 
 /**
- * @param {{ inhalt: Inhalt, fehlschlag: Fehlschlag|null, relays: string[], heute?: Date, palette?: Record<StufeKey, string>, konto?: Konto }} eingabe
+ * @param {{ inhalt: Inhalt, fehlschlag: Fehlschlag|null, relays: string[], heute?: Date, palette?: Record<StufeKey, string>, konto?: Konto, merkKeys?: string[] }} eingabe
  */
-export function startseiteLaden({ inhalt, fehlschlag, relays, heute = new Date(), palette = STUFEN_FARBE_DEFAULT, konto = LEERES_KONTO }) {
+export function startseiteLaden({ inhalt, fehlschlag, relays, heute = new Date(), palette = STUFEN_FARBE_DEFAULT, konto = LEERES_KONTO, merkKeys = [] }) {
   const materialien = materialienVon(inhalt);
   const keywords = saisonKeywords(heute);
 
@@ -164,7 +166,7 @@ export function startseiteLaden({ inhalt, fehlschlag, relays, heute = new Date()
     empfehlung,
     status,
     begruessung,
-    fuerDich: fuerDichBilden(materialien, konto),
+    fuerDich: fuerDichBilden(materialien, konto, merkKeys),
     browsePfad: mitProfil('/materialien', konto),
     sucheMitProfil: konto.angemeldet
   };

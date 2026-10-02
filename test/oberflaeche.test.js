@@ -10,7 +10,10 @@ import Farbschalter from '../src/lib/komponenten/Farbschalter.svelte';
 import Fusszeile from '../src/lib/komponenten/Fusszeile.svelte';
 import Icon, { ICON_NAMEN } from '../src/lib/komponenten/Icon.svelte';
 import IconSprite from '../src/lib/komponenten/IconSprite.svelte';
+import Karte from '../src/lib/komponenten/Karte.svelte';
 import Konto from '../src/lib/komponenten/Konto.svelte';
+import Merkliste from '../src/lib/komponenten/Merkliste.svelte';
+import { karteMitMerken, merkSchluessel } from '../src/lib/routen/merkliste.js';
 import Kopfzeile from '../src/lib/komponenten/Kopfzeile.svelte';
 import { LEERES_KONTO } from '../src/lib/models/konto.js';
 import { kontoSeite } from '../src/lib/routen/konto.js';
@@ -66,13 +69,13 @@ describe('Icon', () => {
 
 describe('Kopfzeile', () => {
   const abgemeldet = { angemeldet: false, vorname: '', stoebernPfad: '/materialien' };
-  it('verlinkt Start und Liste, ohne Merkliste', () => {
+  it('verlinkt Start, Liste und Merkliste (ADR-0008)', () => {
     const { body } = render(Kopfzeile, { props: { aktiv: 'liste', kopf: abgemeldet } });
     expect(body).toContain('class="logo');
     expect(body).toContain('href="/"');
     expect(body).toMatch(/href="\/materialien"[^>]*class="[^"]*active/);
     expect(body).toContain('Stöbern');
-    expect(body).not.toContain('Gemerkt');
+    expect(body).toMatch(/href="\/merkliste"[^>]*aria-label="Gemerkt"/);
   });
   it('bietet „Anmelden“ an und zeigt angemeldet den Vornamen (ADR-0006)', () => {
     expect(render(Kopfzeile, { props: { aktiv: null, kopf: abgemeldet } }).body).toMatch(/href="\/konto"[^>]*aria-label="Anmelden"/);
@@ -80,6 +83,40 @@ describe('Kopfzeile', () => {
     expect(body).toMatch(/href="\/konto"[^>]*aria-label="Profil von Christina"/);
     expect(body).toMatch(/<span[^>]*>Christina<\/span>/);
     expect(body).toContain('href="/materialien?profil=1"');
+  });
+});
+
+describe('Merkliste (ADR-0008)', () => {
+  const erntedank = materialAusEvent(beispiele[2]);
+  it('Karte: Lesezeichen als POST-Formular, das an die Karte zurückführt', () => {
+    const karte = karteMitMerken(erntedank, []);
+    const { body } = render(Karte, { props: { karte, zurueck: '/materialien?stufe=elem' } });
+    expect(body).toContain(`id="k-${karte.merkSchluessel}"`);
+    expect(body).toMatch(/<form[^>]*class="merken[^>]*method="post"[^>]*action="\/merkliste\?\/umschalten"/);
+    expect(body).toContain(`name="zurueck" value="/materialien?stufe=elem#k-${karte.merkSchluessel}"`);
+    expect(body).toContain('aria-label="„EKD: Erntedankfest“ merken"');
+    expect(body).toContain('aria-pressed="false"');
+  });
+  it('Karte: gemerkt gefüllt; ohne zurueck kein Lesezeichen', () => {
+    const karte = karteMitMerken(erntedank, [merkSchluessel(erntedank)]);
+    const gemerkt = render(Karte, { props: { karte, zurueck: '/' } }).body;
+    expect(gemerkt).toContain('#ti-bookmark-gefuellt');
+    expect(gemerkt).toContain('aus der Merkliste entfernen');
+    expect(render(Karte, { props: { karte } }).body).not.toContain('class="merken');
+  });
+  it('Seite: leer mit Erklärung, sonst die Karten und was fehlt', () => {
+    expect(render(Merkliste, { props: { karten: [], fehlend: 0 } }).body).toContain('Noch nichts gemerkt');
+    const { body } = render(Merkliste, { props: { karten: [karteMitMerken(erntedank, [])], fehlend: 2 } });
+    expect(body).toContain('1 Material');
+    expect(body).toContain('2 sind nicht mehr im Bestand');
+    expect(body).toContain('name="zurueck" value="/merkliste#k-');
+  });
+  it('Detailseite: „Merken“ bzw. „Gemerkt“', () => {
+    const merken = { schluessel: merkSchluessel(erntedank), gemerkt: true };
+    const { body } = render(Detail, { props: { material: erntedank, relays, merken } });
+    expect(body).toMatch(/action="\/merkliste\?\/umschalten"/);
+    expect(body).toContain(`name="zurueck" value="${erntedank.pfad}"`);
+    expect(body).toMatch(/aria-pressed="true"[^>]*>.*Gemerkt/s);
   });
 });
 

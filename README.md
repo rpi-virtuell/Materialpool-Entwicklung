@@ -61,6 +61,7 @@ Routen   /            Startseite (Suche, Themen, Stufen, Empfehlung)
                       wortlaut=); profil=1 setzt Stufe/Fach aus dem Profil
          /m/<kennung> Detail; /m/<kennung>/json rohes Event
          /konto       Anmelden und Profil, prototypisch (ADR-0006)
+         /merkliste   „Gemerkt“; Lesezeichen per POST ?/umschalten (ADR-0008)
 ```
 
 Serverseitig gerendert, ohne JavaScript lesbar, keine Relay-Verbindung im

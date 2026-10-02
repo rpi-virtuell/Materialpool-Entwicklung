@@ -4,11 +4,11 @@
  * ODER innerhalb einer Facette, UND dazwischen; Zähler je Facette ohne
  * die eigene Facette. Alles reine Funktionen.
  */
-import { coverFarben } from '../models/farben.js';
 import { materialAusEvent } from '../models/material.js';
-import { FACH_LABEL, FACH_REIHENFOLGE, STUFEN_LABEL, STUFEN_REIHENFOLGE, TYP_LABEL, TYP_REIHENFOLGE, TYPEN } from '../models/typen.js';
+import { FACH_LABEL, FACH_REIHENFOLGE, STUFEN_LABEL, STUFEN_REIHENFOLGE, TYP_LABEL, TYP_REIHENFOLGE } from '../models/typen.js';
 import { ABFRAGEGRUND_TEXT as GRUND_TEXT } from '../services/spiegel.js';
 import { materialienVon } from './bestand.js';
+import { karteMitMerken } from './merkliste.js';
 
 /** @typedef {import('../services/spiegel.js').Inhalt} Inhalt */
 /** @typedef {import('../services/spiegel.js').Fehlschlag} Fehlschlag */
@@ -293,6 +293,8 @@ export function aktiveFilter(filter) {
  * @property {Material} material
  * @property {string} icon
  * @property {{ ink: string, tint: string }} cover
+ * @property {string} merkSchluessel  routen/merkliste.js
+ * @property {boolean} gemerkt
  */
 
 /**
@@ -322,9 +324,9 @@ export function seitenBilden(treffer, filter) {
  */
 
 /**
- * @param {{ inhalt: Inhalt, fehlschlag: Fehlschlag|null, relays: string[], filter?: Filter, suche?: Suchergebnis|null, frage?: FrageHinweis|null, profilHinweis?: string|null }} eingabe
+ * @param {{ inhalt: Inhalt, fehlschlag: Fehlschlag|null, relays: string[], filter?: Filter, suche?: Suchergebnis|null, frage?: FrageHinweis|null, profilHinweis?: string|null, merkKeys?: string[] }} eingabe
  */
-export function listeLaden({ inhalt, fehlschlag, relays, filter = leererFilter(), suche = null, frage = null, profilHinweis = null }) {
+export function listeLaden({ inhalt, fehlschlag, relays, filter = leererFilter(), suche = null, frage = null, profilHinweis = null, merkKeys = [] }) {
   const grundmenge = grundmengeBilden(inhalt, filter, suche);
   // Relay-Treffer sind schon textgefiltert; die Facetten greifen darauf.
   const facettenFilter = grundmenge.textGefiltert ? { ...filter, q: '' } : filter;
@@ -335,9 +337,11 @@ export function listeLaden({ inhalt, fehlschlag, relays, filter = leererFilter()
   const seiten = seitenBilden(treffer.length, filter);
   const ausschnitt = treffer.slice((seiten.aktuell - 1) * SEITENGROESSE_LISTE, seiten.aktuell * SEITENGROESSE_LISTE);
   return {
-    karten: ausschnitt.map((material) => ({ material, icon: TYPEN[material.typ.key].icon, cover: coverFarben(material) })),
+    karten: ausschnitt.map((material) => karteMitMerken(material, merkKeys)),
     treffer: treffer.length,
     seiten,
+    // Nach dem Merken zurück auf genau diese Seite (routen/merkliste.js).
+    zurueck: listenPfad({ ...filter, seite: seiten.aktuell }),
     filter,
     pillen: aktiveFilter(filter),
     facetten: facettenBilden(grundmenge.materialien, facettenFilter, filter),

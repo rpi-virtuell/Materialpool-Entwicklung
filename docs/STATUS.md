@@ -8,6 +8,29 @@ das Gesamtbild in `superpowers/specs/2026-09-28-materialpool-neustart-design.md`
 
 ---
 
+## 2026-10-02 — Merkliste „Gemerkt“ (ADR-0008, offen)
+
+**Passiert:** Christina wollte vor dem Pull Request auch die Merkliste
+des Prototyps. Umgesetzt ohne Client-Schicht: Lesezeichen oben rechts
+auf jeder Karte und „Merken“/„Gemerkt“ auf der Detailseite, je ein
+POST-Formular auf `/merkliste?/umschalten`, zurück per Anker an dieselbe
+Karte (`scroll-margin-top` unter der festen Kopfzeile). Die Liste liegt
+als Cookie `merkliste` im Browser — je Material 12 Hex-Zeichen SHA-256
+über `d`, höchstens 200. `/merkliste` zeigt alles Gemerkte, neueste
+Merkung zuerst, und nennt, was nicht mehr im Spiegel steht. „Gemerkt“
+in der Kopfzeile.
+
+**Wo steht das Projekt:** `pnpm check` 0 Fehler, 195 Tests grün, `pnpm
+build` läuft. Im Browser geprüft: Merken auf Seite 2 der Liste und
+Rücksprung an die Karte, Merkliste, Entfernen auf der Detailseite,
+leerer Zustand. Der Branch liegt seit dem 01.10. auf dem Server; der
+Pull Request steht noch aus.
+
+**Nächster Schritt:** Branch erneut hochladen, Pull Request an Jörg mit
+ADR-0006, -0007 und -0008 zur Bestätigung.
+
+---
+
 ## 2026-09-30 (2) — Nachzug aus dem Prototyp: Fächer, Farbschalter, Suche in eigenen Worten, Kontoebene
 
 **Passiert:** Christina wollte alle ihre Weiterentwicklungen im Prototyp

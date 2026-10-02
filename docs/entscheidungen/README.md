@@ -11,7 +11,7 @@ archiviert statt gelöscht (0002), Datenquelle noch offen — Bestand aber
 gefunden (0003), Startseite nach dem Materialpool-2.0-Prototyp, serverseitig
 aus dem Spiegel (0004), Suche per NIP-50 am Relay (0005). Vorgeschlagen und
 noch offen: prototypische Kontoebene ohne echte Konten (0006), alle
-Religionsfächer von drei Relays (0007).
+Religionsfächer von drei Relays (0007), Merkliste im Cookie (0008).
 
 | Nr. | Titel | Status |
 |---|---|---|
@@ -22,3 +22,4 @@ Religionsfächer von drei Relays (0007).
 | [0005](0005-suche-per-nip-50-am-relay.md) | Die Suche fragt die konfigurierten Relays per NIP-50 und rendert die Treffer aus dem Spiegel-Modell | angenommen (2026-09-29) |
 | [0006](0006-prototypische-kontoebene-ohne-echte-konten.md) | Eine prototypische Kontoebene stellt das Stöbern nach Bereich und Fach vor — ohne echte Konten, das Profil liegt im Cookie des Browsers | offen |
 | [0007](0007-alle-religionsfaecher-von-drei-relays.md) | Der Spiegel liest alle Religionsfächer von amb-relay, sodix und oersi — nicht nur den Materialpool-Schlüssel | offen |
+| [0008](0008-merkliste-im-cookie-ohne-javascript.md) | Eine Merkliste „Gemerkt“ sammelt Materialien per Lesezeichen — als Cookie des Browsers, ohne JavaScript | offen |

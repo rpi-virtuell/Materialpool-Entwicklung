@@ -10,5 +10,5 @@
 </svelte:head>
 
 <main class="inhalt-schmal">
-  <Detail material={data.material} relays={data.relays} />
+  <Detail material={data.material} relays={data.relays} merken={data.merken} />
 </main>
