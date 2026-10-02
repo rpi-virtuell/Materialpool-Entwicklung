@@ -270,6 +270,17 @@ describe('Uebersicht (Liste)', () => {
     expect(body).not.toContain('haben wir so verstanden');
   });
 
+  it('stellt die Facetten als Spalte vor die Treffer und kürzt Schlagworte auf sechs plus „mehr …“', () => {
+    const { body } = render(Uebersicht, { props: listeLaden({ inhalt, fehlschlag: null, relays }) });
+    expect(body).toMatch(/<aside class="liste-filter[^"]*" aria-label="Filter">/);
+    expect(body.indexOf('class="liste-filter')).toBeLessThan(body.indexOf('class="liste-ergebnis'));
+    const schlagworte = body.slice(body.indexOf('>Schlagworte</legend>'));
+    const vorMehr = schlagworte.slice(0, schlagworte.indexOf('<details class="facette-mehr'));
+    expect((vorMehr.match(/class="chip[ "]/g) ?? []).length).toBe(6);
+    expect(schlagworte).toContain('<summary class="svelte-');
+    expect(schlagworte).toContain('mehr …</summary>');
+  });
+
   it('rendert Facetten als Link-Chips mit Zählern, aktive gedrückt, leere ohne Link', () => {
     const daten = listeLaden({ inhalt, fehlschlag: null, relays, filter: { ...leererFilter(), stufen: ['elem'] } });
     const { body } = render(Uebersicht, { props: daten });

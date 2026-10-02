@@ -20,7 +20,16 @@ als Cookie `merkliste` im Browser — je Material 12 Hex-Zeichen SHA-256
 Merkung zuerst, und nennt, was nicht mehr im Spiegel steht. „Gemerkt“
 in der Kopfzeile.
 
-**Wo steht das Projekt:** `pnpm check` 0 Fehler, 195 Tests grün, `pnpm
+Danach: **Facetten als Spalte links.** Bei 1280 × 800 brauchten die
+Facetten über den Karten 390 px, die erste Karte begann bei 700 px. Aus
+drei Entwürfen (Aufklappen, Kompakt, Spalte) hat Christina die Spalte
+gewählt: mitlaufend, rechts drei Karten je Reihe (Mindestbreite 220 px),
+erste Karte bei 285 px. Schlagworte zeigen sechs plus „mehr …“
+(`<details>`). Leere Chips bleiben abgeblendet stehen — ausgeblendet
+wirkte es, als kenne die Seite die Werte nicht. Unter 900 px stehen die
+Facetten wieder über den Karten.
+
+**Wo steht das Projekt:** `pnpm check` 0 Fehler, 196 Tests grün, `pnpm
 build` läuft. Im Browser geprüft: Merken auf Seite 2 der Liste und
 Rücksprung an die Karte, Merkliste, Entfernen auf der Detailseite,
 leerer Zustand. Der Branch liegt seit dem 01.10. auf dem Server; der
