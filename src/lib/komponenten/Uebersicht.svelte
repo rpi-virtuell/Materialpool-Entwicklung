@@ -13,12 +13,15 @@
    * Vorher brauchten die Facetten über den Karten bei 1280 × 800 rund
    * 390 px Höhe. Von den Schlagworten stehen die ersten sechs, der Rest
    * hinter „mehr …“. Chips ohne Treffer bleiben abgeblendet stehen —
-   * ausgeblendet wirkte es, als kenne die Seite die Werte nicht.
+   * ausgeblendet wirkte es, als kenne die Seite die Werte nicht. Unter
+   * 900 px liegen die Facetten über den Karten hinter einem Knopf „Filter“.
    * @type {ReturnType<typeof import('$lib/routen/uebersicht.js').listeLaden>}
    */
   let { karten, treffer, seiten, zurueck, filter, pillen, facetten, sortierungen, suche, frage, profilHinweis, gesamt, leerstand } = $props();
   /** Schlagwort-Chips vor „mehr …“. */
   const SCHLAGWORTE_SICHTBAR = 6;
+  /** Auf dem Handy liegen die Facetten hinter „Filter“; mit aktiven Filtern steht es offen. */
+  const aktiveFacetten = $derived(filter.stufen.length + filter.typen.length + filter.faecher.length + filter.schlagworte.length);
   const trefferText = $derived(
     treffer === gesamt ? `${treffer} Treffer` : `${treffer} Treffer von ${gesamt}`
   );
@@ -74,6 +77,11 @@
 
       <div class="liste-koerper">
       <aside class="liste-filter" aria-label="Filter">
+        <!-- Nur unter 900 px sichtbar: Das Kästchen schaltet die Facetten per
+             CSS auf und zu, ohne JavaScript. Am Desktop ist beides
+             ausgeblendet, die Spalte steht immer. -->
+        <input class="filter-schalter" type="checkbox" id="filter-schalter" checked={aktiveFacetten > 0} />
+        <label class="filter-knopf" for="filter-schalter">Filter{aktiveFacetten > 0 ? ` (${aktiveFacetten})` : ''}</label>
         <div class="facetten">
           {#each gruppen as gruppe (gruppe.name)}
             <!-- Leere Chips bleiben abgeblendet stehen: Man soll sehen, dass
@@ -239,6 +247,18 @@
   .facette-mehr summary::-webkit-details-marker { display: none; }
   .facette-mehr[open] summary { display: none; }
   .liste-ergebnis .profil-hinweis { margin-top: 0; }
+  /* Handy: Knopf „Filter“; das Kästchen bleibt für Tastatur und
+     Screenreader erreichbar, ist aber unsichtbar. */
+  .filter-schalter {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+    opacity: 0;
+  }
+  .filter-knopf { display: none; }
   .chip {
     display: inline-flex;
     align-items: center;
@@ -306,7 +326,26 @@
   @media (max-width: 900px) {
     .liste-koerper { display: block; }
     .liste-filter { position: static; max-height: none; overflow: visible; margin-bottom: var(--sp-6); }
-    .facetten { gap: var(--sp-3); }
+    .facetten { gap: var(--sp-3); display: none; margin-top: var(--sp-4); }
+    .filter-schalter:checked ~ .facetten { display: flex; }
+    .filter-knopf {
+      display: inline-flex;
+      align-items: center;
+      gap: var(--sp-2);
+      cursor: pointer;
+      padding: var(--sp-2) var(--sp-4);
+      min-height: 44px;
+      border: 1px solid var(--border);
+      border-radius: 5px;
+      font-size: var(--fs-300);
+      font-weight: 600;
+      color: var(--text-dark);
+      background: var(--weiss);
+    }
+    .filter-knopf::after { content: '▾'; font-size: 0.8em; color: var(--text-muted); }
+    .filter-schalter:checked + .filter-knopf { border-color: var(--blue); color: var(--blue); }
+    .filter-schalter:checked + .filter-knopf::after { content: '▴'; }
+    .filter-schalter:focus-visible + .filter-knopf { outline: 2px solid var(--blue); outline-offset: 2px; }
     .facette { display: flex; flex-wrap: wrap; align-items: baseline; gap: var(--sp-2) var(--sp-3); }
     .facette legend { float: left; min-width: 7.5em; margin-bottom: 0; }
   }

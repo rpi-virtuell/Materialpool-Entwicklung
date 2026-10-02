@@ -281,6 +281,15 @@ describe('Uebersicht (Liste)', () => {
     expect(schlagworte).toContain('mehr …</summary>');
   });
 
+  it('legt auf dem Handy die Facetten hinter „Filter“, mit aktiven Filtern offen und gezählt', () => {
+    const zu = render(Uebersicht, { props: listeLaden({ inhalt, fehlschlag: null, relays }) }).body;
+    expect(zu).toMatch(/<input class="filter-schalter[^"]*" type="checkbox" id="filter-schalter"\/?>/);
+    expect(zu).toMatch(/<label class="filter-knopf[^"]*" for="filter-schalter">Filter<\/label>/);
+    const offen = render(Uebersicht, { props: listeLaden({ inhalt, fehlschlag: null, relays, filter: { ...leererFilter(), stufen: ['elem'], typen: ['plan'] } }) }).body;
+    expect(offen).toMatch(/id="filter-schalter" checked/);
+    expect(offen).toContain('Filter (2)</label>');
+  });
+
   it('rendert Facetten als Link-Chips mit Zählern, aktive gedrückt, leere ohne Link', () => {
     const daten = listeLaden({ inhalt, fehlschlag: null, relays, filter: { ...leererFilter(), stufen: ['elem'] } });
     const { body } = render(Uebersicht, { props: daten });

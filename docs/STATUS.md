@@ -27,9 +27,11 @@ gewählt: mitlaufend, rechts drei Karten je Reihe (Mindestbreite 220 px),
 erste Karte bei 285 px. Schlagworte zeigen sechs plus „mehr …“
 (`<details>`). Leere Chips bleiben abgeblendet stehen — ausgeblendet
 wirkte es, als kenne die Seite die Werte nicht. Unter 900 px stehen die
-Facetten wieder über den Karten.
+Facetten über den Karten hinter einem Knopf „Filter“ (Kästchen + CSS,
+ohne JavaScript), mit aktiven Filtern offen und gezählt — am Handy
+beginnt die erste Karte damit bei 375 statt 1.055 px.
 
-**Wo steht das Projekt:** `pnpm check` 0 Fehler, 196 Tests grün, `pnpm
+**Wo steht das Projekt:** `pnpm check` 0 Fehler, 197 Tests grün, `pnpm
 build` läuft. Im Browser geprüft: Merken auf Seite 2 der Liste und
 Rücksprung an die Karte, Merkliste, Entfernen auf der Detailseite,
 leerer Zustand. Der Branch liegt seit dem 01.10. auf dem Server; der
