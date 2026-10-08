@@ -34,6 +34,15 @@ describe('anmelden und profilAusFormular', () => {
     expect(anmelden('  Christina Kreutz ', LEERES_KONTO)).toEqual(konto({ name: 'Christina Kreutz' }));
     expect(anmelden('   ', LEERES_KONTO)).toBeNull();
   });
+  it('kürzt Name und Freitext nach Zeichen, ohne ein Emoji zu zerbrechen', () => {
+    const name = /** @type {import('../models/konto.js').Konto} */ (anmelden(`${'x'.repeat(59)}😀😀`, LEERES_KONTO)).name;
+    expect(Array.from(name)).toHaveLength(60);
+    expect(name.endsWith('😀')).toBe(true);
+    expect(name).not.toMatch(/[\uD800-\uDBFF]$/);
+    const profil = profilAusFormular(formular([['bereichAnderes', `${'y'.repeat(79)}🙂🙂`]]), konto({}));
+    expect(Array.from(profil.bereichAnderes)).toHaveLength(80);
+    expect(profil.bereichAnderes.endsWith('🙂')).toBe(true);
+  });
   it('behält beim Abmelden das Profil, das mit der nächsten Anmeldung zurückkommt', () => {
     const k = konto({ bereiche: ['konfi'] });
     const ab = kontoLesen(kontoSchreiben(abmelden(k)));

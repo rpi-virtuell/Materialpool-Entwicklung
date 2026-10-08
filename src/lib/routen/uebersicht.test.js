@@ -7,6 +7,7 @@ import {
   aktiveFilter, facettenBilden, filterAnwenden, filterLesen, grundmengeBilden, leererFilter, leerstandErklaeren,
   listeLaden, listenPfad, SEITENGROESSE_LISTE, seitenBilden, SORTIERUNGEN, sortieren
 } from './uebersicht.js';
+import { SUCHTEXT_MAX } from '../models/text.js';
 
 const relays = ['wss://amb-relay.edufeed.org/'];
 const materialien = beispiele.map(materialAusEvent);
@@ -14,6 +15,14 @@ const materialien = beispiele.map(materialAusEvent);
 const filter = (teil = {}) => ({ ...leererFilter(), ...teil });
 const lesepause = 'Lesepause – Magazin für Religionslehrkräfte im Erzbistum Paderborn. Ausgabe 1 | Februar 2026';
 const frieden = 'Modul für den Religionsunterricht: Kein Frieden ohne Frieden der Religionen';
+
+describe('filterLesen — Suchtext', () => {
+  it('kürzt q auf SUCHTEXT_MAX Zeichen, ohne ein Emoji zu zerbrechen', () => {
+    const f = filterLesen(new URLSearchParams({ q: `${'x'.repeat(SUCHTEXT_MAX - 1)}😀${'y'.repeat(50)}` }));
+    expect(Array.from(f.q)).toHaveLength(SUCHTEXT_MAX);
+    expect(f.q.endsWith('😀')).toBe(true);
+  });
+});
 
 describe('leerstandErklaeren — nie eine leere Liste ohne Erklärung', () => {
   it('schweigt, wenn Material da ist', () => {
@@ -23,6 +32,10 @@ describe('leerstandErklaeren — nie eine leere Liste ohne Erklärung', () => {
   it('nennt den Fehlschlag samt Relays', () => {
     const fehlschlag = { zeitpunkt: 'x', gefragteRelays: relays, grund: /** @type {const} */ ('kein-relay-erreichbar') };
     expect(leerstandErklaeren(leererInhalt(), fehlschlag, relays)).toMatch(/Kein Relay war erreichbar.*amb-relay/);
+  });
+  it('nennt einen abgebrochenen Lauf', () => {
+    const fehlschlag = { zeitpunkt: 'x', gefragteRelays: relays, grund: /** @type {const} */ ('lauf-abgebrochen') };
+    expect(leerstandErklaeren(leererInhalt(), fehlschlag, relays)).toMatch(/mit einem Fehler abgebrochen.*amb-relay/);
   });
   it('erklärt den fehlenden ersten Lauf', () => {
     expect(leerstandErklaeren(leererInhalt(), null, relays)).toMatch(/noch keinen Stand/);

@@ -31,12 +31,14 @@ import { faecherAusBegriffen, stufeAusBegriffen, stufenAusBegriffen, typAusBegri
  * @property {number} createdAt
  * @property {string} d             AMB-id, meist die URL der Ressource
  * @property {string} kennung       URL-sicherer Pfadteil aus `d`
- * @property {string} pfad          /m/<kennung>
+ * @property {string} pfad          /m/<kennung>, mit `?von=<pubkey>`, wenn mehrere Schlüssel dieses `d` publizieren (ADR-0009)
+ * @property {string} jsonPfad      rohes Event: /m/<kennung>/json, ebenso mit `?von=`
  * @property {string} name
  * @property {string} beschreibung
  * @property {string|null} url      `d`, sonst `encoding:contentUrl`, sonst erstes http-`r`
  * @property {string|null} bild     `image`, nur mit http(s)-Adresse
- * @property {string|null} lizenz   URL der Lizenz
+ * @property {string|null} lizenz   Lizenzangabe (`license:id`), wie im Event
+ * @property {string|null} lizenzUrl  dieselbe, nur mit http(s)-Adresse — sonst kein Link
  * @property {string|null} lizenzKuerzel  z. B. „CC BY-SA 4.0“, sonst null
  * @property {string[]} typen       AMB `type`, z. B. LearningResource
  * @property {string[]} schlagworte
@@ -52,7 +54,7 @@ import { faecherAusBegriffen, stufeAusBegriffen, stufenAusBegriffen, typAusBegri
  * @property {StufeKey[]} stufenKeys                     alle Stufen (Filter, Facetten)
  * @property {Begriff[]} bildungsstufen
  * @property {Begriff[]} faecher
- * @property {FachKey[]} fachKeys                        Konfessionen aus `about:id`, sonst „allgemein“ (Filter, Facetten)
+ * @property {FachKey[]} fachKeys                        Konfessionen aus `about:id`, sonst mit s1055 „allgemein“, sonst leer (Filter, Facetten)
  * @property {Begriff[]} ressourcentypen
  * @property {string|null} datum    datePublished, sonst dateCreated
  */
@@ -94,18 +96,15 @@ export function begriffe(tags, praefix) {
   return ids.map((id, i) => ({ id, label: de[i] ?? en[i] ?? letzterPfadteil(id) }));
 }
 
-/** @param {string} d */
+/**
+ * Pfadteil aus `d`. Zurück geht es ohne eigenes Dekodieren: SvelteKit
+ * liefert `params.kennung` schon dekodiert, ein zweites
+ * `decodeURIComponent` machte aus `%20` in `d` ein Leerzeichen und ließe
+ * ein `d` mit `%` gar nicht mehr finden.
+ * @param {string} d
+ */
 export function kennungAusD(d) {
   return encodeURIComponent(d);
-}
-
-/** @param {string} kennung @returns {string|null} */
-export function dAusKennung(kennung) {
-  try {
-    return decodeURIComponent(kennung);
-  } catch {
-    return null;
-  }
 }
 
 /**
@@ -150,6 +149,17 @@ export function herkunftBilden(m) {
 }
 
 /**
+ * Dasselbe Material mit Pfaden, die den Schlüssel nennen — wenn `d` allein
+ * mehrdeutig ist (routen/bestand.js entscheidet, ADR-0009).
+ * @param {Material} m
+ * @returns {Material}
+ */
+export function mitVon(m) {
+  const von = `?${new URLSearchParams({ von: m.pubkey })}`;
+  return { ...m, pfad: `/m/${m.kennung}${von}`, jsonPfad: `/m/${m.kennung}/json${von}` };
+}
+
+/**
  * @param {Event} event
  * @returns {Material}
  */
@@ -176,11 +186,13 @@ export function materialAusEvent(event) {
     d,
     kennung,
     pfad: `/m/${kennung}`,
+    jsonPfad: `/m/${kennung}/json`,
     name: erstes(tags, 'name') ?? (d || '(ohne Titel)'),
     beschreibung: erstes(tags, 'description') ?? '',
     url,
     bild: istHttp(bildRoh) ? bildRoh : null,
     lizenz,
+    lizenzUrl: istHttp(lizenz) ? lizenz : null,
     lizenzKuerzel: lizenzKuerzel(lizenz),
     typen: alle(tags, 'type'),
     schlagworte,

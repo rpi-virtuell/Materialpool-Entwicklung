@@ -60,7 +60,8 @@
     <dd>{material.bildungsstufen.length > 0 ? begriffe(material.bildungsstufen) : 'nicht angegeben'}</dd>
     {#if material.faecher.length > 0}<dt>Fach</dt><dd>{begriffe(material.faecher)}</dd>{/if}
     {#if material.ressourcentypen.length > 0}<dt>Materialart</dt><dd>{begriffe(material.ressourcentypen)}</dd>{/if}
-    {#if material.lizenz}<dt>Lizenz</dt><dd><a href={material.lizenz} rel="license">{material.lizenzKuerzel ?? material.lizenz}</a></dd>{/if}
+    {#if material.lizenzUrl}<dt>Lizenz</dt><dd><a href={material.lizenzUrl} rel="license">{material.lizenzKuerzel ?? material.lizenzUrl}</a></dd>
+    {:else if material.lizenz}<dt>Lizenz</dt><dd>{material.lizenzKuerzel ?? material.lizenz}</dd>{/if}
     {#if material.datum}<dt>Datum</dt><dd>{material.datum}</dd>{/if}
     {#if material.sprachen.length > 0}<dt>Sprache</dt><dd>{material.sprachen.join(', ')}</dd>{/if}
     {#if material.schlagworte.length > 0}<dt>Schlagworte</dt><dd>{material.schlagworte.join(' · ')}</dd>{/if}
@@ -71,7 +72,7 @@
     <p>Event <code>{material.id}</code> von <code>{material.pubkey}</code>, kind 30142, d = <code>{material.d}</code>.</p>
     {#if material.typen.length > 0}<p>AMB-Typ: {material.typen.join(', ')}</p>{/if}
     <p>Geliefert von: {relays.length > 0 ? relays.join(', ') : 'unbekannt (Stand aus der Datei)'}.</p>
-    <p><a href={`${material.pfad}/json`}>Rohes Event als JSON</a></p>
+    <p><a href={material.jsonPfad}>Rohes Event als JSON</a></p>
   </details>
 </article>
 

@@ -10,12 +10,17 @@ const inhalt = { ...leererInhalt(), materialien: beispiele };
 const [arbeitsheft, berufsorientierung, erntedank] = beispiele.map(materialAusEvent);
 
 describe('merkSchluessel', () => {
-  it('ist kurz, stabil und hängt an der Adresse (d), nicht an der Event-id', () => {
+  it('ist kurz, stabil und hängt an der Adresse (pubkey, d), nicht an der Event-id', () => {
     const k = merkSchluessel(erntedank);
     expect(k).toMatch(/^[0-9a-f]{12}$/);
     const neueFassung = { ...erntedank, id: 'neue-version' };
     expect(merkSchluessel(neueFassung)).toBe(k);
     expect(merkSchluessel(arbeitsheft)).not.toBe(k);
+  });
+
+  it('unterscheidet dasselbe d von zwei Schlüsseln (ADR-0009)', () => {
+    const fremd = { ...erntedank, pubkey: 'f'.repeat(64) };
+    expect(merkSchluessel(fremd)).not.toBe(merkSchluessel(erntedank));
   });
 });
 

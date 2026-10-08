@@ -176,7 +176,8 @@ describe('Startseite', () => {
     expect(body).toContain('Nach Alter einsteigen');
     expect(body).toContain('Junge Erwachsene');
     expect((body.match(/class="stufe-kachel /g) ?? []).length).toBe(4);
-    expect(body).toContain('href="/materialien?stufe=bbs"');
+    expect(body).toContain('href="/materialien?stufe=fortbildung"');
+    expect(body).not.toContain('href="/materialien?stufe=bbs"');
     expect(body).toContain('Materialien werden geladen …');
     expect(body).not.toContain('status-warn');
     expect(body).not.toContain('themen-row');
@@ -383,5 +384,14 @@ describe('Detail', () => {
     expect(body.indexOf('AMB-Typ')).toBeGreaterThan(body.indexOf('Entwickleransicht'));
     const ohneStufe = render(Detail, { props: { material: materialien[1], relays: [], cover: coverFarben(materialien[1]), icon: 'file' } }).body;
     expect(ohneStufe).toMatch(/<dt[^>]*>Bildungsstufe<\/dt>\s*<dd[^>]*>nicht angegeben<\/dd>/);
+  });
+
+  it('macht aus einer Lizenz ohne http(s)-Adresse keinen Link', () => {
+    const tags = beispiele[6].tags.map((t) => (t[0] === 'license:id' ? ['license:id', 'javascript:alert(1)'] : t));
+    const material = materialAusEvent({ ...beispiele[6], tags });
+    const { body } = render(Detail, { props: { material, relays: [], cover: coverFarben(material), icon: 'file' } });
+    expect(body).toContain('javascript:alert(1)');
+    expect(body).not.toContain('href="javascript:');
+    expect(body).not.toContain('rel="license"');
   });
 });

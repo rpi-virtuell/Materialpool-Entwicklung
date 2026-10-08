@@ -83,7 +83,7 @@ export const FACH_LABEL = {
   allgemein: 'Religionslehre (überkonfessionell)'
 };
 
-/** Letzter Pfadteil der KIM-Schulfach-URI → Fach. s1055 (Religion, überkonfessionell) steht nicht hier: es ist der Rückfall. */
+/** Letzter Pfadteil der KIM-Schulfach-URI → Konfession. s1055 (Religion, überkonfessionell) steht nicht hier, siehe unten. */
 const KIM_FACH = /** @type {Record<string, FachKey>} */ ({
   s1024: 'evangelisch',
   s1026: 'katholisch',
@@ -92,32 +92,36 @@ const KIM_FACH = /** @type {Record<string, FachKey>} */ ({
   s1056: 'alevitisch'
 });
 
+/** KIM-Kennung für Religion, überkonfessionell. */
+const KIM_UEBERKONFESSIONELL = 's1055';
+
 /**
  * Alle Konfessionen, die die Fach-Begriffe nennen, in FACH_REIHENFOLGE.
  * Viele Materialien tragen die konfessionelle UND die überkonfessionelle
- * Kennung; „allgemein“ gilt nur, wenn keine Konfession passt.
+ * Kennung; „allgemein“ gilt nur, wenn keine Konfession passt und s1055
+ * dasteht. Ein anderes Fach (Ethik, Geschichte) ist kein Religionsfach —
+ * dann bleibt die Liste leer.
  * @param {Begriff[]} begriffe
  * @returns {FachKey[]}
  */
 export function faecherAusBegriffen(begriffe) {
-  const keys = new Set(begriffe.flatMap((b) => {
-    const key = KIM_FACH[pfadteil(b.id)];
-    return key ? [key] : [];
-  }));
+  const teile = begriffe.map((b) => pfadteil(b.id));
+  const keys = new Set(teile.flatMap((t) => (KIM_FACH[t] ? [KIM_FACH[t]] : [])));
   const geordnet = FACH_REIHENFOLGE.filter((k) => keys.has(k));
-  return geordnet.length > 0 ? geordnet : ['allgemein'];
+  if (geordnet.length > 0) return geordnet;
+  return teile.includes(KIM_UEBERKONFESSIONELL) ? ['allgemein'] : [];
 }
 
 /**
  * Reihenfolge in Facetten. `fortbildung` und `hochschule` kommen im
  * Materialpool-Bestand vor (KIM level_C, level_A) und stehen darum in der
- * Facette — aber nicht als Kachel der Startseite (Prototyp).
+ * Facette; `fortbildung` ist die Kachel „Erwachsene“, `bbs` keine.
  * @type {StufeKey[]}
  */
 export const STUFEN_REIHENFOLGE = ['elem', 'sek1', 'sek2', 'bbs', 'fortbildung', 'hochschule', 'unbekannt'];
 
-/** Die Kacheln der Startseite — nie „unbekannt“. @type {StufeKey[]} */
-export const STUFEN_SICHTBAR = ['elem', 'sek1', 'sek2', 'bbs'];
+/** Die Kacheln der Startseite — nie „unbekannt“. „Erwachsene“ ist Fortbildung, nicht Berufsbildung. @type {StufeKey[]} */
+export const STUFEN_SICHTBAR = ['elem', 'sek1', 'sek2', 'fortbildung'];
 
 /** @type {Record<StufeKey, string>} */
 export const STUFEN_LABEL = {
@@ -143,7 +147,7 @@ export const STUFEN_LABEL_ALTER = {
   elem: 'Kinder',
   sek1: 'Jugendliche',
   sek2: 'Junge Erwachsene',
-  bbs: 'Erwachsene'
+  fortbildung: 'Erwachsene'
 };
 
 /** educationalLevel-Label → Stufe; alles andere ist „unbekannt“. */

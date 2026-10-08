@@ -25,7 +25,7 @@ import { WebSocket } from 'ws';
  *
  * @typedef {object} Relayantwort
  * @property {Event[]} events
- * @property {boolean} erreicht  true, sobald das Relay mit EOSE/CLOSED antwortete
+ * @property {boolean} erreicht  true, sobald das Relay mit EOSE oder CLOSED ohne Grund antwortete
  */
 
 /**
@@ -115,7 +115,9 @@ export function eventsHolen(relayUrl, filter, optionen = {}) {
         gesammelt.push(nachricht[2]);
       } else if (art === 'EOSE' || art === 'CLOSED') {
         // Eine vollständige Antwort — auch eine leere ist eine Antwort.
-        erreicht = true;
+        // CLOSED mit maschinenlesbarem Grund (NIP-01: „unsupported: …“,
+        // „error: …“, „invalid: …“) ist dagegen eine Absage.
+        erreicht = art === 'EOSE' || !/^[a-z-]+:/.test(String(nachricht[2] ?? ''));
         beenden();
       }
     });

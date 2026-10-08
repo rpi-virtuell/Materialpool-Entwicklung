@@ -32,14 +32,37 @@ Alternative, falls der intranda-Server nicht der Container-Host ist: die
 Adresse auf den Server umziehen, auf dem `community-hub.rpi-virtuell.net`
 (46.225.82.96) läuft, und dort einen zweiten Container betreiben.
 
+## Hinter Apache: ORIGIN, Cookies, Rechte
+
+- **`ORIGIN` setzen** (`.env` auf dem Server:
+  `ORIGIN=https://material.rpi-virtuell.net`). SvelteKit prüft bei jedem
+  Formular per POST, ob dessen Origin zur Adresse des Servers passt.
+  Ohne `ORIGIN` nimmt adapter-node `https://` plus die Host-Kopfzeile —
+  hinter einem `ProxyPass` ohne `ProxyPreserveHost` ist das
+  `127.0.0.1:8080`, und jedes Anmelden und Speichern unter `/konto`
+  endet mit 403. Alternative, wenn Apache beide Kopfzeilen setzt:
+  `PROTOCOL_HEADER=x-forwarded-proto`, `HOST_HEADER=x-forwarded-host`.
+  `docker-compose.yml` reicht `ORIGIN` durch (Standard
+  `http://localhost:8080`).
+- **Cookies sind Secure** (SvelteKit-Standard, außer auf
+  `http://localhost`). Über `http://<IP>:8080` bleiben Anmeldung und
+  Farbe darum nicht hängen — geprüft wird über HTTPS.
+- **Der Container läuft als `node` (uid 1000)**, nicht als root. Das
+  Volume `./daten` muss für ihn beschreibbar sein: mit Docker
+  `chown 1000:1000 daten`, mit rootless Podman
+  `podman unshare chown 1000:1000 daten`. Sonst läuft der Spiegel weiter,
+  schreibt aber keinen Stand (Warnung im Log) und startet nach jedem
+  Neustart leer.
+
 ## Lokal wie auf dem Server
 
 ```
 docker compose up -d --build     # Port 8080 → 3000 im Container
 ```
 
-Ohne Docker: `pnpm build && pnpm start` (Port über `PORT`, Host über
-`HOST`; adapter-node liest beides).
+Ohne Docker: `pnpm build && ORIGIN=http://localhost:3000 pnpm start`
+(Port über `PORT`, Host über `HOST`; adapter-node liest beides, und ohne
+`ORIGIN` lehnt er `/konto`-Formulare ab).
 
 ## Stolpersteine aus oer-community, die hier genauso gelten
 

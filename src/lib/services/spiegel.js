@@ -8,19 +8,29 @@
  * ungültiger Lauf ersetzt nichts und wird als Fehlschlag gemerkt, damit die
  * Fußzeile das Alter des angezeigten Stands nennen kann.
  *
+ * Jedes Event wird vorher geprüft (`services/pruefung.js`, ADR-0009):
+ * Form, id, Signatur und, mit QUELLE_AUTOREN, der Schlüssel.
+ *
  * Diese Datei ist die EINZIGE, die `services/relay.js` importiert
  * (test/architektur.test.js). Sie kennt die Oberfläche nicht.
  */
 
 import { mkdir, readFile, rename, writeFile } from 'node:fs/promises';
 import { dirname } from 'node:path';
-import { eventsHolen, eventsVonAllen } from './relay.js';
-
-export { ABFRAGEGRUND_TEXT } from './relay.js';
+import { kuerzen, SUCHTEXT_MAX } from '../models/text.js';
+import { eventsPruefen, formGueltig, formUndAutorGueltig } from './pruefung.js';
+import { ABFRAGEGRUND_TEXT as RELAYGRUND_TEXT, eventsHolen, eventsVonAllen } from './relay.js';
 
 /** @typedef {import('./relay.js').Event} Event */
 /** @typedef {import('./relay.js').Abfragegrund} Abfragegrund */
 /** @typedef {import('../konfig.js').Konfig} Konfig */
+/** @typedef {Abfragegrund|'lauf-abgebrochen'} Laufgrund */
+
+/** Warum eine Abfrage oder ein Lauf nichts lieferte, als Satz. @type {Record<Exclude<Laufgrund, null>, string>} */
+export const ABFRAGEGRUND_TEXT = {
+  ...RELAYGRUND_TEXT,
+  'lauf-abgebrochen': 'Der letzte Lauf des Spiegels ist mit einem Fehler abgebrochen (siehe Server-Log).'
+};
 
 /** AMB-Metadaten als ersetzbares Event (edufeed-AMB-NIP). */
 export const KIND_AMB = 30142;
@@ -48,7 +58,7 @@ export const SUCHE_SPEICHER_MAX = 200;
  * @property {Event[]} materialien           ein Event je (pubkey, d), jüngstes zuerst
  * @property {Record<string, string[]>} quellen  Event-id → Relays, die es lieferten
  */
-/** @typedef {{ zeitpunkt: string, gefragteRelays: string[], grund: Abfragegrund }} Fehlschlag */
+/** @typedef {{ zeitpunkt: string, gefragteRelays: string[], grund: Laufgrund }} Fehlschlag */
 
 /** @returns {Inhalt} */
 export function leererInhalt() {
@@ -73,9 +83,26 @@ export function filterBauen(konfig) {
 }
 
 /**
- * Blättert über `until`, bis eine Seite kleiner als die Seitengröße ist,
- * nichts Neues mehr kommt oder `limit` erreicht ist. `until` ist
- * einschließlich, darum die Deduplizierung nach id. Ein Relay, das nach
+ * Nur geprüfte Events weiterreichen (ADR-0009). Außen um das Blättern, weil
+ * das Blättern an der vollen Seite des Relays erkennt, ob es weitergeht.
+ * @param {typeof eventsHolen} holen
+ * @param {Konfig} konfig
+ * @returns {typeof eventsHolen}
+ */
+export function geprueft(holen, konfig) {
+  return async (url, filter, optionen) => {
+    const antwort = await holen(url, filter, optionen);
+    return { ...antwort, events: await eventsPruefen(antwort.events, konfig.autoren) };
+  };
+}
+
+/**
+ * Blättert über `until`, bis eine Seite kleiner als die Seitengröße ist
+ * oder `limit` erreicht ist. `until` ist einschließlich, darum die
+ * Deduplizierung nach id. Bringt eine volle Seite nichts Neues, teilen sich
+ * mehr als 250 Events dieselbe Sekunde (Import): Dann geht es unterhalb
+ * dieser Sekunde weiter, mit Warnung — was dort über der Seitengröße liegt,
+ * fehlt. Rückt `until` nicht vor (Relay ohne `until`), endet es. Ein Relay, das nach
  * der ersten Seite ausfällt, gilt mit dem Teilstand als erreicht — besser
  * ein Teil als nichts; die nächste Runde holt den Rest.
  *
@@ -96,14 +123,23 @@ export function seitenweise(holen, limit) {
       if (!seite.erreicht) break;
       erreicht = true;
       let neu = 0;
-      for (const e of seite.events) {
+      // Unlesbares zählt für die volle Seite, aber nicht für `until`.
+      const lesbar = seite.events.filter(formGueltig);
+      for (const e of lesbar) {
         if (!gesehen.has(e.id)) {
           gesehen.set(e.id, e);
           neu++;
         }
       }
-      if (seite.events.length < groesse || neu === 0) break;
-      until = Math.min(...seite.events.map((e) => e.created_at));
+      if (seite.events.length < groesse || lesbar.length === 0) break;
+      const aeltestes = Math.min(...lesbar.map((e) => e.created_at));
+      if (neu > 0) {
+        until = aeltestes;
+        continue;
+      }
+      if (until !== undefined && aeltestes - 1 >= until) break;
+      console.warn(`Spiegel: ${url} hat mehr als ${groesse} Events mit created_at ${aeltestes}; Events dieser Sekunde können fehlen.`);
+      until = aeltestes - 1;
     }
     return { erreicht, events: [...gesehen.values()] };
   };
@@ -146,21 +182,24 @@ export function ersetzbareZusammenfassen(events, optionen = {}) {
 
 /** @type {Map<string, { zeitpunkt: number, ergebnis: Suchergebnis }>} */
 let sucheSpeicher = new Map();
+/** Suchen, die gerade laufen: dieselbe öffnet keine zweiten Verbindungen. @type {Map<string, Promise<Suchergebnis>>} */
+let sucheLaufend = new Map();
 
-/** @param {string} text */
+/** Höchstens SUCHTEXT_MAX Zeichen, klein, Leerraum zusammengezogen. @param {string} text */
 export function sucheSchluessel(text) {
-  return text.trim().toLowerCase().replace(/\s+/g, ' ');
+  return kuerzen(text.trim(), SUCHTEXT_MAX).trim().toLowerCase().replace(/\s+/g, ' ');
 }
 
 /**
  * Volltextsuche über alle konfigurierten Relays mit denselben Einschränkungen
  * wie der Spiegel (Autoren, Fächer). Das Relay sortiert nach Relevanz; die
  * Reihenfolge bleibt erhalten. Ergebnisse liegen SPIEGEL_INTERVALL_S im
- * Speicher, weil Facetten und Seitenumbruch dieselbe Suche wiederholen.
+ * Speicher, weil Facetten und Seitenumbruch dieselbe Suche wiederholen;
+ * kommt dieselbe Suche, während sie noch läuft, wartet sie auf die erste.
  *
  * @param {Konfig} konfig
  * @param {string} text
- * @param {{ holen?: typeof eventsHolen, jetzt?: () => number }} [optionen]
+ * @param {{ holen?: typeof eventsHolen, jetzt?: () => number, pruefen?: typeof geprueft }} [optionen]
  * @returns {Promise<Suchergebnis>}
  */
 export async function relaySuche(konfig, text, optionen = {}) {
@@ -169,17 +208,42 @@ export async function relaySuche(konfig, text, optionen = {}) {
   const frisch = konfig.spiegelIntervallS * 1000;
   const gemerkt = sucheSpeicher.get(schluessel);
   if (gemerkt && jetzt() - gemerkt.zeitpunkt < frisch) return gemerkt.ergebnis;
+  const laufend = sucheLaufend.get(schluessel);
+  if (laufend) return laufend;
+  const suche = sucheAmRelay(konfig, schluessel, optionen).finally(() => sucheLaufend.delete(schluessel));
+  sucheLaufend.set(schluessel, suche);
+  return suche;
+}
 
+/**
+ * @param {Konfig} konfig
+ * @param {string} schluessel
+ * @param {{ holen?: typeof eventsHolen, jetzt?: () => number, pruefen?: typeof geprueft }} optionen
+ * @returns {Promise<Suchergebnis>}
+ */
+async function sucheAmRelay(konfig, schluessel, optionen) {
+  const jetzt = optionen.jetzt ?? Date.now;
   const { limit: _limit, ...grund } = filterBauen(konfig);
+  const holen = (optionen.pruefen ?? geprueft)(optionen.holen ?? eventsHolen, konfig);
+  // Je Relay die eigene Rangfolge, fürs Verzahnen unten.
+  /** @type {Map<string, Event[]>} */
+  const jeRelay = new Map();
   const ergebnis = await eventsVonAllen(
     konfig.relays,
     { ...grund, search: schluessel, limit: SUCHE_LIMIT },
-    { holen: optionen.holen ?? eventsHolen, zeitschrankeMs: 6000 }
+    {
+      holen: async (url, filter, o) => {
+        const antwort = await holen(url, filter, o);
+        jeRelay.set(url, antwort.events);
+        return antwort;
+      },
+      zeitschrankeMs: 6000
+    }
   );
   /** @type {Suchergebnis} */
   const antwort = {
     events: ersetzbareZusammenfassen(
-      ergebnis.events.filter((e) => e.kind === KIND_AMB),
+      reissverschluss(ergebnis.gefragt.map((url) => jeRelay.get(url) ?? [])).filter((e) => e.kind === KIND_AMB),
       { reihenfolgeBehalten: true }
     ),
     gefragteRelays: ergebnis.gefragt,
@@ -195,9 +259,31 @@ export async function relaySuche(konfig, text, optionen = {}) {
   return antwort;
 }
 
+/**
+ * Treffer mehrerer Relays nach Rang verzahnt: erster von jedem, dann
+ * zweiter von jedem … Ein Event mehrerer Relays steht bei seinem besten
+ * Rang. Aneinandergehängt stünden sonst alle Treffer des ersten Relays vor
+ * dem besten des zweiten.
+ * @param {Event[][]} listen  je Relay relevanzsortiert
+ * @returns {Event[]}
+ */
+export function reissverschluss(listen) {
+  /** @type {Map<string, Event>} */
+  const nachId = new Map();
+  const laenge = Math.max(0, ...listen.map((l) => l.length));
+  for (let rang = 0; rang < laenge; rang += 1) {
+    for (const liste of listen) {
+      const e = liste[rang];
+      if (e && !nachId.has(e.id)) nachId.set(e.id, e);
+    }
+  }
+  return [...nachId.values()];
+}
+
 /** Nur für Tests: Suchspeicher leeren. */
 export function sucheZuruecksetzen() {
   sucheSpeicher = new Map();
+  sucheLaufend = new Map();
 }
 
 /**
@@ -211,7 +297,7 @@ export function sucheZuruecksetzen() {
 export async function standAufbauen(konfig, optionen = {}) {
   const begonnen = Date.now();
   const ergebnis = await eventsVonAllen(konfig.relays, filterBauen(konfig), {
-    holen: seitenweise(optionen.holen ?? eventsHolen, konfig.spiegelLimit)
+    holen: geprueft(seitenweise(optionen.holen ?? eventsHolen, konfig.spiegelLimit), konfig)
   });
   if (ergebnis.grund !== null) {
     return { ok: false, inhalt: null, gefragteRelays: ergebnis.gefragt, grund: ergebnis.grund };
@@ -253,12 +339,19 @@ export function spiegelHolen() {
   };
 }
 
-/** @param {string} pfad @returns {Promise<Inhalt|null>} */
-async function vonPlatteLesen(pfad) {
+/**
+ * Der gesicherte Stand ist schon geprüft geschrieben; hier nur Form und
+ * Autorenfilter (billig), falls sich QUELLE_AUTOREN seitdem geändert hat.
+ * Die Signaturen prüft der nächste Lauf.
+ * @param {Konfig} konfig @returns {Promise<Inhalt|null>}
+ */
+async function vonPlatteLesen(konfig) {
   try {
-    const daten = JSON.parse(await readFile(pfad, 'utf8'));
+    const daten = JSON.parse(await readFile(konfig.spiegelPfad, 'utf8'));
     if (daten && Array.isArray(daten.materialien) && daten.stand) {
-      return { stand: daten.stand, materialien: daten.materialien, quellen: daten.quellen ?? {} };
+      /** @type {Event[]} */
+      const materialien = daten.materialien.filter((/** @type {unknown} */ e) => formUndAutorGueltig(e, konfig.autoren));
+      return { stand: daten.stand, materialien, quellen: daten.quellen ?? {} };
     }
   } catch {
     // Keine oder kaputte Datei: der erste Lauf baut den Stand neu.
@@ -275,13 +368,21 @@ async function aufPlatteSchreiben(pfad, inhalt) {
 }
 
 /**
- * Ein Lauf: neuen Stand bauen, bei Erfolg einwechseln und sichern.
+ * Ein Lauf: neuen Stand bauen, bei Erfolg einwechseln und sichern. Wirft
+ * nie: Auch ein Programmfehler im Lauf wird als Fehlschlag gemerkt, sonst
+ * bliebe der Spiegel stumm auf altem Stand stehen.
  * @param {Konfig} konfig
  * @param {{ holen?: typeof eventsHolen }} [optionen]
  * @returns {Promise<boolean>} ob der Lauf gültig war
  */
 export async function einmalLaufen(konfig, optionen = {}) {
-  const ergebnis = await standAufbauen(konfig, optionen);
+  let ergebnis;
+  try {
+    ergebnis = await standAufbauen(konfig, optionen);
+  } catch (fehler) {
+    console.warn('Spiegel: Lauf abgebrochen:', fehler);
+    ergebnis = { ok: false, inhalt: null, gefragteRelays: konfig.relays, grund: /** @type {Laufgrund} */ ('lauf-abgebrochen') };
+  }
   if (ergebnis.ok && ergebnis.inhalt) {
     aktuell = ergebnis.inhalt;
     fehlschlag = null;
@@ -312,7 +413,7 @@ export async function einmalLaufen(konfig, optionen = {}) {
  */
 export function spiegelStarten(konfig, optionen = {}) {
   bereit = (async () => {
-    const gesichert = await vonPlatteLesen(konfig.spiegelPfad);
+    const gesichert = await vonPlatteLesen(konfig);
     if (gesichert) aktuell = gesichert;
     const ersterLauf = einmalLaufen(konfig, optionen).catch(() => false);
     if (!gesichert) {

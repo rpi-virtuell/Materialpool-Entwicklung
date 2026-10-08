@@ -30,7 +30,8 @@ describe('themenZaehlen', () => {
 describe('startseiteLaden', () => {
   it('liefert vier Stufen-Kacheln in fester Reihenfolge mit Farben und Link', () => {
     const { stufen } = startseiteLaden({ inhalt, fehlschlag: null, relays, heute: september });
-    expect(stufen.map((s) => s.key)).toEqual(['elem', 'sek1', 'sek2', 'bbs']);
+    expect(stufen.map((s) => s.key)).toEqual(['elem', 'sek1', 'sek2', 'fortbildung']);
+    expect(stufen[3]).toMatchObject({ label: 'Erwachsene', pfad: '/materialien?stufe=fortbildung' });
     expect(stufen[0]).toEqual({
       key: 'elem', label: 'Kinder', pfad: '/materialien?stufe=elem',
       farbe: STUFEN_FARBE_DEFAULT.elem, text: '#16181b'
@@ -120,6 +121,13 @@ describe('startseiteLaden mit Konto (ADR-0006)', () => {
     });
     // neueste zuerst, nach datePublished/dateCreated
     expect(s.fuerDich?.karten.map((k) => k.material.datum)).toEqual(['2024-12-08', '2021-01-01', '2020-07-21']);
+  });
+
+  it('behält die Kacheln, wenn im eigenen Bereich nichts liegt', () => {
+    // Keines der Fixture-Materialien ist katholisch und für die Grundschule.
+    const s = startseiteLaden({ inhalt, fehlschlag: null, relays, heute: september, konto: konto({ bereiche: ['grundschule'], faecher: ['katholisch'] }) });
+    expect(s.fuerDich).toBeNull();
+    expect(s.stufen).toHaveLength(4);
   });
 
   it('behält die Kacheln, wenn das Profil keine Stufen kennt (Gemeinde)', () => {

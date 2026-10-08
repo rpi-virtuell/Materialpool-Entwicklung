@@ -21,8 +21,9 @@ Detailseite einen Knopf „Merken“/„Gemerkt“ — beides ein POST-Formular
 auf `/merkliste?/umschalten`, danach zurück auf dieselbe Seite und per
 Anker an dieselbe Karte. Die Liste liegt als httpOnly-Cookie `merkliste`
 in diesem Browser, unabhängig von der Anmeldung (ADR-0006). Gespeichert
-wird je Material ein 12-stelliger Schlüssel aus SHA-256 über `d` —
-dieselbe Adresse, über die die Detailseite das Material findet; die
+wird je Material ein 12-stelliger Schlüssel aus SHA-256 über
+(pubkey, d) — dieselbe Adresse, über die die Detailseite das Material
+findet (ADR-0009; bis 2026-10-08 nur über `d`); die
 Event-id taugt nicht, sie ändert sich mit jeder Fassung. Höchstens 200
 Einträge, damit das Cookie unter 4 kB bleibt. `/merkliste` zeigt alles
 Gemerkte ungefiltert, neueste Merkung zuerst, und nennt, was nicht mehr

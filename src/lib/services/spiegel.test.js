@@ -4,9 +4,15 @@ import { join } from 'node:path';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import beispiele from '../../../test/fixtures/amb-beispiele.json';
 import {
-  ersetzbareZusammenfassen, filterBauen, KIND_AMB, relaySuche, SEITENGROESSE, seitenweise, spiegelBereit, spiegelHolen,
+  einmalLaufen, ersetzbareZusammenfassen, filterBauen, KIND_AMB, reissverschluss, relaySuche, SEITENGROESSE, seitenweise, spiegelBereit, spiegelHolen,
   spiegelStarten, spiegelZuruecksetzen, standAufbauen, SUCHE_LIMIT, sucheZuruecksetzen
 } from './spiegel.js';
+import { SUCHTEXT_MAX } from '../models/text.js';
+
+/** Schlüssel des Materialpools, von dem die Fixtures stammen. */
+const MATERIALPOOL = beispiele[0].pubkey;
+/** Für Tests, die mit veränderten Kopien die Zusammenführung prüfen — die Prüfung selbst steht in pruefung.test.js. */
+const ungeprueft = /** @type {typeof import('./spiegel.js').geprueft} */ ((holen) => holen);
 
 /** @returns {import('../konfig.js').Konfig} */
 function konfig(teil = {}) {
@@ -14,6 +20,7 @@ function konfig(teil = {}) {
     relays: ['wss://eins/', 'wss://zwei/'],
     autoren: [],
     faecher: [],
+    vorrang: [],
     spiegelPfad: 'daten/test.json',
     spiegelIntervallS: 600,
     spiegelStartwartezeitS: 1,
@@ -72,6 +79,29 @@ describe('seitenweise — das Relay liefert je REQ höchstens 250 Events', () =>
     const ergebnis = await seitenweise(holen, 300)('wss://eins/', {}, {});
     expect(ergebnis.events).toHaveLength(300);
     expect(holen.mock.calls[1][1]).toMatchObject({ limit: 50 });
+  });
+
+  it('geht unter eine volle Sekunde, wenn eine volle Seite nichts Neues bringt, und warnt', async () => {
+    // 300 Events in derselben Sekunde (wie ein Import), darunter 100 ältere.
+    const gleich = Array.from({ length: 300 }, (_, i) => ({ ...beispiele[0], id: String(i).padStart(64, '0'), created_at: 1000 }));
+    const bestand = [...gleich, ...events(100, 999)];
+    const holen = vi.fn(async (_url, filter) => ({
+      erreicht: true,
+      events: bestand.filter((e) => filter.until === undefined || e.created_at <= filter.until).slice(0, /** @type {number} */ (filter.limit))
+    }));
+    const warnung = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    const ergebnis = await seitenweise(holen, 10000)('wss://eins/', {}, {});
+    expect(ergebnis.events).toHaveLength(350);
+    expect(holen.mock.calls.map((c) => c[1].until)).toEqual([undefined, 1000, 999]);
+    expect(warnung).toHaveBeenCalledTimes(1);
+  });
+
+  it('hört auf, wenn das Relay until nicht beachtet', async () => {
+    const holen = vi.fn(async () => ({ erreicht: true, events: events(SEITENGROESSE, 1000) }));
+    vi.spyOn(console, 'warn').mockImplementation(() => {});
+    const ergebnis = await seitenweise(holen, 10000)('wss://eins/', {}, {});
+    expect(ergebnis.events).toHaveLength(SEITENGROESSE);
+    expect(holen).toHaveBeenCalledTimes(3);
   });
 
   it('gilt als nicht erreicht, wenn schon die erste Seite ausfällt — mit Teilstand, wenn eine spätere ausfällt', async () => {
@@ -140,6 +170,16 @@ describe('standAufbauen', () => {
     expect(ergebnis.gefragteRelays).toEqual(['wss://eins/', 'wss://zwei/']);
   });
 
+  it('lässt gefälschte und unlesbare Events nicht in den Stand, mit QUELLE_AUTOREN nur deren Schlüssel', async () => {
+    const gefaelscht = { ...beispiele[1], tags: [...beispiele[1].tags, ['name', 'Übernommen']] };
+    const holen = vi.fn(async () => ({ erreicht: true, events: [beispiele[0], gefaelscht, /** @type {any} */ ({ ...beispiele[2], tags: null })] }));
+    const ergebnis = await standAufbauen(konfig(), { holen });
+    expect(ergebnis.inhalt?.materialien.map((e) => e.id)).toEqual([beispiele[0].id]);
+    expect(Object.keys(ergebnis.inhalt?.quellen ?? {})).toEqual([beispiele[0].id]);
+    const fremd = await standAufbauen(konfig({ autoren: ['0'.repeat(64)] }), { holen });
+    expect(fremd.inhalt?.materialien).toEqual([]);
+  });
+
   it('lässt fremde Kinds nicht in den Stand', async () => {
     const holen = vi.fn(async () => ({ erreicht: true, events: [{ ...beispiele[0], kind: 30023 }] }));
     const ergebnis = await standAufbauen(konfig(), { holen });
@@ -152,9 +192,9 @@ describe('relaySuche — Volltext am Relay (NIP-50, ADR-0005)', () => {
 
   it('schickt search mit den Einschränkungen des Spiegels und behält die Relevanz-Reihenfolge', async () => {
     const holen = vi.fn(async (/** @type {string} */ _url, /** @type {Record<string, unknown>} */ _filter) => ({ erreicht: true, events: [c, a, b] }));
-    const k = konfig({ relays: ['wss://eins/'], autoren: ['a'.repeat(64)] });
+    const k = konfig({ relays: ['wss://eins/'], autoren: [MATERIALPOOL] });
     const ergebnis = await relaySuche(k, '  Reformation  Luther ', { holen });
-    expect(holen.mock.calls[0][1]).toEqual({ kinds: [KIND_AMB], authors: ['a'.repeat(64)], search: 'reformation luther', limit: SUCHE_LIMIT });
+    expect(holen.mock.calls[0][1]).toEqual({ kinds: [KIND_AMB], authors: [MATERIALPOOL], search: 'reformation luther', limit: SUCHE_LIMIT });
     expect(ergebnis.grund).toBeNull();
     expect(ergebnis.events.map((e) => e.id)).toEqual([c.id, a.id, b.id]);
   });
@@ -162,8 +202,47 @@ describe('relaySuche — Volltext am Relay (NIP-50, ADR-0005)', () => {
   it('führt je (pubkey, d) zusammen und lässt fremde Kinds weg', async () => {
     const neuer = { ...a, id: '9'.repeat(64), created_at: a.created_at + 1 };
     const holen = vi.fn(async () => ({ erreicht: true, events: [a, { ...b, kind: 1 }, neuer] }));
-    const ergebnis = await relaySuche(konfig(), 'x', { holen });
+    const ergebnis = await relaySuche(konfig(), 'x', { holen, pruefen: ungeprueft });
     expect(ergebnis.events.map((e) => e.id)).toEqual([neuer.id]);
+  });
+
+  it('verzahnt die Treffer mehrerer Relays nach ihrem Rang', async () => {
+    const [, , , d, e] = beispiele;
+    const holen = vi.fn(async (/** @type {string} */ url) => ({ erreicht: true, events: url === 'wss://eins/' ? [a, b, c] : [d, a, e] }));
+    const ergebnis = await relaySuche(konfig(), 'x', { holen });
+    expect(ergebnis.events.map((x) => x.id)).toEqual([a.id, d.id, b.id, c.id, e.id]);
+    expect(reissverschluss([[a], [], [b, c]]).map((x) => x.id)).toEqual([a.id, b.id, c.id]);
+  });
+
+  it('öffnet für dieselbe Suche, während sie läuft, keine zweiten Verbindungen', async () => {
+    /** @type {() => void} */
+    let freigeben = () => {};
+    const tor = new Promise((/** @type {(wert?: unknown) => void} */ f) => { freigeben = f; });
+    const holen = vi.fn(async () => {
+      await tor;
+      return { erreicht: true, events: [a] };
+    });
+    const k = konfig();
+    const erste = relaySuche(k, 'Ostern', { holen });
+    const zweite = relaySuche(k, ' ostern ', { holen });
+    freigeben();
+    const [x, y] = await Promise.all([erste, zweite]);
+    expect(x).toBe(y);
+    expect(holen).toHaveBeenCalledTimes(2); // zwei Relays, eine Suche
+    await relaySuche(k, 'pfingsten', { holen });
+    expect(holen).toHaveBeenCalledTimes(4);
+  });
+
+  it('schickt höchstens SUCHTEXT_MAX Zeichen ans Relay', async () => {
+    const holen = vi.fn(async (/** @type {string} */ _url, /** @type {Record<string, unknown>} */ _filter) => ({ erreicht: true, events: [] }));
+    await relaySuche(konfig({ relays: ['wss://eins/'] }), 'ostern '.repeat(500), { holen });
+    expect(String(holen.mock.calls[0][1].search).length).toBeLessThanOrEqual(SUCHTEXT_MAX);
+  });
+
+  it('zeigt nur geprüfte Treffer und wirft nicht bei unlesbaren', async () => {
+    const holen = vi.fn(async () => ({ erreicht: true, events: [/** @type {any} */ ({ ...c, tags: null }), a, { ...b, content: 'anders' }] }));
+    const ergebnis = await relaySuche(konfig({ relays: ['wss://eins/'] }), 'x', { holen });
+    expect(ergebnis.events.map((e) => e.id)).toEqual([a.id]);
   });
 
   it('merkt sich Antworten je Suchtext für SPIEGEL_INTERVALL_S, Fehlschläge nicht', async () => {
@@ -186,6 +265,17 @@ describe('relaySuche — Volltext am Relay (NIP-50, ADR-0005)', () => {
   });
 });
 
+describe('einmalLaufen', () => {
+  it('merkt sich auch einen abgebrochenen Lauf als Fehlschlag, statt zu werfen', async () => {
+    const holen = vi.fn(async () => {
+      throw new Error('kaputt');
+    });
+    vi.spyOn(console, 'warn').mockImplementation(() => {});
+    expect(await einmalLaufen(konfig(), { holen })).toBe(false);
+    expect(spiegelHolen().letzterFehlschlag()).toMatchObject({ grund: 'lauf-abgebrochen', gefragteRelays: ['wss://eins/', 'wss://zwei/'] });
+  });
+});
+
 describe('spiegelStarten', () => {
   /** Ein Relay, das erst nach 1,5 s antwortet. */
   const langsam = () => new Promise((f) => setTimeout(() => f({ erreicht: true, events: beispiele }), 1500));
@@ -200,6 +290,21 @@ describe('spiegelStarten', () => {
     await spiegelBereit();
     expect(Date.now() - begonnen).toBeLessThan(1000);
     expect(spiegelHolen().lesen().materialien).toHaveLength(1);
+    await rm(ordner, { recursive: true, force: true });
+  });
+
+  it('liest aus dem gesicherten Stand nur Lesbares und, mit QUELLE_AUTOREN, nur deren Schlüssel', async () => {
+    const ordner = await mkdtemp(join(tmpdir(), 'spiegel-'));
+    const pfad = join(ordner, 'spiegel.json');
+    const stand = { zeitpunkt: '2026-09-29T00:00:00Z', dauerMs: 1, gefragteRelays: ['wss://eins/'], nichtErreichbar: [], anzahl: { materialien: 2 } };
+    await writeFile(pfad, JSON.stringify({ stand, materialien: [beispiele[0], { ...beispiele[1], tags: null }], quellen: {} }));
+    spiegelStarten(konfig({ spiegelPfad: pfad }), { holen: langsam });
+    await spiegelBereit();
+    expect(spiegelHolen().lesen().materialien.map((e) => e.id)).toEqual([beispiele[0].id]);
+    spiegelZuruecksetzen();
+    spiegelStarten(konfig({ spiegelPfad: pfad, autoren: ['0'.repeat(64)] }), { holen: langsam });
+    await spiegelBereit();
+    expect(spiegelHolen().lesen().materialien).toEqual([]);
     await rm(ordner, { recursive: true, force: true });
   });
 

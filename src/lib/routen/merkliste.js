@@ -21,13 +21,13 @@ const SCHLUESSEL = /^[0-9a-f]{12}$/;
 
 /**
  * Kurzer, stabiler Schlüssel je Material: die ersten 12 Hex-Zeichen von
- * SHA-256 über `d` — dieselbe Adresse, über die die Detailseite das
- * Material findet. Die Event-id taugt nicht: Sie ändert sich mit jeder
- * neuen Fassung des ersetzbaren Events.
- * @param {Pick<Material, 'd'>} material
+ * SHA-256 über (pubkey, d) — dieselbe Adresse, über die die Detailseite
+ * das Material findet (ADR-0009). Die Event-id taugt nicht: Sie ändert
+ * sich mit jeder neuen Fassung des ersetzbaren Events.
+ * @param {Pick<Material, 'pubkey'|'d'>} material
  */
 export function merkSchluessel(material) {
-  return createHash('sha256').update(material.d).digest('hex').slice(0, 12);
+  return createHash('sha256').update(`${material.pubkey}\n${material.d}`).digest('hex').slice(0, 12);
 }
 
 /** @param {string|undefined} roh @returns {string[]} */

@@ -1,6 +1,7 @@
 import { describe, expect, it, vi, afterEach } from 'vitest';
+import { WebSocketServer } from 'ws';
 
-import { eventsVonAllen, ZUSAMMENFUEHREN_OHNE_RELAYS } from './relay.js';
+import { eventsHolen, eventsVonAllen, ZUSAMMENFUEHREN_OHNE_RELAYS } from './relay.js';
 
 /**
  * Baut ein Minimal-Event.
@@ -23,6 +24,43 @@ function event(id, created_at = 1) {
 
 afterEach(() => {
   vi.restoreAllMocks();
+});
+
+describe('eventsHolen', () => {
+  /**
+   * Ein Relay auf der eigenen Maschine, das jede Anfrage mit `antwort` beendet.
+   * @param {unknown[]} antwort
+   * @returns {Promise<{ url: string, schliessen: () => Promise<void> }>}
+   */
+  function relay(antwort) {
+    return new Promise((bereit) => {
+      const server = new WebSocketServer({ host: '127.0.0.1', port: 0 }, () => {
+        const adresse = /** @type {import('node:net').AddressInfo} */ (server.address());
+        bereit({
+          url: `ws://127.0.0.1:${adresse.port}/`,
+          schliessen: () => new Promise((fertig) => {
+            for (const c of server.clients) c.terminate();
+            server.close(() => fertig());
+          })
+        });
+      });
+      server.on('connection', (ws) => ws.on('message', () => ws.send(JSON.stringify(antwort))));
+    });
+  }
+
+  it('zählt EOSE und CLOSED ohne Grund als Antwort, CLOSED mit Grund als Absage', async () => {
+    for (const [antwort, erreicht] of /** @type {[unknown[], boolean][]} */ ([
+      [['EOSE', 'abfrage'], true],
+      [['CLOSED', 'abfrage', ''], true],
+      [['CLOSED', 'abfrage', 'unsupported: search is not supported'], false],
+      [['CLOSED', 'abfrage', 'error: shutting down'], false],
+      [['CLOSED', 'abfrage', 'invalid: unknown filter'], false]
+    ])) {
+      const r = await relay(antwort);
+      expect((await eventsHolen(r.url, {}, { zeitschrankeMs: 2000 })).erreicht, JSON.stringify(antwort)).toBe(erreicht);
+      await r.schliessen();
+    }
+  });
 });
 
 describe('eventsVonAllen trennt "nicht erreichbar" von "hat nichts"', () => {

@@ -8,6 +8,36 @@ das Gesamtbild in `superpowers/specs/2026-09-28-materialpool-neustart-design.md`
 
 ---
 
+## 2026-10-08 — Review-Befunde nachgezogen (Branch `fix/review-befunde-nachziehen`)
+
+**Passiert:** `fix/review-befunde` (Eintrag 2026-09-30 (3)) zweigte von
+`feat/prototyp-nachzug` ab, bevor Merkliste, Facettenspalte und
+Detailseite dazukamen, und war nie in `main`. Jetzt zusammengeführt.
+Konflikte in Detailseite, `routen/material.js`, `routen/uebersicht.js`
+und `m/[kennung]/+page.server.js`: Die Detailseite behält Cover,
+„Zurück“ und „Merken“ und nimmt die Adresse (pubkey, d) mit `?von=`
+sowie die Lizenz nur mit http(s)-Link. Zwei Entscheidungen hießen 0008;
+die Merkliste war schon in `main`, darum ist die Signaturprüfung jetzt
+**ADR-0009** (Datei umbenannt, Verweise nachgezogen). Dazu zwei
+Anpassungen, je mit Test: Der Merk-Schlüssel ist SHA-256 über
+(pubkey, d) statt nur `d` — sonst teilten sich zwei Schlüssel mit
+gleichem `d` ein Lesezeichen; Lesezeichen von vor dieser Änderung
+finden ihr Material nicht mehr und zählen in `/merkliste` als „nicht
+mehr im Spiegel“. Und der Merklisten-Cookie macht eine Seite ebenso
+persönlich wie Konto und Farbe (`private, no-store`).
+
+**Wo steht das Projekt:** `pnpm check` 0 Fehler, 251 Tests grün, `pnpm
+build` läuft. Im Dev-Server geprüft: Startseite, Liste und zwölf
+Detailseiten 200 mit Cover und „Merken“; Merken → „Gemerkt“ →
+`/merkliste` zeigt das Material, die Antwort trägt `private, no-store`;
+Entmerken.
+
+**Nächster Schritt:** Nach Christinas Freigabe in `main` mergen; dann
+`QUELLE_VORRANG` und `ORIGIN` in die `.env` des Servers (siehe
+2026-09-30 (3)).
+
+---
+
 ## 2026-10-02 (2) — Detailseite nach dem Prototyp (Branch `feat/detailseite`)
 
 **Passiert:** Die Detailseite folgt jetzt dem Prototyp Materialpool 2.0
@@ -64,6 +94,56 @@ Pull Request steht noch aus.
 
 **Nächster Schritt:** Branch erneut hochladen, Pull Request an Jörg mit
 ADR-0006, -0007 und -0008 zur Bestätigung.
+
+---
+
+## 2026-09-30 (3) — Review-Befunde behoben: Signaturen, Adressen, Suche, Farbschalter, Betrieb
+
+**Passiert:** Ein Review von `feat/prototyp-nachzug` fand Sicherheits-
+und Robustheitslücken. Behoben auf `fix/review-befunde`, je Befund ein
+Commit mit Test:
+
+- **Sicherheit:** Lizenz nur mit http(s) als Link (`javascript:` in
+  `license:id` war ein Skript in der Seite); Content-Security-Policy
+  ohne Skripte (`routen/koepfe.js`). Jedes Event wird vor Spiegel und
+  Suchtreffern geprüft — Form, id, Schnorr-Signatur, mit QUELLE_AUTOREN
+  auch lokal der Schlüssel (`services/pruefung.js`, `@noble/curves`,
+  ADR-0009, offen). Materialien sind über (pubkey, d) adressiert:
+  `?von=` bei mehrdeutigem `d`, sonst `QUELLE_VORRANG`, sonst das
+  früheste Event — nie mehr das jüngste.
+- **Robustheit:** Ein abgebrochener Lauf ist ein Fehlschlag mit Grund
+  statt stillem Stillstand; ein `d` mit `%` findet sein Material (nur
+  noch einmal dekodiert); der Spiegel blättert über Sekunden mit mehr
+  als 250 Events; Suchtext höchstens 200 Zeichen, keine Umleitung über
+  4.000 Zeichen (431), gleiche Suchen teilen eine Anfrage; `CLOSED`
+  mit Grund zählt als nicht erreicht (`relay.js`); „überkonfessionell“
+  nur mit s1055; Treffer der drei Relays nach Rang verzahnt.
+- **Satzsuche, Konto, Farbschalter:** Zahlen bleiben Themenwörter
+  („Psalm 23“), NFD wird gelesen, Erwachsene/Senioren sind Fortbildung
+  (auch Kachel und Profilbereich); `frage` reist über Seiten und
+  Facetten mit, „Rückgängig“ bringt ersetzte Facetten zurück (`vorher`),
+  der Hinweis erscheint nur, wenn die Deutung die Suche ergibt; der
+  Farbwähler gilt auch ohne Cookie, `//evil.example` wird keine fremde
+  `action`; leeres „Neu für deine Arbeit“ ersetzt die Kacheln nicht
+  mehr; persönliche Seiten `cache-control: private, no-store`; Name
+  und Freitext nach Zeichen gekürzt.
+- **Betrieb:** `ORIGIN` in `.env.example`, `docs/betrieb.md` und
+  `docker-compose.yml` (sonst 403 auf `/konto` hinter Apache); der
+  Container läuft als `node`.
+
+**Wo steht das Projekt:** `pnpm check` 0 Fehler, 232 Tests grün,
+`pnpm build` läuft. Gebauter Server gegen das Mock-Relay geprüft:
+Startseite, Liste, Detail und `/json` 200, CSP auf jeder Seite, keine
+fremden Ressourcen außer Materialbildern, „Psalm 23 für Kinder“ →
+`q=Psalm 23` mit Stufe, `//evil.example` rendert `action="/evil.example"`.
+
+**Nächster Schritt:** Offen bleiben — die Frage, ob „Anmelden“ als
+Menüpunkt bleibt (ADR-0006, Entscheidung Jörg); ADR-0009 bestätigen und
+danach `QUELLE_VORRANG` (Materialpool-Schlüssel) und `ORIGIN` in die
+`.env` des Servers; `./daten` auf dem Server für uid 1000 beschreibbar
+machen; die `relay.js`-Änderung (CLOSED mit Grund) in oer-community
+nachziehen. `docker-compose.yml` reicht `QUELLE_FAECHER` nicht durch —
+eigener Befund, nicht behoben.
 
 ---
 

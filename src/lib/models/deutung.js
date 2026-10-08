@@ -15,6 +15,8 @@
  * Reine Funktionen, kennt keine Komponente.
  */
 
+import { kuerzen, SUCHTEXT_MAX } from './text.js';
+
 /** @typedef {import('./typen.js').StufeKey} StufeKey */
 /** @typedef {import('./typen.js').TypKey} TypKey */
 /** @typedef {import('./typen.js').FachKey} FachKey */
@@ -72,11 +74,12 @@ const STUFE_WOERTER = {
   abitur: 'sek2',
   abi: 'sek2',
   sek2: 'sek2',
-  erwachsene: 'bbs',
-  erwachsenen: 'bbs',
-  erwachsenenbildung: 'bbs',
-  senioren: 'bbs',
-  seniorinnen: 'bbs',
+  // Erwachsene sind Fortbildung (KIM level_C), nicht Berufsbildung.
+  erwachsene: 'fortbildung',
+  erwachsenen: 'fortbildung',
+  erwachsenenbildung: 'fortbildung',
+  senioren: 'fortbildung',
+  seniorinnen: 'fortbildung',
   berufsschule: 'bbs',
   berufsschüler: 'bbs',
   azubis: 'bbs',
@@ -200,15 +203,35 @@ function stufeFuerKlasse(klasse) {
  * @property {FachKey[]} faecher
  * @property {string[]} begriffe   übrige Themenwörter, in Originalschreibung
  * @property {Erkannt[]} erkannt
- * @property {boolean} istSatz     ab drei Wörtern mit etwas Erkanntem, oder ab vier, wenn Füllwörter wegfallen
+ * @property {boolean} istSatz     ab drei Wörtern mit etwas Erkanntem, oder ab vier, wenn Füllwörter wegfallen — Zahlen zählen nicht mit
  */
+
+/**
+ * Die Deutung von `frage`, solange die Suche noch aus ihr folgt: die
+ * Themenwörter sind `q`, und jede gedeutete Facette ist gewählt (weitere
+ * dürfen dazukommen). Sonst null — dann darf die Liste auch nicht
+ * behaupten, sie habe den Satz so verstanden.
+ * @param {string} frage
+ * @param {{ q: string, stufen: string[], typen: string[], faecher: string[] }} suche
+ * @returns {Deutung|null}
+ */
+export function deutungPruefen(frage, suche) {
+  if (!frage) return null;
+  const d = deuteSuche(frage);
+  if (!d.istSatz || d.begriffe.join(' ') !== suche.q) return null;
+  /** @param {string[]} gedeutet @param {string[]} gewaehlt */
+  const gewaehlt = (gedeutet, gewaehlt) => gedeutet.every((w) => gewaehlt.includes(w));
+  if (!gewaehlt(d.stufen, suche.stufen) || !gewaehlt(d.typen, suche.typen) || !gewaehlt(d.faecher, suche.faecher)) return null;
+  return d;
+}
 
 /**
  * @param {string} text
  * @returns {Deutung}
  */
 export function deuteSuche(text) {
-  const woerter = (text || '').split(/[^\p{L}\p{N}-]+/u).filter(Boolean);
+  // NFC, damit „für“ aus zerlegtem u + ¨ (macOS, manche Tastaturen) ein Wort bleibt.
+  const woerter = kuerzen(text || '', SUCHTEXT_MAX).normalize('NFC').split(/[^\p{L}\p{N}-]+/u).filter(Boolean);
   const k = woerter.map(klein);
   const verbraucht = new Array(woerter.length).fill(false);
   /** @type {Erkannt[]} */
@@ -266,7 +289,12 @@ export function deuteSuche(text) {
     }
   }
 
-  const begriffe = woerter.filter((w, i) => !verbraucht[i] && !FUELLWOERTER.has(k[i]) && !/^\d+$/.test(w));
+  // Zahlen bleiben Themenwörter („Psalm 23“, „Römer 8“), außer eine Klassen-
+  // oder Altersregel hat sie verbraucht.
+  const begriffe = woerter.filter((w, i) => !verbraucht[i] && !FUELLWOERTER.has(k[i]));
+  /** @param {string} w */
+  const keineZahl = (w) => !/^\d+$/.test(w);
+  const worte = woerter.filter(keineZahl).length;
   /** @param {Erkannt['facette']} facette */
   const werte = (facette) => erkannt.filter((e) => e.facette === facette).map((e) => e.wert);
 
@@ -278,6 +306,6 @@ export function deuteSuche(text) {
     erkannt,
     // „Martin Luther“, „Ostern Kita“ und „Tod und Trauer“ bleiben
     // Stichwortsuchen wie bisher.
-    istSatz: (woerter.length >= 3 && erkannt.length > 0) || (woerter.length >= 4 && begriffe.length < woerter.length)
+    istSatz: (worte >= 3 && erkannt.length > 0) || (worte >= 4 && begriffe.filter(keineZahl).length < worte)
   };
 }

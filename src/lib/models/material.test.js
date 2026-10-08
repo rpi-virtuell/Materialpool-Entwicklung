@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import beispiele from '../../../test/fixtures/amb-beispiele.json';
-import { begriffe, dAusKennung, herkunftBilden, kennungAusD, letzterPfadteil, lizenzKuerzel, materialAusEvent } from './material.js';
+import { begriffe, herkunftBilden, kennungAusD, letzterPfadteil, lizenzKuerzel, materialAusEvent } from './material.js';
 
 // Echte Events vom Materialpool-Schlüssel (test/fixtures/README.md).
 const [arbeitsheft, berufsorientierung, erntedank, geist, jenseits, fluechtlinge, jericho] = beispiele;
@@ -47,10 +47,19 @@ describe('materialAusEvent', () => {
   it('kürzt Creative-Commons-Lizenzen; ohne Lizenz null', () => {
     expect(materialAusEvent(jericho).lizenz).toBe('https://creativecommons.org/licenses/by-sa/4.0/');
     expect(materialAusEvent(jericho).lizenzKuerzel).toBe('CC BY-SA 4.0');
+    expect(materialAusEvent(jericho).lizenzUrl).toBe('https://creativecommons.org/licenses/by-sa/4.0/');
     expect(materialAusEvent(arbeitsheft).lizenzKuerzel).toBeNull();
     expect(lizenzKuerzel('https://creativecommons.org/publicdomain/zero/1.0/')).toBe('CC0');
     expect(lizenzKuerzel('https://example.org/eigene-lizenz')).toBeNull();
     expect(lizenzKuerzel(null)).toBeNull();
+  });
+
+  it('verlinkt eine Lizenz nur mit http(s)-Adresse, zeigt sie aber immer', () => {
+    const tags = jericho.tags.map((t) => (t[0] === 'license:id' ? ['license:id', 'javascript:alert(1)'] : t));
+    const m = materialAusEvent({ ...jericho, tags });
+    expect(m.lizenz).toBe('javascript:alert(1)');
+    expect(m.lizenzUrl).toBeNull();
+    expect(materialAusEvent(arbeitsheft).lizenzUrl).toBeNull();
   });
 
   it('leitet Typ und Stufe aus den SKOS-Begriffen ab — erster bekannter zur Anzeige, alle für Filter', () => {
@@ -102,8 +111,8 @@ describe('materialAusEvent', () => {
     const m = materialAusEvent(arbeitsheft);
     expect(m.pfad).toBe(`/m/${m.kennung}`);
     expect(m.kennung).not.toContain('/');
-    expect(dAusKennung(m.kennung)).toBe(m.d);
-    expect(dAusKennung('%E0%A4%A')).toBeNull();
+    // So dekodiert SvelteKit params.kennung — einmal.
+    expect(decodeURIComponent(m.kennung)).toBe(m.d);
     expect(kennungAusD('a b')).toBe('a%20b');
   });
 

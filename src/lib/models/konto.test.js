@@ -12,6 +12,7 @@ describe('profilFilter', () => {
   it('vereinigt die Stufen der Bereiche, in der Reihenfolge der Liste', () => {
     expect(profilFilter(konto({ bereiche: ['sek2', 'kita'] })).stufen).toEqual(['elem', 'sek2']);
     expect(profilFilter(konto({ bereiche: ['jugend'] })).stufen).toEqual(['sek1', 'sek2']);
+    expect(profilFilter(konto({ bereiche: ['erwachsene', 'berufsschule'] })).stufen).toEqual(['bbs', 'fortbildung']);
   });
   it('grenzt mit Gemeinde gar nicht ein, auch neben anderen Bereichen', () => {
     expect(profilFilter(konto({ bereiche: ['kita', 'gemeinde'] })).stufen).toEqual([]);
