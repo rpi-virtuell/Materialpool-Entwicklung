@@ -20,6 +20,7 @@ import { kontoSeite } from '../src/lib/routen/konto.js';
 import Startseite from '../src/lib/komponenten/startseite/Startseite.svelte';
 import { ZIELGRUPPEN } from '../src/lib/komponenten/startseite/HeroZielgruppe.svelte';
 import Uebersicht from '../src/lib/komponenten/Uebersicht.svelte';
+import { coverFarben } from '../src/lib/models/farben.js';
 import { materialAusEvent } from '../src/lib/models/material.js';
 import { TYPEN } from '../src/lib/models/typen.js';
 import { farbschalterBilden } from '../src/lib/routen/farbschalter.js';
@@ -113,7 +114,7 @@ describe('Merkliste (ADR-0008)', () => {
   });
   it('Detailseite: „Merken“ bzw. „Gemerkt“', () => {
     const merken = { schluessel: merkSchluessel(erntedank), gemerkt: true };
-    const { body } = render(Detail, { props: { material: erntedank, relays, merken } });
+    const { body } = render(Detail, { props: { material: erntedank, relays, cover: coverFarben(erntedank), icon: 'notebook', merken } });
     expect(body).toMatch(/action="\/merkliste\?\/umschalten"/);
     expect(body).toContain(`name="zurueck" value="${erntedank.pfad}"`);
     expect(body).toMatch(/aria-pressed="true"[^>]*>.*Gemerkt/s);
@@ -344,9 +345,13 @@ describe('Uebersicht (Liste)', () => {
 });
 
 describe('Detail', () => {
+  const jericho = materialien[6];
+  /** @param {Partial<{ zurueck: string }>} extra */
+  const detail = (extra = {}) =>
+    render(Detail, { props: { material: jericho, relays: ['wss://eins/'], cover: coverFarben(jericho), icon: 'notebook', ...extra } }).body;
+
   it('nennt Ressource, Lizenz, Begriffe, Herkunft und die Entwickleransicht', () => {
-    const jericho = materialien[6];
-    const { body } = render(Detail, { props: { material: jericho, relays: ['wss://eins/'] } });
+    const body = detail();
     expect(body).toContain('https://material.rpi-virtuell.de/material/zwischen-jericho-und-jerusalem/');
     expect(body).toContain('rel="license"');
     expect(body).toContain('CC BY-SA 4.0');
@@ -354,5 +359,29 @@ describe('Detail', () => {
     expect(body).toContain('Horst Heller');
     expect(body).toContain('wss://eins/');
     expect(body).toContain(`${jericho.pfad}/json`);
+  });
+
+  it('trägt das Cover der Karte: Tinte und Tönung, Typ und Titel darin, Bild als Textur', () => {
+    const body = detail();
+    const { ink, tint } = coverFarben(jericho);
+    expect(body).toContain(`style="--cover-ink:${ink};--cover-tint:${tint}"`);
+    expect(body).toMatch(/<header class="detail-cover[^"]*hat-bild/);
+    expect(body).toMatch(/class="detail-cover-bild[^"]*" src="https:\/\/horstheller/);
+    expect(body).toMatch(/<p class="detail-art[^"]*">Textdokument<\/p> <h1[^>]*>Zwischen Jericho und Jerusalem<\/h1>/);
+  });
+
+  it('führt mit „Material öffnen“ zur Ressource und mit „Zurück“ dorthin, woher man kam', () => {
+    const body = detail({ zurueck: '/materialien?stufe=elem' });
+    expect(body).toMatch(/<a class="knopf-primaer[^"]*" href="https:\/\/material\.rpi-virtuell\.de\/material\/zwischen-jericho-und-jerusalem\/" rel="external noopener">/);
+    expect(body).toContain('Material öffnen');
+    expect(body).toMatch(/<a class="zurueck[^"]*" href="\/materialien\?stufe=elem">/);
+  });
+
+  it('nennt die Angaben als benannte Zeilen, AMB-Typ nur in der Entwickleransicht', () => {
+    const body = detail();
+    for (const dt of ['Bildungsstufe', 'Fach', 'Materialart', 'Lizenz', 'Datum']) expect(body).toMatch(new RegExp(`<dt[^>]*>${dt}</dt>`));
+    expect(body.indexOf('AMB-Typ')).toBeGreaterThan(body.indexOf('Entwickleransicht'));
+    const ohneStufe = render(Detail, { props: { material: materialien[1], relays: [], cover: coverFarben(materialien[1]), icon: 'file' } }).body;
+    expect(ohneStufe).toMatch(/<dt[^>]*>Bildungsstufe<\/dt>\s*<dd[^>]*>nicht angegeben<\/dd>/);
   });
 });

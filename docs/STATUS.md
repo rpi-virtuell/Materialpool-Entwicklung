@@ -8,6 +8,31 @@ das Gesamtbild in `superpowers/specs/2026-09-28-materialpool-neustart-design.md`
 
 ---
 
+## 2026-10-02 (2) — Detailseite nach dem Prototyp (Branch `feat/detailseite`)
+
+**Passiert:** Die Detailseite folgt jetzt dem Prototyp Materialpool 2.0
+und den Tokens aus `app.css` statt der FOERBICO-Aliase (nächster Schritt
+aus dem Logbuch vom 29.09.). Eine Lesespalte von 760 px; oben dasselbe
+Cover wie auf der Karte (Tinte, Tönung, Typ-Marke, Titel darin; ein Bild
+nur weichgezeichnet als Textur unter der Tönung), darunter Herkunft,
+Beschreibung, „Material öffnen“ und „Merken“, dann die Angaben als
+benannte Zeilen (Bildungsstufe, Fach, Materialart, Lizenz, Datum,
+Sprache, Schlagworte). AMB-Typ steht nur noch in der Entwickleransicht.
+„Zurück“ ohne JavaScript über den Referer (`zurueckZiel` in
+`routen/material.js`): auf Liste, Merkliste oder Startseite, von der man
+kam, samt Filtern — sonst zur Liste, auch nach dem Merken. Die Bausteine
+`.label`, `.marker`, `.metazeile` in `app.css` sind entfernt, sie
+dienten nur der alten Detailseite.
+
+**Wo steht das Projekt:** `pnpm check` 0 Fehler, 203 Tests grün. Im
+Browser geprüft: Liste → Detail → Zurück mit Filter, Direktaufruf,
+Handybreite (Knöpfe untereinander, Angaben einspaltig).
+
+**Nächster Schritt:** Eigener Pull Request nach #14 (der Branch zweigt
+von `feat/prototyp-nachzug` ab und zeigt nach dessen Merge nur sich).
+
+---
+
 ## 2026-10-02 — Merkliste „Gemerkt“ (ADR-0008, offen)
 
 **Passiert:** Christina wollte vor dem Pull Request auch die Merkliste

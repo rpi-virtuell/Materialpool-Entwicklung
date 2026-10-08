@@ -5,10 +5,12 @@
    * `<use>`. Quelle: @tabler/icons (MIT), Vite bündelt allein die
    * importierten Dateien.
    */
+  import arrowLeft from '@tabler/icons/outline/arrow-left.svg?raw';
   import arrowRight from '@tabler/icons/outline/arrow-right.svg?raw';
   import bookmark from '@tabler/icons/outline/bookmark.svg?raw';
   import bookmarkGefuellt from '@tabler/icons/filled/bookmark.svg?raw';
   import books from '@tabler/icons/outline/books.svg?raw';
+  import externalLink from '@tabler/icons/outline/external-link.svg?raw';
   import bulb from '@tabler/icons/outline/bulb.svg?raw';
   import file from '@tabler/icons/outline/file.svg?raw';
   import fileText from '@tabler/icons/outline/file-text.svg?raw';
@@ -31,7 +33,7 @@
 
   /** @type {Record<string, string>} */
   const ROH = {
-    'arrow-right': arrowRight, bookmark, 'bookmark-gefuellt': gefuellt(bookmarkGefuellt), books, bulb, file, 'file-text': fileText,
+    'arrow-left': arrowLeft, 'arrow-right': arrowRight, 'external-link': externalLink, bookmark, 'bookmark-gefuellt': gefuellt(bookmarkGefuellt), books, bulb, file, 'file-text': fileText,
     headphones, notebook, pencil, search, sparkles, user, 'user-check': userCheck, video, world
   };
 

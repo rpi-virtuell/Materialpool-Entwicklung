@@ -98,30 +98,14 @@ a { color: inherit; }
 }
 .status-warn { border-left: 3px solid var(--blue); }
 
-/* Schmale Inhaltsspalte für Detail und Fehlerseite. */
+/* Schmale Inhaltsspalte für die Fehlerseite (die Detailseite hat ihre
+   eigene Lesespalte in Detail.svelte). */
 .inhalt-schmal {
   max-width: var(--content-schmal);
   margin: 0 auto;
   padding: var(--sp-8) var(--gutter) var(--sp-15);
 }
 
-/* Bausteine der Detailseite (noch mit --fb-Aliasen). */
-.label {
-  font-size: var(--fs-200);
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-  color: var(--text-muted);
-  margin: 0 0 var(--sp-1);
-}
-.marker {
-  display: inline-block;
-  padding: 0.1rem 0.5rem;
-  border-radius: 999px;
-  background: var(--fb-flaeche-2);
-  color: var(--blue);
-  font-size: var(--fs-200);
-  text-decoration: none;
-}
 .hinweis {
   border: 1px solid var(--border);
   border-left: 3px solid var(--blue);
@@ -130,7 +114,6 @@ a { color: inherit; }
   padding: var(--sp-3) var(--sp-4);
   margin: var(--sp-4) 0;
 }
-.metazeile { list-style: none; padding: 0; margin: 0.5rem 0 0; display: flex; flex-wrap: wrap; gap: 0.4rem; }
 
 @media (prefers-reduced-motion: reduce) {
   * { transition: none !important; }
