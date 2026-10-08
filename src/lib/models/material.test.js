@@ -103,6 +103,15 @@ describe('materialAusEvent', () => {
     expect(materialAusEvent(ohneContent).url).toBe('https://material.rpi-virtuell.de/material/ekd-erntedankfest/');
     const contentOhneHttp = { ...erntedank, tags: erntedank.tags.map((t) => (t[0] === 'encoding:contentUrl' ? ['encoding:contentUrl', 'javascript:x'] : t)) };
     expect(materialAusEvent(contentOhneHttp).url).toBe('https://material.rpi-virtuell.de/material/ekd-erntedankfest/');
+    // Eine Datei startet einen Download — dann lieber die Seite, die das Material beschreibt.
+    /** @param {string} adresse */
+    const mitContent = (adresse) => ({ ...erntedank, tags: erntedank.tags.map((t) => (t[0] === 'encoding:contentUrl' ? ['encoding:contentUrl', adresse] : t)) });
+    expect(materialAusEvent(mitContent('https://www.ekd.de/erntedank.PDF')).url).toBe('https://material.rpi-virtuell.de/material/ekd-erntedankfest/');
+    expect(materialAusEvent(mitContent('https://x.example/a.docx?v=2')).url).toBe('https://material.rpi-virtuell.de/material/ekd-erntedankfest/');
+    expect(materialAusEvent(mitContent('https://www.ekd.de/pdf-uebersicht.html')).url).toBe('https://www.ekd.de/pdf-uebersicht.html');
+    // Ohne Seite (d keine Adresse) bleibt die Datei der einzige Weg.
+    const nurDatei = { ...jenseits, tags: [['d', 'sodix-123'], ['encoding:contentUrl', 'https://download.example/a.pdf']] };
+    expect(materialAusEvent(nurDatei).url).toBe('https://download.example/a.pdf');
     const nurR = { ...jenseits, tags: [['d', 'urn:y'], ['r', 'mailto:x'], ['r', 'https://r.example/']] };
     expect(materialAusEvent(nurR).url).toBe('https://r.example/');
     expect(materialAusEvent({ ...jenseits, tags: [['d', 'urn:z']] }).url).toBeNull();

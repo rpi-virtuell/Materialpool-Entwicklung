@@ -8,6 +8,24 @@ das Gesamtbild in `superpowers/specs/2026-09-28-materialpool-neustart-design.md`
 
 ---
 
+## 2026-10-08 (7) — Kein Download hinter „Material öffnen“
+
+**Passiert:** Christina möchte nicht, dass „Material öffnen“ einen
+Download startet. Die contentUrl hat jetzt nur Vorrang, wenn sie keine
+Datei ist (Endung pdf, doc(x), ppt(x), xls(x), odt/odp/ods, rtf, zip,
+mp3, mp4, m4a, wav, epub) — sonst gilt `d`, die Seite, die das Material
+beschreibt. Ohne solche Seite (sodix: `d` ist keine Adresse) bleibt die
+Datei der einzige Weg, wie bisher. Im lokalen Bestand: 6.231
+Materialpool-Einträge führen direkt zur Webseite des Anbieters, 1.331
+mit Datei bleiben auf der Katalogseite; Phaidra führt wieder auf die
+eigene Seite statt aufs PDF bei blossom.
+
+**Wo steht das Projekt:** `pnpm check` 0 Fehler, 273 Tests grün; im
+Dev-Server auf den ersten drei Listenseiten (72 Materialien) 57 direkt
+zur Webseite, 15 Katalogseite, keine Datei.
+
+---
+
 ## 2026-10-08 (6) — Direkt zum Anbieter statt über den Katalog
 
 **Passiert:** `material.url` nimmt zuerst `encoding:contentUrl`, dann
