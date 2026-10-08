@@ -8,6 +8,24 @@ das Gesamtbild in `superpowers/specs/2026-09-28-materialpool-neustart-design.md`
 
 ---
 
+## 2026-10-08 (6) — Direkt zum Anbieter statt über den Katalog
+
+**Passiert:** `material.url` nimmt zuerst `encoding:contentUrl`, dann
+`d`, dann das erste http-`r` — bisher war es `d`, beim Materialpool die
+Katalogseite bei `material.rpi-virtuell.de`, von der man noch einmal
+weiterklicken musste. Wie ReliDesk (Commit `bf1a54c` dort, 2026-09-23).
+Im lokalen Bestand: 7.701 von 7.702 Katalog-Einträgen haben eine
+contentUrl, 167 davon zeigen wieder auf rpi-virtuell. Folgen: „Material
+öffnen“ führt zum Anbieter, die Link-Prüfung (ADR-0010) prüft das Ziel,
+die Herkunft ohne Namen nennt den Anbieter-Host. Kennung, Adresse der
+Detailseite und Merk-Schlüssel hängen weiter an `d`.
+
+**Wo steht das Projekt:** `pnpm check` 0 Fehler, 273 Tests grün; im
+Dev-Server führen 23 von 24 Detailseiten der ersten Listenseite direkt
+zum Anbieter.
+
+---
+
 ## 2026-10-08 (5) — Link-Prüfung blendet tote Links aus (ADR-0010)
 
 **Passiert:** Neuer Hintergrundlauf neben dem Spiegel

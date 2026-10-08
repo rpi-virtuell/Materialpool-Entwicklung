@@ -1,6 +1,6 @@
 # ADR-0010: Eine Link-Prüfung im Server blendet Materialien aus, deren Link zweimal hintereinander „gibt es nicht“ meldet
 
-**Status:** angenommen (2026-10-08)
+**Status:** angenommen (2026-10-08) · Nachtrag 2026-10-08: Geprüft wird jetzt das Ziel, nicht die Zwischenseite (siehe unten)
 **Beteiligte:** Christina Kreutz, Claude (Umsetzung)
 
 ## Kontext
@@ -44,6 +44,12 @@ Wir prüfen nur eindeutige Fälle und blenden aus:
   Zwischenseite, nicht das Ziel dahinter — ein totes Ziel hinter einer
   lebenden Zwischenseite bleibt unentdeckt (bewusst, siehe Konzept:
   die Zwischenschicht soll wegfallen).
+- **Nachtrag 2026-10-08:** `material.url` nimmt jetzt zuerst
+  `encoding:contentUrl`, die Adresse beim Anbieter (wie ReliDesk seit
+  2026-09-23). Im Bestand vom 08.10. hatten 7.701 von 7.702
+  Materialpool-Einträgen eine; bei 167 zeigt auch sie auf
+  rpi-virtuell. „Material öffnen“ und die Link-Prüfung gehen damit am
+  Katalog vorbei, der Punkt oben gilt nur noch für diese Reste.
 - Falsch wäre die Entscheidung, wenn Materialien zu Unrecht
   verschwinden (ein Server antwortet Prüfprogrammen mit 404). Dann: die
   Liste der ausgeblendeten Links ansehen und solche Server ausnehmen,
