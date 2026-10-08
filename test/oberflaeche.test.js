@@ -5,6 +5,7 @@
 import { render } from 'svelte/server';
 import { describe, expect, it } from 'vitest';
 import beispiele from './fixtures/amb-beispiele.json';
+import Ausgeblendet from '../src/lib/komponenten/Ausgeblendet.svelte';
 import Detail from '../src/lib/komponenten/Detail.svelte';
 import Farbschalter from '../src/lib/komponenten/Farbschalter.svelte';
 import Fusszeile from '../src/lib/komponenten/Fusszeile.svelte';
@@ -352,8 +353,31 @@ describe('Uebersicht (Liste)', () => {
   it('sagt, wie viele Materialien wegen toter Links fehlen — nie still (ADR-0010)', () => {
     const tot = materialien[0].url;
     const daten = listeLaden({ inhalt, fehlschlag: null, relays, weg: (url) => url === tot });
-    expect(render(Uebersicht, { props: daten }).body).toContain('1 Material ist ausgeblendet, weil sein Link nicht mehr erreichbar ist.');
+    const body = render(Uebersicht, { props: daten }).body;
+    expect(body).toContain('1 Material ist ausgeblendet, weil sein Link nicht mehr erreichbar ist.');
+    expect(body).toMatch(/<a href="\/ausgeblendet"[^>]*>Welches\?<\/a>/);
     expect(render(Uebersicht, { props: listeLaden({ inhalt, fehlschlag: null, relays }) }).body).not.toContain('ausgeblendet');
+  });
+});
+
+describe('Ausgeblendet (ADR-0010)', () => {
+  it('nennt je Material Titel, Anbieter, toten Link, Antwort und seit wann', () => {
+    const m = materialien[6];
+    const eintraege = [{ material: m, url: 'https://tot.example/x', status: 404, wegSeit: '2026-10-05T08:00:00.000Z', geprueft: '2026-10-08T08:00:00.000Z' }];
+    const { body } = render(Ausgeblendet, { props: { eintraege } });
+    expect(body).toContain('Ausgeblendete Materialien</h1>');
+    expect(body).toContain(`href="${m.pfad}"`);
+    expect(body).toContain(m.name);
+    expect(body).toContain(m.herkunft);
+    expect(body).toMatch(/href="https:\/\/tot\.example\/x"[^>]*rel="external noopener nofollow"/);
+    expect(body).toContain('404');
+    expect(body).toContain('05.10.2026');
+    expect(body).toContain('08.10.2026');
+  });
+  it('leer: sagt, dass nichts ausgeblendet ist, und wie die Prüfung arbeitet', () => {
+    const { body } = render(Ausgeblendet, { props: { eintraege: [] } });
+    expect(body).toContain('Zurzeit ist kein Material ausgeblendet.');
+    expect(body).toContain('zweimal hintereinander');
   });
 });
 

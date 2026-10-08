@@ -78,7 +78,9 @@ let zeitgeber = null;
 export function linkpruefungHolen() {
   return {
     /** @param {string|null} url */
-    weg: (url) => an && url !== null && ausgeblendet(zustand.get(url))
+    weg: (url) => an && url !== null && ausgeblendet(zustand.get(url)),
+    /** @param {string|null} url @returns {Linkeintrag|undefined} */
+    eintrag: (url) => (an && url !== null ? zustand.get(url) : undefined)
   };
 }
 

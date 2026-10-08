@@ -34,6 +34,15 @@ describe('fortschreiben und ausgeblendet', () => {
     expect(ausgeblendet(fortschreiben(weg, 'ok', 200, jetzt))).toBe(false);
     expect(fortschreiben(undefined, 'unklar', null, jetzt).wegInFolge).toBe(0);
   });
+  it('merkt sich, seit wann ein Link weg ist; „unklar“ behält, „ok“ löscht es', () => {
+    const einmal = fortschreiben(undefined, 'weg', 404, jetzt);
+    expect(einmal.wegSeit).toBe(new Date(jetzt).toISOString());
+    const zweimal = fortschreiben(einmal, 'weg', 404, jetzt + TAG);
+    expect(zweimal.wegSeit).toBe(new Date(jetzt).toISOString());
+    expect(fortschreiben(zweimal, 'unklar', 503, jetzt + 2 * TAG).wegSeit).toBe(new Date(jetzt).toISOString());
+    expect(fortschreiben(zweimal, 'ok', 200, jetzt + 2 * TAG).wegSeit).toBeNull();
+    expect(fortschreiben(undefined, 'ok', 200, jetzt).wegSeit).toBeNull();
+  });
   it('ohne Eintrag ist nichts ausgeblendet', () => {
     expect(ausgeblendet(undefined)).toBe(false);
   });
