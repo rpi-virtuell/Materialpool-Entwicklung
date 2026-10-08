@@ -8,6 +8,25 @@ das Gesamtbild in `superpowers/specs/2026-09-28-materialpool-neustart-design.md`
 
 ---
 
+## 2026-10-08 (8) — Seite „Ausgeblendete Materialien“
+
+**Passiert:** Christina: Ausblenden darf nicht still passieren, jemand
+soll bei den Anbietern nachfragen können. Neue Seite `/ausgeblendet`
+(`routen/ausgeblendet.js`, `komponenten/Ausgeblendet.svelte`): je
+Material Titel (zur Detailseite), Anbieter, toter Link, Antwort, „nicht
+erreichbar seit“ und „zuletzt geprüft“, zuletzt ausgeblendete zuerst;
+leer mit Erklärung. Der Hinweis unter der Liste verlinkt mit „Welches?“
+bzw. „Welche?“. Für alle erreichbar, nicht in der Kopfzeile, `noindex`.
+Dafür merkt sich die Link-Prüfung `wegSeit` (erstes „weg“ der Folge,
+„ok“ löscht es). Mail oder automatisches Issue wären die Alternativen
+gewesen; beide bräuchten Zugang auf dem Server.
+
+**Wo steht das Projekt:** `pnpm check` 0 Fehler, 278 Tests grün; im
+Dev-Server mit einem künstlich eingetragenen toten Link geprüft (Seite,
+Hinweis mit Link, `noindex`), Testeintrag danach gelöscht.
+
+---
+
 ## 2026-10-08 (7) — Kein Download hinter „Material öffnen“
 
 **Passiert:** Christina möchte nicht, dass „Material öffnen“ einen

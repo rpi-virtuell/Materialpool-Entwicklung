@@ -29,7 +29,11 @@ Wir prüfen nur eindeutige Fälle und blenden aus:
   holt die nächste Prüfung auf einen Tag vor. Eine Antwort 2xx/3xx setzt
   den Zähler zurück, das Material erscheint wieder.
 - Ausgeblendet heißt: nicht in Liste, Suche und Startseite. Die Liste
-  sagt, wie viele das betrifft (nie still). Die Detailseite bleibt
+  sagt, wie viele das betrifft (nie still), und verlinkt auf
+  `/ausgeblendet`: Titel, Anbieter, toter Link, Antwort, seit wann und
+  zuletzt geprüft — damit jemand bei den Anbietern nachfragen kann
+  (Nachtrag 2026-10-08). Die Seite ist für alle erreichbar, aber nicht in
+  der Kopfzeile und `noindex`. Die Detailseite bleibt
   erreichbar (Lesezeichen, Merkliste) und sagt, dass der Link zuletzt
   nicht erreichbar war, ohne „Material öffnen“.
 - Der Stand liegt in `LINKPRUEFUNG_PFAD` (Standard

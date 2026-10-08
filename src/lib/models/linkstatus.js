@@ -12,6 +12,7 @@
  * @property {Bewertung} bewertung  letzte Bewertung
  * @property {number} wegInFolge    „weg“ hintereinander; „ok“ setzt zurück
  * @property {string} geprueft      ISO-Zeitpunkt der letzten Prüfung
+ * @property {string|null} [wegSeit]  ISO-Zeitpunkt des ersten „weg“ dieser Folge; „ok“ löscht ihn
  */
 
 /** Ab so vielen „weg“ hintereinander ist ein Material ausgeblendet. */
@@ -40,7 +41,9 @@ export function bewerten(status) {
 export function fortschreiben(alt, bewertung, status, jetzt) {
   const bisher = alt?.wegInFolge ?? 0;
   const wegInFolge = bewertung === 'weg' ? bisher + 1 : bewertung === 'ok' ? 0 : bisher;
-  return { status, bewertung, wegInFolge, geprueft: new Date(jetzt).toISOString() };
+  const geprueft = new Date(jetzt).toISOString();
+  const wegSeit = wegInFolge === 0 ? null : (alt?.wegSeit ?? geprueft);
+  return { status, bewertung, wegInFolge, geprueft, wegSeit };
 }
 
 /** @param {Linkeintrag|undefined} eintrag */

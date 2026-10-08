@@ -147,6 +147,7 @@
       {#if ausgeblendet > 0}
         <p class="ausgeblendet-hinweis">
           {ausgeblendet === 1 ? '1 Material ist' : `${ausgeblendet} Materialien sind`} ausgeblendet, weil {ausgeblendet === 1 ? 'sein' : 'ihr'} Link nicht mehr erreichbar ist.
+          <a href="/ausgeblendet">{ausgeblendet === 1 ? 'Welches?' : 'Welche?'}</a>
         </p>
       {/if}
       </div>
