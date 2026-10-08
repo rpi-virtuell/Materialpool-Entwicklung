@@ -12,6 +12,7 @@
  * gesäubert (CLAUDE.md).
  */
 
+import { begriffsname } from './begriffsnamen.js';
 import { faecherAusBegriffen, stufeAusBegriffen, stufenAusBegriffen, typAusBegriffen, typenAusBegriffen } from './typen.js';
 
 /** @typedef {import('../services/relay.js').Event} Event */
@@ -22,7 +23,7 @@ import { faecherAusBegriffen, stufeAusBegriffen, stufenAusBegriffen, typAusBegri
 /**
  * @typedef {object} Begriff
  * @property {string} id     URI des Vokabulars (SKOS)
- * @property {string} label  bevorzugt deutsch, sonst englisch, sonst letzter Pfadteil
+ * @property {string} label  bevorzugt deutsch, sonst englisch, sonst aus dem KIM-Vokabular, sonst letzter Pfadteil
  */
 /**
  * @typedef {object} Material
@@ -86,14 +87,15 @@ export function letzterPfadteil(uri) {
  * Begriffe eines SKOS-Feldes: je `:id` ein Eintrag, Label nach Reihenfolge
  * der `:prefLabel:de`-, sonst `:prefLabel:en`-Tags. Der Konverter schreibt
  * die Tags je Begriff hintereinander, die Reihenfolge trägt also die
- * Zuordnung.
+ * Zuordnung. Ohne Label: der Name aus dem KIM-Vokabular
+ * (`begriffsnamen.js`), sonst der letzte Pfadteil.
  * @param {string[][]} tags @param {string} praefix @returns {Begriff[]}
  */
 export function begriffe(tags, praefix) {
   const ids = alle(tags, `${praefix}:id`);
   const de = alle(tags, `${praefix}:prefLabel:de`);
   const en = alle(tags, `${praefix}:prefLabel:en`);
-  return ids.map((id, i) => ({ id, label: de[i] ?? en[i] ?? letzterPfadteil(id) }));
+  return ids.map((id, i) => ({ id, label: de[i] ?? en[i] ?? begriffsname(id) ?? letzterPfadteil(id) }));
 }
 
 /**

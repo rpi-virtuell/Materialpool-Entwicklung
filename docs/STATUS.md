@@ -8,6 +8,27 @@ das Gesamtbild in `superpowers/specs/2026-09-28-materialpool-neustart-design.md`
 
 ---
 
+## 2026-10-08 (4) — Klartext statt Kürzel bei Materialart und Bildungsstufe
+
+**Passiert:** Live zeigten 173 von 290 Detailseiten Kürzel wie „text“,
+„video“ oder „level_A“: Die Events bringen nur die `:id` eines Begriffs,
+kein `:prefLabel`, und `begriffe()` fiel auf den letzten Pfadteil
+zurück. `models/begriffsnamen.js` trägt jetzt die deutschen Namen aus
+zwei KIM-Vokabularen vollständig (hcrt 26, educationalLevel 12, Stand
+2026-10-08); ein mitgeliefertes Label hat weiter Vorrang. Ohne Namen
+bleiben, was in keinem Vokabular steht: `educationalLevel/adult_education`
+und `w3id.org/reliedu/…` (je ein Material), dazu die
+Hochschulfächersystematik (`n02`, `n08`, ein Material).
+
+**Wo steht das Projekt:** `pnpm check` 0 Fehler, 252 Tests grün; im
+Dev-Server alle 24 Detailseiten der ersten Listenseite ohne Kürzel.
+
+**Nächster Schritt:** Aufgefallen: `hochschulfaechersystematik/n02` ist
+„Evangelische Theologie, -Religionslehre“ — solche Materialien zählt die
+Fach-Facette nicht als evangelisch, sie liest nur die Schulfächer.
+
+---
+
 ## 2026-10-08 (3) — Entscheidungen 0006–0009 angenommen, Menüpunkt „Mein Profil“
 
 **Passiert:** Angenommen:

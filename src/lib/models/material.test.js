@@ -35,11 +35,21 @@ describe('materialAusEvent', () => {
     expect(m.ressourcentypen.map((r) => r.label)).toEqual(['Lernkontrolle', 'Unterrichtsplanung', 'Textdokument', 'Arbeitsmaterial']);
   });
 
-  it('fällt ohne prefLabel auf den letzten Pfadteil zurück', () => {
-    const ohneLabel = { ...jenseits, tags: [['d', 'urn:x'], ['educationalLevel:id', 'https://w3id.org/kim/educationalLevel/level_B']] };
+  it('nimmt ohne prefLabel den Namen aus dem KIM-Vokabular, sonst den letzten Pfadteil', () => {
+    const tags = [
+      ['d', 'urn:x'],
+      ['educationalLevel:id', 'https://w3id.org/kim/educationalLevel/level_B'],
+      ['educationalLevel:id', 'https://w3id.org/kim/educationalLevel/adult_education'],
+      ['learningResourceType:id', 'https://w3id.org/kim/hcrt/text'],
+      ['learningResourceType:id', 'https://w3id.org/kim/hcrt/web_page']
+    ];
+    const ohneLabel = { ...jenseits, tags };
     expect(materialAusEvent(ohneLabel).bildungsstufen).toEqual([
-      { id: 'https://w3id.org/kim/educationalLevel/level_B', label: 'level_B' }
+      { id: 'https://w3id.org/kim/educationalLevel/level_B', label: 'Vorbereitungsdienst' },
+      // nicht im Vokabular: kein erfundener Name
+      { id: 'https://w3id.org/kim/educationalLevel/adult_education', label: 'adult_education' }
     ]);
+    expect(materialAusEvent(ohneLabel).ressourcentypen.map((r) => r.label)).toEqual(['Textdokument', 'Webseite']);
     expect(materialAusEvent(ohneLabel).beschreibung).toBe('');
     expect(materialAusEvent(ohneLabel).bild).toBeNull();
   });
