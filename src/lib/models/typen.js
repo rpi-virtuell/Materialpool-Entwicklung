@@ -5,6 +5,7 @@
 
 /** @typedef {'plan'|'ab'|'proj'|'uebung'|'video'|'audio'|'webseite'|'sonstiges'} TypKey */
 /** @typedef {'elem'|'sek1'|'sek2'|'bbs'|'fortbildung'|'hochschule'|'unbekannt'} StufeKey */
+/** @typedef {'evangelisch'|'katholisch'|'islamisch'|'juedisch'|'alevitisch'|'allgemein'} FachKey */
 /** @typedef {import('./material.js').Begriff} Begriff */
 
 /** Icon je Typ (Tabler-Name, gerendert als Inline-SVG in Icon.svelte). */
@@ -64,6 +65,50 @@ const HCRT_ZU_TYP = /** @type {Record<string, TypKey>} */ ({
 });
 
 /**
+ * Facette „Fach“ (Prototyp Materialpool 2.0) — bewusst „Fach“, nicht
+ * „Konfession“, damit Filter und Profil dieselben Namen tragen. Erkannt
+ * am KIM-Schulfach (`about:id`); für orthodoxe Religionslehre gibt es
+ * keine eigene Kennung.
+ * @type {FachKey[]}
+ */
+export const FACH_REIHENFOLGE = ['evangelisch', 'katholisch', 'islamisch', 'juedisch', 'alevitisch', 'allgemein'];
+
+/** @type {Record<FachKey, string>} */
+export const FACH_LABEL = {
+  evangelisch: 'Evangelische Religionslehre',
+  katholisch: 'Katholische Religionslehre',
+  islamisch: 'Islamische Religionslehre',
+  juedisch: 'Jüdische Religionslehre',
+  alevitisch: 'Alevitische Religionslehre',
+  allgemein: 'Religionslehre (überkonfessionell)'
+};
+
+/** Letzter Pfadteil der KIM-Schulfach-URI → Fach. s1055 (Religion, überkonfessionell) steht nicht hier: es ist der Rückfall. */
+const KIM_FACH = /** @type {Record<string, FachKey>} */ ({
+  s1024: 'evangelisch',
+  s1026: 'katholisch',
+  s1025: 'islamisch',
+  s1057: 'juedisch',
+  s1056: 'alevitisch'
+});
+
+/**
+ * Alle Konfessionen, die die Fach-Begriffe nennen, in FACH_REIHENFOLGE.
+ * Viele Materialien tragen die konfessionelle UND die überkonfessionelle
+ * Kennung; „allgemein“ gilt nur, wenn keine Konfession passt.
+ * @param {Begriff[]} begriffe
+ * @returns {FachKey[]}
+ */
+export function faecherAusBegriffen(begriffe) {
+  const keys = new Set(begriffe.flatMap((b) => {
+    const key = KIM_FACH[pfadteil(b.id)];
+    return key ? [key] : [];
+  }));
+  const geordnet = FACH_REIHENFOLGE.filter((k) => keys.has(k));
+  return geordnet.length > 0 ? geordnet : ['allgemein'];
+}
+
+/**
  * Reihenfolge in Facetten. `fortbildung` und `hochschule` kommen im
  * Materialpool-Bestand vor (KIM level_C, level_A) und stehen darum in der
  * Facette — aber nicht als Kachel der Startseite (Prototyp).
@@ -83,6 +128,22 @@ export const STUFEN_LABEL = {
   fortbildung: 'Fortbildung',
   hochschule: 'Hochschule',
   unbekannt: 'Stufe nicht angegeben'
+};
+
+/**
+ * Nur für die Kacheln der Startseite: Die Zeile darüber verspricht schon
+ * „für die Kita“, „für die Gemeinde“, „für die Konfi-Arbeit“ — Schulstufen
+ * direkt darunter wirkten dagegen rein schulisch. Die Zuordnung bleibt
+ * dieselbe, nur die Beschriftung nennt das Alter statt der Schulform. Die
+ * Facette der Liste bleibt bei `STUFEN_LABEL`, dort ist die genaue Stufe
+ * gefragt. (Prototyp Materialpool 2.0, 22.09.2026)
+ * @type {Partial<Record<StufeKey, string>>}
+ */
+export const STUFEN_LABEL_ALTER = {
+  elem: 'Kinder',
+  sek1: 'Jugendliche',
+  sek2: 'Junge Erwachsene',
+  bbs: 'Erwachsene'
 };
 
 /** educationalLevel-Label → Stufe; alles andere ist „unbekannt“. */

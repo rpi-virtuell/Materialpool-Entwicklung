@@ -17,6 +17,17 @@ Oberflächentests ohne Netz und decken ab:
    Postsekundar, Bild.
 7. Ein Material mit Lizenz CC BY-SA 4.0, Bild, Urheber, Primarbereich.
 
+`amb-faecher.json`: zwei **echte, signierte** kind:30142-Events für die
+Fach-Facette, geholt am 30.09.2026 und unverändert übernommen (Event-id
+gegen den Inhalt geprüft). Eigene Datei, damit die Zählungen der
+Tests über `amb-beispiele.json` gleich bleiben:
+
+1. Lesepause – Magazin für Religionslehrkräfte im Erzbistum Paderborn
+   (`amb-relay.edufeed.org`, Schlüssel `78a65199…`) — `about:id`
+   s1024 und s1026, also evangelisch und katholisch.
+2. Kein Frieden ohne Frieden der Religionen (`sodix.edufeed.org`,
+   Schlüssel `da60d98e…`) — nur s1055, also überkonfessionell.
+
 Keine handgeschriebenen Beispieldaten mehr (Wunsch vom 29.09.2026):
 Was hier steht, liegt so auf dem Relay. Neue Fixtures kommen mit demselben
 Weg dazu — vom Relay holen, nicht erfinden.

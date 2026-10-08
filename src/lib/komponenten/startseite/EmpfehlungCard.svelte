@@ -20,6 +20,11 @@
 </a>
 
 <style>
+  /* Rücken und Label laufen in der Markenfarbe, nicht in der Cover-Tinte:
+     Die Empfehlung zeigt fast immer ein Foto, die Tinte hatte dann keine
+     Fläche neben sich und stand als einzelnes Braun oder Weinrot direkt
+     unter den Stufenkacheln. Die Tinte bleibt dem Ersatzcover (Icon).
+     (Prototyp Materialpool 2.0, 28.09.2026) */
   .empfehlung-card {
     display: flex;
     align-items: stretch;
@@ -27,14 +32,14 @@
     min-height: 210px;
     background: var(--weiss);
     border: 1px solid var(--border);
-    border-left: 6px solid var(--cover-ink);
+    border-left: 6px solid var(--blue);
     border-radius: 8px;
     overflow: hidden;
     text-align: left;
     text-decoration: none;
     transition: border-color 0.15s ease;
   }
-  .empfehlung-card:hover { border-color: var(--cover-ink); }
+  .empfehlung-card:hover { border-color: var(--blue); }
   .empfehlung-card-cover {
     position: relative;
     display: flex;
@@ -57,7 +62,7 @@
     max-width: 62ch;
     padding: var(--sp-6) var(--sp-8);
   }
-  .empfehlung-card-label { font-size: var(--fs-200); font-weight: 600; color: var(--cover-ink); }
+  .empfehlung-card-label { font-size: var(--fs-200); font-weight: 600; color: var(--blue); }
   .empfehlung-card-title {
     font-family: var(--font-display);
     font-size: 24px;

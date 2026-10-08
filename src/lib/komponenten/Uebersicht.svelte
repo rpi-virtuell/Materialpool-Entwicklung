@@ -2,19 +2,32 @@
   import Icon from './Icon.svelte';
   import Karte from './Karte.svelte';
   /**
-   * Liste (/materialien): Suche, Facetten (Materialart, Bildungsstufe,
-   * Schlagworte) als Link-Chips, Ergebnisleiste mit Treffern, aktiven
-   * Filtern als entfernbare Pillen und Sortierung als Link-Gruppe, Karten.
-   * Alles GET-Links — ohne JavaScript vollständig. Zustände: leerer
-   * Spiegel (Erklärung), keine Treffer (aktive Filter), Treffer.
+   * Liste (/materialien): Suche, Facetten (Fach, Materialart,
+   * Bildungsstufe, Schlagworte) als Link-Chips in einer Spalte links,
+   * rechts Ergebnisleiste mit Treffern, aktiven Filtern als entfernbare
+   * Pillen und Sortierung als Link-Gruppe, Karten. Alles GET-Links — ohne
+   * JavaScript vollständig. Zustände: leerer Spiegel (Erklärung), keine
+   * Treffer (aktive Filter), Treffer.
+   *
+   * Die Spalte ist Christinas Wahl vom 02.10.2026 aus drei Entwürfen:
+   * Vorher brauchten die Facetten über den Karten bei 1280 × 800 rund
+   * 390 px Höhe. Von den Schlagworten stehen die ersten sechs, der Rest
+   * hinter „mehr …“. Chips ohne Treffer bleiben abgeblendet stehen —
+   * ausgeblendet wirkte es, als kenne die Seite die Werte nicht. Unter
+   * 900 px liegen die Facetten über den Karten hinter einem Knopf „Filter“.
    * @type {ReturnType<typeof import('$lib/routen/uebersicht.js').listeLaden>}
    */
-  let { karten, treffer, seiten, filter, pillen, facetten, sortierungen, suche, gesamt, leerstand } = $props();
+  let { karten, treffer, seiten, zurueck, filter, pillen, facetten, sortierungen, suche, frage, profilHinweis, gesamt, leerstand } = $props();
+  /** Schlagwort-Chips vor „mehr …“. */
+  const SCHLAGWORTE_SICHTBAR = 6;
+  /** Auf dem Handy liegen die Facetten hinter „Filter“; mit aktiven Filtern steht es offen. */
+  const aktiveFacetten = $derived(filter.stufen.length + filter.typen.length + filter.faecher.length + filter.schlagworte.length);
   const trefferText = $derived(
     treffer === gesamt ? `${treffer} Treffer` : `${treffer} Treffer von ${gesamt}`
   );
   const filterText = $derived(pillen.map((p) => p.label).join(' und '));
   const gruppen = $derived([
+    { name: 'Fach', werte: facetten.faecher },
     { name: 'Materialart', werte: facetten.typen },
     { name: 'Bildungsstufe', werte: facetten.stufen },
     { name: 'Schlagworte', werte: facetten.schlagworte }
@@ -26,9 +39,11 @@
     <h1>Materialien</h1>
     <form class="liste-suche" action="/materialien" method="get" role="search">
       <Icon name="search" />
-      <input type="search" name="q" value={filter.q} placeholder="Suchen in Titel, Beschreibung, Herkunft und Schlagworten" aria-label="Materialien durchsuchen" />
+      <input type="search" name="q" value={filter.q} placeholder="Stichwort oder in eigenen Worten …" aria-label="Materialien durchsuchen" />
+      {#if filter.wortlaut && filter.wortlaut === filter.q}<input type="hidden" name="wortlaut" value={filter.wortlaut} />{/if}
       {#each filter.stufen as s (s)}<input type="hidden" name="stufe" value={s} />{/each}
       {#each filter.typen as t (t)}<input type="hidden" name="typ" value={t} />{/each}
+      {#each filter.faecher as f (f)}<input type="hidden" name="fach" value={f} />{/each}
       {#each filter.schlagworte as w (w)}<input type="hidden" name="t" value={w} />{/each}
       {#if filter.sortierung !== 'empfohlen'}<input type="hidden" name="sort" value={filter.sortierung} />{/if}
       <button type="submit">Suchen</button>
@@ -37,27 +52,64 @@
     {#if leerstand}
       <p class="status-hint status-warn">{leerstand}</p>
     {:else}
-      {#if suche.hinweis}<p class="status-hint status-warn suche-hinweis">{suche.hinweis}</p>{/if}
-      <div class="facetten">
-        {#each gruppen as gruppe (gruppe.name)}
-          {#if gruppe.werte.length > 0}
-            <fieldset class="facette">
-              <legend>{gruppe.name}</legend>
-              <div class="facette-chips">
-                {#each gruppe.werte as wert (wert.key)}
-                  {#if wert.pfad}
-                    <a class="chip" class:is-aktiv={wert.aktiv} href={wert.pfad} aria-current={wert.aktiv ? 'true' : undefined}>
-                      {wert.label} <span class="chip-zahl">{wert.anzahl}</span>
-                    </a>
-                  {:else}
-                    <span class="chip is-leer" aria-disabled="true">{wert.label} <span class="chip-zahl">0</span></span>
-                  {/if}
-                {/each}
-              </div>
-            </fieldset>
+      {#if frage}
+        <p class="frage-hinweis">
+          <span class="frage-kopf"><Icon name="sparkles" /> „{frage.text}“ haben wir so verstanden:</span>
+          {#each frage.teile as teil (teil.label)}
+            <span class="deutung-teil">„{teil.woerter}“ <span aria-label="wird zu">→</span> {teil.label}</span>
+          {/each}
+          {#if frage.themen.length > 0}
+            <span class="deutung-teil">{frage.themen.length === 1 ? 'Thema' : 'Themen'}: <strong>{frage.themen.join(', ')}</strong></span>
           {/if}
-        {/each}
-      </div>
+          <a class="frage-zurueck" href={frage.rueckgaengigPfad}>Rückgängig</a>
+        </p>
+      {/if}
+      {#if suche.hinweis}<p class="status-hint status-warn suche-hinweis">{suche.hinweis}</p>{/if}
+      {#snippet chip(/** @type {import('$lib/routen/uebersicht.js').Facettenwert} */ wert)}
+        {#if wert.pfad}
+          <a class="chip" class:is-aktiv={wert.aktiv} href={wert.pfad} aria-current={wert.aktiv ? 'true' : undefined}>
+            {wert.label} <span class="chip-zahl">{wert.anzahl}</span>
+          </a>
+        {:else}
+          <span class="chip is-leer" aria-disabled="true">{wert.label} <span class="chip-zahl">0</span></span>
+        {/if}
+      {/snippet}
+
+      <div class="liste-koerper">
+      <aside class="liste-filter" aria-label="Filter">
+        <!-- Nur unter 900 px sichtbar: Das Kästchen schaltet die Facetten per
+             CSS auf und zu, ohne JavaScript. Am Desktop ist beides
+             ausgeblendet, die Spalte steht immer. -->
+        <input class="filter-schalter" type="checkbox" id="filter-schalter" checked={aktiveFacetten > 0} />
+        <label class="filter-knopf" for="filter-schalter">Filter{aktiveFacetten > 0 ? ` (${aktiveFacetten})` : ''}</label>
+        <div class="facetten">
+          {#each gruppen as gruppe (gruppe.name)}
+            <!-- Leere Chips bleiben abgeblendet stehen: Man soll sehen, dass
+                 es die Werte gibt, auch wenn gerade nichts dazu passt. -->
+            {@const werte = gruppe.werte}
+            {@const viele = gruppe.name === 'Schlagworte' && werte.length > SCHLAGWORTE_SICHTBAR}
+            {#if werte.length > 0}
+              <fieldset class="facette">
+                <legend>{gruppe.name}</legend>
+                <div class="facette-chips">
+                  {#each viele ? werte.slice(0, SCHLAGWORTE_SICHTBAR) : werte as wert (wert.key)}{@render chip(wert)}{/each}
+                  {#if viele}
+                    <details class="facette-mehr">
+                      <summary>mehr …</summary>
+                      <div class="facette-chips">{#each werte.slice(SCHLAGWORTE_SICHTBAR) as wert (wert.key)}{@render chip(wert)}{/each}</div>
+                    </details>
+                  {/if}
+                </div>
+              </fieldset>
+            {/if}
+          {/each}
+        </div>
+      </aside>
+      <div class="liste-ergebnis">
+
+      {#if profilHinweis}
+        <p class="profil-hinweis"><Icon name="user-check" /> {profilHinweis} <a href="/konto">Profil ändern</a></p>
+      {/if}
 
       {#if karten.length === 0}
         <div class="keine-treffer">
@@ -80,7 +132,7 @@
         </div>
         <div class="material-grid">
           {#each karten as karte (karte.material.id)}
-            <Karte {karte} />
+            <Karte {karte} {zurueck} />
           {/each}
         </div>
         {#if seiten.anzahl > 1}
@@ -91,6 +143,8 @@
           </nav>
         {/if}
       {/if}
+      </div>
+      </div>
     {/if}
   </div>
 </main>
@@ -141,10 +195,70 @@
   .liste-suche button:hover { background: var(--blue-darker); }
 
   .suche-hinweis { margin-bottom: var(--sp-4); }
-  .facetten { display: flex; flex-direction: column; gap: var(--sp-3); margin-bottom: var(--sp-6); }
-  .facette { border: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; align-items: baseline; gap: var(--sp-2) var(--sp-3); }
-  .facette legend { float: left; font-size: var(--fs-200); font-weight: 600; color: var(--text-muted); min-width: 7.5em; padding: 0; }
+  .frage-hinweis {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: var(--sp-1) var(--sp-3);
+    margin: 0 0 var(--sp-5);
+    padding: var(--sp-3) var(--sp-4);
+    border-left: 3px solid var(--blue);
+    background: var(--fb-flaeche);
+    border-radius: 0 var(--radius) var(--radius) 0;
+    font-size: var(--fs-300);
+    color: var(--text-body);
+  }
+  .frage-kopf { display: inline-flex; align-items: center; gap: var(--sp-1); font-weight: 600; color: var(--text-dark); }
+  .frage-kopf :global(.ti) { width: 16px; height: 16px; color: var(--blue); }
+  .frage-zurueck { margin-left: auto; color: var(--blue); font-weight: 600; }
+  /* Solange die Voreinstellung aus dem Profil unverändert gilt (ADR-0006). */
+  .profil-hinweis { display: flex; flex-wrap: wrap; align-items: center; gap: var(--sp-2); font-size: var(--fs-200); color: var(--text-muted); margin: calc(-1 * var(--sp-3)) 0 var(--sp-4); }
+  .profil-hinweis :global(.ti) { width: 15px; height: 15px; color: var(--blue); }
+  .profil-hinweis a { color: var(--blue); }
+  /* Facetten als Spalte links, die beim Scrollen mitläuft; rechts die
+     Treffer mit drei Karten je Reihe. Unter 900 px stehen die Facetten
+     wieder über den Karten, je Facette eine Zeile. */
+  .liste-koerper {
+    display: grid;
+    grid-template-columns: 220px minmax(0, 1fr);
+    gap: var(--sp-8);
+    align-items: start;
+  }
+  .liste-filter {
+    position: sticky;
+    top: calc(64px + var(--sp-4));
+    max-height: calc(100vh - 64px - 2 * var(--sp-4));
+    overflow-y: auto;
+  }
+  .facetten { display: flex; flex-direction: column; gap: var(--sp-5); }
+  .facette { border: none; margin: 0; padding: 0; }
+  .facette legend { display: block; font-size: var(--fs-200); font-weight: 600; color: var(--text-muted); padding: 0; margin-bottom: var(--sp-2); }
   .facette-chips { display: flex; flex-wrap: wrap; gap: var(--sp-2); }
+  .facette-mehr { display: inline-flex; }
+  .facette-mehr[open] { flex-basis: 100%; flex-direction: column; }
+  .facette-mehr summary {
+    list-style: none;
+    cursor: pointer;
+    padding: var(--sp-1) var(--sp-2);
+    font-size: var(--fs-200);
+    font-weight: 600;
+    color: var(--blue);
+  }
+  .facette-mehr summary::-webkit-details-marker { display: none; }
+  .facette-mehr[open] summary { display: none; }
+  .liste-ergebnis .profil-hinweis { margin-top: 0; }
+  /* Handy: Knopf „Filter“; das Kästchen bleibt für Tastatur und
+     Screenreader erreichbar, ist aber unsichtbar. */
+  .filter-schalter {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+    opacity: 0;
+  }
+  .filter-knopf { display: none; }
   .chip {
     display: inline-flex;
     align-items: center;
@@ -192,7 +306,7 @@
   .sortierung a.is-aktiv { color: var(--text-dark); font-weight: 600; border-bottom-color: var(--blue); }
   .material-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
     gap: var(--sp-4);
   }
   .seiten {
@@ -209,6 +323,32 @@
   .seiten-aus { opacity: 0.4; }
   .keine-treffer h2 { font-size: 22px; margin-bottom: var(--sp-2); }
   .filter-aufheben { color: var(--blue); font-weight: 600; }
+  @media (max-width: 900px) {
+    .liste-koerper { display: block; }
+    .liste-filter { position: static; max-height: none; overflow: visible; margin-bottom: var(--sp-6); }
+    .facetten { gap: var(--sp-3); display: none; margin-top: var(--sp-4); }
+    .filter-schalter:checked ~ .facetten { display: flex; }
+    .filter-knopf {
+      display: inline-flex;
+      align-items: center;
+      gap: var(--sp-2);
+      cursor: pointer;
+      padding: var(--sp-2) var(--sp-4);
+      min-height: 44px;
+      border: 1px solid var(--border);
+      border-radius: 5px;
+      font-size: var(--fs-300);
+      font-weight: 600;
+      color: var(--text-dark);
+      background: var(--weiss);
+    }
+    .filter-knopf::after { content: '▾'; font-size: 0.8em; color: var(--text-muted); }
+    .filter-schalter:checked + .filter-knopf { border-color: var(--blue); color: var(--blue); }
+    .filter-schalter:checked + .filter-knopf::after { content: '▴'; }
+    .filter-schalter:focus-visible + .filter-knopf { outline: 2px solid var(--blue); outline-offset: 2px; }
+    .facette { display: flex; flex-wrap: wrap; align-items: baseline; gap: var(--sp-2) var(--sp-3); }
+    .facette legend { float: left; min-width: 7.5em; margin-bottom: 0; }
+  }
   @media (max-width: 640px) {
     .liste-inner { padding: var(--sp-6) var(--sp-4) var(--sp-10); }
     .facette legend { float: none; min-width: 0; width: 100%; margin-bottom: var(--sp-1); }

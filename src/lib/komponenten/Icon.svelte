@@ -6,6 +6,8 @@
    * importierten Dateien.
    */
   import arrowRight from '@tabler/icons/outline/arrow-right.svg?raw';
+  import bookmark from '@tabler/icons/outline/bookmark.svg?raw';
+  import bookmarkGefuellt from '@tabler/icons/filled/bookmark.svg?raw';
   import books from '@tabler/icons/outline/books.svg?raw';
   import bulb from '@tabler/icons/outline/bulb.svg?raw';
   import file from '@tabler/icons/outline/file.svg?raw';
@@ -14,13 +16,23 @@
   import notebook from '@tabler/icons/outline/notebook.svg?raw';
   import pencil from '@tabler/icons/outline/pencil.svg?raw';
   import search from '@tabler/icons/outline/search.svg?raw';
+  import sparkles from '@tabler/icons/outline/sparkles.svg?raw';
+  import user from '@tabler/icons/outline/user.svg?raw';
+  import userCheck from '@tabler/icons/outline/user-check.svg?raw';
   import video from '@tabler/icons/outline/video.svg?raw';
   import world from '@tabler/icons/outline/world.svg?raw';
 
+  /**
+   * Gefüllte Icons: Das Sprite setzt `fill="none"` am `<symbol>`; eine
+   * Gruppe mit eigener Füllung überstimmt das für diese Pfade.
+   * @param {string} roh
+   */
+  const gefuellt = (roh) => roh.replace(/(<svg[^>]*>)([\s\S]*)<\/svg>/, '$1<g fill="currentColor" stroke="none">$2</g></svg>');
+
   /** @type {Record<string, string>} */
   const ROH = {
-    'arrow-right': arrowRight, books, bulb, file, 'file-text': fileText,
-    headphones, notebook, pencil, search, video, world
+    'arrow-right': arrowRight, bookmark, 'bookmark-gefuellt': gefuellt(bookmarkGefuellt), books, bulb, file, 'file-text': fileText,
+    headphones, notebook, pencil, search, sparkles, user, 'user-check': userCheck, video, world
   };
 
   /** Icons, die es gibt — für Sprite, Tests und Typprüfung. */

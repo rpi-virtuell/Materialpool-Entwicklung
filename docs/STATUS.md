@@ -8,6 +8,113 @@ das Gesamtbild in `superpowers/specs/2026-09-28-materialpool-neustart-design.md`
 
 ---
 
+## 2026-10-02 — Merkliste „Gemerkt“ (ADR-0008, offen)
+
+**Passiert:** Christina wollte vor dem Pull Request auch die Merkliste
+des Prototyps. Umgesetzt ohne Client-Schicht: Lesezeichen oben rechts
+auf jeder Karte und „Merken“/„Gemerkt“ auf der Detailseite, je ein
+POST-Formular auf `/merkliste?/umschalten`, zurück per Anker an dieselbe
+Karte (`scroll-margin-top` unter der festen Kopfzeile). Die Liste liegt
+als Cookie `merkliste` im Browser — je Material 12 Hex-Zeichen SHA-256
+über `d`, höchstens 200. `/merkliste` zeigt alles Gemerkte, neueste
+Merkung zuerst, und nennt, was nicht mehr im Spiegel steht. „Gemerkt“
+in der Kopfzeile.
+
+Danach: **Facetten als Spalte links.** Bei 1280 × 800 brauchten die
+Facetten über den Karten 390 px, die erste Karte begann bei 700 px. Aus
+drei Entwürfen (Aufklappen, Kompakt, Spalte) hat Christina die Spalte
+gewählt: mitlaufend, rechts drei Karten je Reihe (Mindestbreite 220 px),
+erste Karte bei 285 px. Schlagworte zeigen sechs plus „mehr …“
+(`<details>`). Leere Chips bleiben abgeblendet stehen — ausgeblendet
+wirkte es, als kenne die Seite die Werte nicht. Unter 900 px stehen die
+Facetten über den Karten hinter einem Knopf „Filter“ (Kästchen + CSS,
+ohne JavaScript), mit aktiven Filtern offen und gezählt — am Handy
+beginnt die erste Karte damit bei 375 statt 1.055 px.
+
+**Wo steht das Projekt:** `pnpm check` 0 Fehler, 197 Tests grün, `pnpm
+build` läuft. Im Browser geprüft: Merken auf Seite 2 der Liste und
+Rücksprung an die Karte, Merkliste, Entfernen auf der Detailseite,
+leerer Zustand. Der Branch liegt seit dem 01.10. auf dem Server; der
+Pull Request steht noch aus.
+
+**Nächster Schritt:** Branch erneut hochladen, Pull Request an Jörg mit
+ADR-0006, -0007 und -0008 zur Bestätigung.
+
+---
+
+## 2026-09-30 (2) — Nachzug aus dem Prototyp: Fächer, Farbschalter, Suche in eigenen Worten, Kontoebene
+
+**Passiert:** Christina wollte alle ihre Weiterentwicklungen im Prototyp
+hier haben. Übertragen auf `feat/prototyp-nachzug`, je ein Commit:
+
+- **Fach-Facette und drei Relays (ADR-0007, offen):** Facette „Fach“
+  vorne in der Liste (evangelisch … überkonfessionell, `fach=`), erkannt
+  an `about:id`. `.env.example` fragt wie der Prototyp amb-relay, sodix
+  und oersi nach allen sechs Religions-Kennungen, ohne Autorenfilter:
+  8.382 Materialien, davon ~7.710 evangelisch, ~670 überkonfessionell,
+  4 katholisch. Zwei echte Events als Fixtures (`amb-faecher.json`).
+- **Farbschalter:** unten rechts Hex-Feld, Farbwähler, Übernehmen,
+  Zurücksetzen — ein GET-Formular; die Farbe bleibt per Cookie beim
+  Weiterklicken (bisher galt `?primaryColor` nur für eine Seite).
+- **Suche in eigenen Worten:** `models/deutung.js` zerlegt einen Satz
+  nach den Regeln des Prototyps; `routen/frage.js` leitet auf die
+  gedeutete Suche um, zeigt „… haben wir so verstanden“ und
+  „Rückgängig“ zum Wortlaut. Ohne JavaScript kein Zwischenschritt „So
+  suchen“ in der Liste.
+- **Behebung aus dem Bestand:** Bei der Relay-Suche verloren die
+  Facetten-Links den Suchtext (Zählung ohne `q` war richtig, die Links
+  nicht). Eigener Commit mit Test.
+- **Prototypische Kontoebene (ADR-0006, offen):** `/konto` mit Anmelden
+  nur per Name, Profil im Cookie, Begrüßung und „Neu für deine Arbeit …“
+  auf der Startseite, Voreinstellung der Liste per `profil=1` mit
+  Hinweis. `CLAUDE.md` und `README.md` nachgezogen.
+
+**Wo steht das Projekt:** `pnpm check` 0 Fehler, 185 Tests grün, `pnpm
+build` läuft. Im Browser gegen die drei Relays geprüft: Facette, Farbe
+über Seitenwechsel und Zurücksetzen, Satz → Filter → Rückgängig,
+Anmelden → Profil → Startseite → Liste → Abmelden, Handybreite.
+
+**Nächster Schritt:** Review durch Jörg, vor allem ADR-0006 (Anmeldung
+war ausgeschlossen) und ADR-0007 (Quelle breiter als der Materialpool).
+Die `.env` auf dem Entwicklungsserver muss danach angepasst werden. Aus
+dem Prototyp nicht übertragen: die Merkliste (ADR-0004 schließt sie aus).
+
+---
+
+## 2026-09-30 — Nachzug aus dem Prototyp: Kacheln, Zielgruppen, Empfehlung
+
+**Passiert:** Christina hat den React-Prototyp „Materialpool 2.0“ nach
+dem Stand, der dieser Startseite zugrunde liegt, weiterentwickelt. Die
+drei kleinen Änderungen daraus sind übertragen (Branch
+`feat/prototyp-nachzug`), je ein Commit:
+
+- **Kacheln nach Alter:** „Nach Alter einsteigen“ mit Kinder /
+  Jugendliche / Junge Erwachsene / Erwachsene (`STUFEN_LABEL_ALTER` in
+  `models/typen.js`). Zuordnung und Links unverändert; die Facette der
+  Liste nennt weiter die Schulstufe.
+- **Zielgruppen gemischt:** Schule und Schulgottesdienste, Konfi- und
+  Jugendarbeit stehen nicht mehr nebeneinander, auch nicht über den
+  Umlauf; ein Test hält das fest.
+- **Empfehlungskarte:** Rücken, Hover-Rand und Label in `--blue` statt
+  in der Cover-Tinte, die neben einem Foto als einzelne Fremdfarbe stand.
+- **Architekturtest unter Windows:** `fileURLToPath` und Schrägstriche
+  statt `.pathname`; unter Linux unverändert.
+
+**Wo steht das Projekt:** `pnpm check` 0 Fehler, 133 Tests grün. Lokal
+gegen `amb-relay.edufeed.org` im Browser geprüft (7.701 Materialien).
+Aufgefallen: Die Dev-Seite `material.rpi-virtuell.net` zeigt 290
+Materialien von `relay.edufeed.org` und `relay-rpi.edufeed.org` — die
+`.env` auf dem Server weicht von `.env.example` ab.
+
+**Nächster Schritt:** Review und Merge durch Jörg. Aus dem Prototyp
+offen: die Suche in eigenen Worten (Sätze werden zu Filtern, passt
+serverseitig) und die Kontoebene mit Profil — Letztere widerspricht
+ADR-0001/0004 („keine Anmeldung“) und braucht zuerst eine ADR. Die
+Facette „Fach“ aus dem Prototyp bringt beim jetzigen Bestand nichts
+(alle 7.701 evangelisch).
+
+---
+
 ## 2026-09-29 (3) — Echte Daten: Materialpool-Bestand vom Relay, kein Mock mehr
 
 **Passiert:** Beim lokalen Prüfen fiel auf, dass `.env` seit dem 28.09. auf

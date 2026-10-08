@@ -6,23 +6,51 @@ import { render } from 'svelte/server';
 import { describe, expect, it } from 'vitest';
 import beispiele from './fixtures/amb-beispiele.json';
 import Detail from '../src/lib/komponenten/Detail.svelte';
+import Farbschalter from '../src/lib/komponenten/Farbschalter.svelte';
 import Fusszeile from '../src/lib/komponenten/Fusszeile.svelte';
 import Icon, { ICON_NAMEN } from '../src/lib/komponenten/Icon.svelte';
 import IconSprite from '../src/lib/komponenten/IconSprite.svelte';
+import Karte from '../src/lib/komponenten/Karte.svelte';
+import Konto from '../src/lib/komponenten/Konto.svelte';
+import Merkliste from '../src/lib/komponenten/Merkliste.svelte';
+import { karteMitMerken, merkSchluessel } from '../src/lib/routen/merkliste.js';
 import Kopfzeile from '../src/lib/komponenten/Kopfzeile.svelte';
+import { LEERES_KONTO } from '../src/lib/models/konto.js';
+import { kontoSeite } from '../src/lib/routen/konto.js';
 import Startseite from '../src/lib/komponenten/startseite/Startseite.svelte';
 import { ZIELGRUPPEN } from '../src/lib/komponenten/startseite/HeroZielgruppe.svelte';
 import Uebersicht from '../src/lib/komponenten/Uebersicht.svelte';
 import { materialAusEvent } from '../src/lib/models/material.js';
 import { TYPEN } from '../src/lib/models/typen.js';
+import { farbschalterBilden } from '../src/lib/routen/farbschalter.js';
+import { frageHinweis, frageUmleitung } from '../src/lib/routen/frage.js';
 import { startseiteLaden } from '../src/lib/routen/startseite.js';
-import { leererFilter, listeLaden } from '../src/lib/routen/uebersicht.js';
+import { filterLesen, leererFilter, listeLaden } from '../src/lib/routen/uebersicht.js';
 import { leererInhalt } from '../src/lib/services/spiegel.js';
 
 const relays = ['wss://amb-relay.edufeed.org/'];
 const materialien = beispiele.map(materialAusEvent);
 const inhalt = { ...leererInhalt(), materialien: beispiele };
 const september = new Date(2026, 8, 29);
+
+describe('Farbschalter', () => {
+  it('ist ein GET-Formular auf die aktuelle Seite mit Hex- und Farbfeld, ohne JavaScript', () => {
+    const url = new URL('http://x/materialien?stufe=elem&primaryColor=%23c1272d');
+    const { body } = render(Farbschalter, { props: { schalter: farbschalterBilden(url, '#c1272d') } });
+    expect(body).toMatch(/<form[^>]*class="farbschalter[^>]*action="\/materialien"[^>]*method="get"/);
+    expect(body).toMatch(/type="hidden" name="stufe" value="elem"/);
+    expect(body).toMatch(/type="text" name="primaryColor" value="#c1272d"/);
+    expect(body).toMatch(/type="color" name="primaryColor" value="#c1272d"/);
+    expect(body).toContain('Übernehmen');
+    expect(body).toContain('href="/materialien?stufe=elem&amp;primaryColor="');
+    expect(body).not.toContain('<script');
+  });
+  it('bietet „Zurücksetzen“ nur an, wenn eine Farbe gesetzt ist', () => {
+    const { body } = render(Farbschalter, { props: { schalter: farbschalterBilden(new URL('http://x/'), null) } });
+    expect(body).toContain('value="#1d5a8c"');
+    expect(body).not.toContain('Zurücksetzen');
+  });
+});
 
 describe('Icon', () => {
   it('verweist je Icon auf ein Symbol im Sprite und fällt auf „file“ zurück', () => {
@@ -40,13 +68,80 @@ describe('Icon', () => {
 });
 
 describe('Kopfzeile', () => {
-  it('verlinkt Start und Liste, ohne Merkliste', () => {
-    const { body } = render(Kopfzeile, { props: { aktiv: 'liste' } });
+  const abgemeldet = { angemeldet: false, vorname: '', stoebernPfad: '/materialien' };
+  it('verlinkt Start, Liste und Merkliste (ADR-0008)', () => {
+    const { body } = render(Kopfzeile, { props: { aktiv: 'liste', kopf: abgemeldet } });
     expect(body).toContain('class="logo');
     expect(body).toContain('href="/"');
     expect(body).toMatch(/href="\/materialien"[^>]*class="[^"]*active/);
     expect(body).toContain('Stöbern');
-    expect(body).not.toContain('Gemerkt');
+    expect(body).toMatch(/href="\/merkliste"[^>]*aria-label="Gemerkt"/);
+  });
+  it('bietet „Anmelden“ an und zeigt angemeldet den Vornamen (ADR-0006)', () => {
+    expect(render(Kopfzeile, { props: { aktiv: null, kopf: abgemeldet } }).body).toMatch(/href="\/konto"[^>]*aria-label="Anmelden"/);
+    const { body } = render(Kopfzeile, { props: { aktiv: 'konto', kopf: { angemeldet: true, vorname: 'Christina', stoebernPfad: '/materialien?profil=1' } } });
+    expect(body).toMatch(/href="\/konto"[^>]*aria-label="Profil von Christina"/);
+    expect(body).toMatch(/<span[^>]*>Christina<\/span>/);
+    expect(body).toContain('href="/materialien?profil=1"');
+  });
+});
+
+describe('Merkliste (ADR-0008)', () => {
+  const erntedank = materialAusEvent(beispiele[2]);
+  it('Karte: Lesezeichen als POST-Formular, das an die Karte zurückführt', () => {
+    const karte = karteMitMerken(erntedank, []);
+    const { body } = render(Karte, { props: { karte, zurueck: '/materialien?stufe=elem' } });
+    expect(body).toContain(`id="k-${karte.merkSchluessel}"`);
+    expect(body).toMatch(/<form[^>]*class="merken[^>]*method="post"[^>]*action="\/merkliste\?\/umschalten"/);
+    expect(body).toContain(`name="zurueck" value="/materialien?stufe=elem#k-${karte.merkSchluessel}"`);
+    expect(body).toContain('aria-label="„EKD: Erntedankfest“ merken"');
+    expect(body).toContain('aria-pressed="false"');
+  });
+  it('Karte: gemerkt gefüllt; ohne zurueck kein Lesezeichen', () => {
+    const karte = karteMitMerken(erntedank, [merkSchluessel(erntedank)]);
+    const gemerkt = render(Karte, { props: { karte, zurueck: '/' } }).body;
+    expect(gemerkt).toContain('#ti-bookmark-gefuellt');
+    expect(gemerkt).toContain('aus der Merkliste entfernen');
+    expect(render(Karte, { props: { karte } }).body).not.toContain('class="merken');
+  });
+  it('Seite: leer mit Erklärung, sonst die Karten und was fehlt', () => {
+    expect(render(Merkliste, { props: { karten: [], fehlend: 0 } }).body).toContain('Noch nichts gemerkt');
+    const { body } = render(Merkliste, { props: { karten: [karteMitMerken(erntedank, [])], fehlend: 2 } });
+    expect(body).toContain('1 Material');
+    expect(body).toContain('2 sind nicht mehr im Bestand');
+    expect(body).toContain('name="zurueck" value="/merkliste#k-');
+  });
+  it('Detailseite: „Merken“ bzw. „Gemerkt“', () => {
+    const merken = { schluessel: merkSchluessel(erntedank), gemerkt: true };
+    const { body } = render(Detail, { props: { material: erntedank, relays, merken } });
+    expect(body).toMatch(/action="\/merkliste\?\/umschalten"/);
+    expect(body).toContain(`name="zurueck" value="${erntedank.pfad}"`);
+    expect(body).toMatch(/aria-pressed="true"[^>]*>.*Gemerkt/s);
+  });
+});
+
+describe('Konto', () => {
+  it('abgemeldet: nur das Namensfeld, als POST-Formular', () => {
+    const { body } = render(Konto, { props: { seite: kontoSeite(LEERES_KONTO), gespeichert: false, fehler: null } });
+    expect(body).toContain('<h1 class="svelte-');
+    expect(body).toContain('Anmelden</h1>');
+    expect(body).toMatch(/<form[^>]*method="post"[^>]*action="\?\/anmelden"/);
+    expect(body).toMatch(/name="name"[^>]*required/);
+    expect(body).toContain('Deine Angaben bleiben nur in diesem Browser.');
+  });
+  it('angemeldet: Profil mit Bereichen und Fach, Speichern und Abmelden', () => {
+    /** @type {import('../src/lib/models/konto.js').Konto} */
+    const k = { ...LEERES_KONTO, angemeldet: true, name: 'Christina', bereiche: ['sek1'], faecher: ['katholisch'] };
+    const { body } = render(Konto, { props: { seite: kontoSeite(k), gespeichert: true, fehler: null } });
+    expect(body).toContain('Angemeldet als <strong>Christina</strong>');
+    expect(body).toMatch(/action="\?\/abmelden"/);
+    expect(body).toMatch(/<form[^>]*class="profil-form[^>]*method="post"[^>]*action="\?\/speichern"/);
+    expect(body).toMatch(/name="bereich" value="sek1"[^>]*checked/);
+    expect(body).toMatch(/name="fach" value="katholisch"[^>]*checked/);
+    expect(body).toContain('Welches Fach unterrichtest du?');
+    expect(body).toContain('Gespeichert.');
+    expect(body).toContain('Beim Stöbern stellen wir dir vorab ein: Sekundarstufe I, Katholische Religionslehre.');
+    expect(body).toContain('href="/materialien?profil=1"');
   });
 });
 
@@ -62,13 +157,23 @@ describe('Fusszeile', () => {
 });
 
 describe('Startseite', () => {
+  it('mischt die Zielgruppen: Verwandtes steht auch über den Umlauf nie nebeneinander', () => {
+    const verwandt = [['für die Schule', 'für Schulgottesdienste'], ['für die Konfi-Arbeit', 'für die Jugendarbeit']];
+    const n = ZIELGRUPPEN.length;
+    for (const [a, b] of verwandt) {
+      const abstand = Math.abs(ZIELGRUPPEN.indexOf(a) - ZIELGRUPPEN.indexOf(b));
+      expect(Math.min(abstand, n - abstand), `${a} / ${b}`).toBeGreaterThan(1);
+    }
+  });
+
   it('rendert ohne Daten sofort: Kopf, Suche, Kacheln, Hinweis „wird geladen“', () => {
     const daten = startseiteLaden({ inhalt: leererInhalt(), fehlschlag: null, relays, heute: september });
     const { body } = render(Startseite, { props: daten });
     expect(body).toContain('Materialpool Religion');
     for (const z of ZIELGRUPPEN) expect(body).toContain(z);
     expect(body).toMatch(/<form[^>]*class="hero-search[^>]*action="\/materialien"[^>]*method="get"/);
-    expect(body).toContain('Nach Bildungsstufe einsteigen');
+    expect(body).toContain('Nach Alter einsteigen');
+    expect(body).toContain('Junge Erwachsene');
     expect((body.match(/class="stufe-kachel /g) ?? []).length).toBe(4);
     expect(body).toContain('href="/materialien?stufe=bbs"');
     expect(body).toContain('Materialien werden geladen …');
@@ -145,10 +250,51 @@ describe('Uebersicht (Liste)', () => {
     expect(body).toMatch(/name="q"[^>]*value="jericho"/);
   });
 
+  it('zeigt bei einer Frage in eigenen Worten, wie sie verstanden wurde, mit Rückgängig', () => {
+    const ziel = /** @type {string} */ (frageUmleitung(new URLSearchParams('q=Erntedank+f%C3%BCr+Kinder+in+der+Kita+bitte')));
+    const params = new URL(`http://x${ziel}`).searchParams;
+    const daten = listeLaden({ inhalt, fehlschlag: null, relays, filter: filterLesen(params), frage: frageHinweis(params) });
+    const { body } = render(Uebersicht, { props: daten });
+    expect(body).toContain('„Erntedank für Kinder in der Kita bitte“ haben wir so verstanden:');
+    expect(body).toContain('„Kinder“ <span aria-label="wird zu">→</span> Elementar- &amp; Primarbereich');
+    expect(body).toContain('Thema: <strong>Erntedank</strong>');
+    expect(body).toMatch(/class="frage-zurueck[^"]*" href="\/materialien\?q=Erntedank\+f%C3%BCr\+Kinder[^"]*wortlaut=/);
+    expect(body).toMatch(/name="q"[^>]*value="Erntedank"/);
+  });
+
+  it('hält den Wortlaut nach „Rückgängig“ im Formular, damit er nicht wieder gedeutet wird', () => {
+    const satz = 'Erntedank für Kinder in der Kita bitte';
+    const daten = listeLaden({ inhalt, fehlschlag: null, relays, filter: { ...leererFilter(), q: satz, wortlaut: satz } });
+    const { body } = render(Uebersicht, { props: daten });
+    expect(body).toMatch(/type="hidden" name="wortlaut" value="Erntedank für Kinder in der Kita bitte"/);
+    expect(body).not.toContain('haben wir so verstanden');
+  });
+
+  it('stellt die Facetten als Spalte vor die Treffer und kürzt Schlagworte auf sechs plus „mehr …“', () => {
+    const { body } = render(Uebersicht, { props: listeLaden({ inhalt, fehlschlag: null, relays }) });
+    expect(body).toMatch(/<aside class="liste-filter[^"]*" aria-label="Filter">/);
+    expect(body.indexOf('class="liste-filter')).toBeLessThan(body.indexOf('class="liste-ergebnis'));
+    const schlagworte = body.slice(body.indexOf('>Schlagworte</legend>'));
+    const vorMehr = schlagworte.slice(0, schlagworte.indexOf('<details class="facette-mehr'));
+    expect((vorMehr.match(/class="chip[ "]/g) ?? []).length).toBe(6);
+    expect(schlagworte).toContain('<summary class="svelte-');
+    expect(schlagworte).toContain('mehr …</summary>');
+  });
+
+  it('legt auf dem Handy die Facetten hinter „Filter“, mit aktiven Filtern offen und gezählt', () => {
+    const zu = render(Uebersicht, { props: listeLaden({ inhalt, fehlschlag: null, relays }) }).body;
+    expect(zu).toMatch(/<input class="filter-schalter[^"]*" type="checkbox" id="filter-schalter"\/?>/);
+    expect(zu).toMatch(/<label class="filter-knopf[^"]*" for="filter-schalter">Filter<\/label>/);
+    const offen = render(Uebersicht, { props: listeLaden({ inhalt, fehlschlag: null, relays, filter: { ...leererFilter(), stufen: ['elem'], typen: ['plan'] } }) }).body;
+    expect(offen).toMatch(/id="filter-schalter" checked/);
+    expect(offen).toContain('Filter (2)</label>');
+  });
+
   it('rendert Facetten als Link-Chips mit Zählern, aktive gedrückt, leere ohne Link', () => {
     const daten = listeLaden({ inhalt, fehlschlag: null, relays, filter: { ...leererFilter(), stufen: ['elem'] } });
     const { body } = render(Uebersicht, { props: daten });
-    for (const name of ['Materialart', 'Bildungsstufe', 'Schlagworte']) expect(body).toMatch(new RegExp(`<legend[^>]*>${name}</legend>`));
+    for (const name of ['Fach', 'Materialart', 'Bildungsstufe', 'Schlagworte']) expect(body).toMatch(new RegExp(`<legend[^>]*>${name}</legend>`));
+    expect(body.indexOf('>Fach</legend>')).toBeLessThan(body.indexOf('>Materialart</legend>'));
     expect(body).toMatch(/class="chip[^"]*is-aktiv[^"]*" href="\/materialien" aria-current="true"/);
     expect(body).toMatch(/class="chip is-leer[^"]*" aria-disabled="true">Video/);
     expect(body).toContain('href="/materialien?stufe=elem&amp;typ=plan"');

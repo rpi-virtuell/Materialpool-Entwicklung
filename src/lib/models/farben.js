@@ -33,6 +33,9 @@ export const STUFEN_FARBE_DEFAULT = {
   unbekannt: '#9AA5AF'
 };
 
+/** CI-Farbe ohne Überschreibung — derselbe Wert wie `--blue` in app.css. */
+export const STANDARD_CI = '#1d5a8c';
+
 const WEISS = '#ffffff';
 const SCHWARZ = '#000000';
 const TEXT_DUNKEL = '#16181b';
