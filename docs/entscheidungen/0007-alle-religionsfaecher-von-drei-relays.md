@@ -1,7 +1,7 @@
 # ADR-0007: Der Spiegel liest alle Religionsfächer von amb-relay, sodix und oersi — nicht nur den Materialpool-Schlüssel
 
-**Status:** offen (umgesetzt am 2026-09-30 in `.env.example`, Branch `feat/prototyp-nachzug`)
-**Beteiligte:** Christina Kreutz (Vorschlag), Claude (Befund und Umsetzung); zu bestätigen mit Jörg Lohrer
+**Status:** angenommen (2026-10-08); umgesetzt am 2026-09-30 in `.env.example`, auf dem Server noch nicht eingestellt
+**Beteiligte:** Christina Kreutz (Vorschlag), Claude (Befund und Umsetzung)
 
 ## Kontext
 
@@ -24,7 +24,9 @@ leer, `QUELLE_FAECHER` nennt die sechs Religions-Kennungen. Die Facette
 Materialpool zu zeigen bleibt eine Zeile in `.env` (auskommentiert in der
 Vorlage).
 
-Zur Entscheidung fehlt: Jörgs Bestätigung, und die `.env` auf dem
+Am 2026-10-08 angenommen. Offen ist nur noch die `.env` auf dem
+Entwicklungsserver (`RELAYS`, `QUELLE_FAECHER` aus `.env.example`; das
+Durchreichen in `docker-compose.yml` ist seit 2026-10-08 da). Vorher: die `.env` auf dem
 Entwicklungsserver. Die zeigte am 30.09. 290 Materialien von
 `relay.edufeed.org` und `relay-rpi.edufeed.org` — weder der
 Materialpool-Bestand noch diese Auswahl.

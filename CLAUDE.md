@@ -21,9 +21,10 @@ Spiegel. Die Suche ist ein GET-Formular; bei Suchtext fragt der Server
 die Relays per NIP-50 und rendert die Treffer aus dem Spiegel-Modell
 (ADR-0005), ohne Suchtext filtert er den Spiegel. Ein ganzer Satz wird
 vorher in Facetten und Themenwörter zerlegt (`routen/frage.js`).
-**Vorgeschlagen, noch offen (ADR-0006):** eine prototypische Kontoebene
+**Dazu (ADR-0006):** eine prototypische Kontoebene
 ohne echte Konten — Name und Profil im Cookie des Browsers, `/konto`,
-Voreinstellung der Liste mit `profil=1`. **Ebenso (ADR-0008):** die
+im Menü „Mein Profil“ (nie „Anmelden“), Voreinstellung der Liste mit
+`profil=1`. **Ebenso (ADR-0008):** die
 Merkliste „Gemerkt“ — Lesezeichen als POST-Formular, Liste im Cookie,
 `/merkliste`. **Nicht Teil dieses Vorhabens (Stand ADR-0001/0004):**
 Eingabe, Bewertung, echte Konten mit Passwort, Import aus dem

@@ -2,8 +2,9 @@
   import Icon from './Icon.svelte';
   /**
    * Rahmen des Prototyps (Abschnitt 6): Logo → Start, „Stöbern“ → Liste,
-   * „Gemerkt“ → Merkliste (ADR-0008), „Anmelden“ bzw. der Vorname →
-   * Profil (ADR-0006). Navigation sind Links.
+   * „Gemerkt“ → Merkliste (ADR-0008), „Mein Profil“ bzw. der Vorname →
+   * Profil (ADR-0006; nicht „Anmelden“ — es gibt keine echten Konten).
+   * Navigation sind Links.
    * @type {{ aktiv: 'start'|'liste'|'merkliste'|'konto'|null, kopf: { angemeldet: boolean, vorname: string, stoebernPfad: string } }}
    */
   let { aktiv, kopf } = $props();
@@ -21,10 +22,10 @@
     <a
       href="/konto"
       class:active={aktiv === 'konto'}
-      aria-label={kopf.angemeldet ? `Profil von ${kopf.vorname}` : 'Anmelden'}
+      aria-label={kopf.angemeldet ? `Profil von ${kopf.vorname}` : 'Mein Profil'}
       aria-current={aktiv === 'konto' ? 'page' : undefined}
     >
-      <Icon name={kopf.angemeldet ? 'user-check' : 'user'} /><span>{kopf.angemeldet ? kopf.vorname : 'Anmelden'}</span>
+      <Icon name={kopf.angemeldet ? 'user-check' : 'user'} /><span>{kopf.angemeldet ? kopf.vorname : 'Mein Profil'}</span>
     </a>
   </nav>
 </header>

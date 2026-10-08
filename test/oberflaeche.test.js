@@ -78,8 +78,11 @@ describe('Kopfzeile', () => {
     expect(body).toContain('Stöbern');
     expect(body).toMatch(/href="\/merkliste"[^>]*aria-label="Gemerkt"/);
   });
-  it('bietet „Anmelden“ an und zeigt angemeldet den Vornamen (ADR-0006)', () => {
-    expect(render(Kopfzeile, { props: { aktiv: null, kopf: abgemeldet } }).body).toMatch(/href="\/konto"[^>]*aria-label="Anmelden"/);
+  it('bietet „Mein Profil“ an — kein „Anmelden“, es gibt keine echten Konten — und zeigt angemeldet den Vornamen (ADR-0006)', () => {
+    const abgemeldetBody = render(Kopfzeile, { props: { aktiv: null, kopf: abgemeldet } }).body;
+    expect(abgemeldetBody).toMatch(/href="\/konto"[^>]*aria-label="Mein Profil"/);
+    expect(abgemeldetBody).toMatch(/<span[^>]*>Mein Profil<\/span>/);
+    expect(abgemeldetBody).not.toContain('Anmelden');
     const { body } = render(Kopfzeile, { props: { aktiv: 'konto', kopf: { angemeldet: true, vorname: 'Christina', stoebernPfad: '/materialien?profil=1' } } });
     expect(body).toMatch(/href="\/konto"[^>]*aria-label="Profil von Christina"/);
     expect(body).toMatch(/<span[^>]*>Christina<\/span>/);
@@ -125,7 +128,9 @@ describe('Konto', () => {
   it('abgemeldet: nur das Namensfeld, als POST-Formular', () => {
     const { body } = render(Konto, { props: { seite: kontoSeite(LEERES_KONTO), gespeichert: false, fehler: null } });
     expect(body).toContain('<h1 class="svelte-');
-    expect(body).toContain('Anmelden</h1>');
+    expect(body).toContain('Dein Profil</h1>');
+    expect(body).toMatch(/<button[^>]*type="submit"[^>]*>Profil anlegen<\/button>/);
+    expect(body).not.toContain('Anmelden');
     expect(body).toMatch(/<form[^>]*method="post"[^>]*action="\?\/anmelden"/);
     expect(body).toMatch(/name="name"[^>]*required/);
     expect(body).toContain('Deine Angaben bleiben nur in diesem Browser.');

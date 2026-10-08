@@ -1,7 +1,7 @@
 # ADR-0008: Eine Merkliste „Gemerkt“ sammelt Materialien per Lesezeichen — als Cookie des Browsers, ohne JavaScript
 
-**Status:** offen (umgesetzt am 2026-10-02 als Vorschlag, Branch `feat/prototyp-nachzug`)
-**Beteiligte:** Christina Kreutz (Vorschlag, Prototyp Materialpool 2.0), Claude (Umsetzung); zu bestätigen mit Jörg Lohrer
+**Status:** angenommen (2026-10-08); umgesetzt am 2026-10-02
+**Beteiligte:** Christina Kreutz (Vorschlag, Prototyp Materialpool 2.0), Claude (Umsetzung)
 
 ## Kontext
 
@@ -29,7 +29,7 @@ Einträge, damit das Cookie unter 4 kB bleibt. `/merkliste` zeigt alles
 Gemerkte ungefiltert, neueste Merkung zuerst, und nennt, was nicht mehr
 im Spiegel steht.
 
-Zur Entscheidung fehlt: Jörgs Bestätigung (dann Nachtrag in ADR-0004).
+Am 2026-10-08 angenommen (Nachtrag in ADR-0004).
 
 ## Konsequenzen
 

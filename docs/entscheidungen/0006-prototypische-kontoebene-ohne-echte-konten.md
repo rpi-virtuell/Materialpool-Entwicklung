@@ -1,7 +1,7 @@
 # ADR-0006: Eine prototypische Kontoebene stellt das Stöbern nach Bereich und Fach vor — ohne echte Konten, das Profil liegt im Cookie des Browsers
 
-**Status:** offen (umgesetzt am 2026-09-30 als Vorschlag, Branch `feat/prototyp-nachzug`)
-**Beteiligte:** Christina Kreutz (Vorschlag, Prototyp Materialpool 2.0), Claude (Umsetzung); zu bestätigen mit Jörg Lohrer
+**Status:** angenommen (2026-10-08), Nachtrag 2026-10-08 (Menüpunkt „Mein Profil“)
+**Beteiligte:** Christina Kreutz (Vorschlag, Prototyp Materialpool 2.0), Claude (Umsetzung)
 
 ## Kontext
 
@@ -36,9 +36,14 @@ Anders als im Prototyp: „Speichern“ statt sofortiger Übernahme (ohne
 JavaScript geht es nicht anders); „Anderes …“ ist ein immer sichtbares
 Textfeld statt eines Knopfs, der es öffnet.
 
-Zur Entscheidung fehlt: Jörgs Bestätigung, dass eine Kontoebene ohne
-echte Konten zum Vorhaben gehört (dann Nachtrag in ADR-0001 und
-ADR-0004), und ob sie auf dem Entwicklungsserver sichtbar sein soll.
+Am 2026-10-08 angenommen: Die Kontoebene gehört zum Vorhaben und ist auf
+dem Entwicklungsserver sichtbar (Nachtrag in ADR-0001 und ADR-0004).
+
+**Nachtrag 2026-10-08 — Menüpunkt:** Die Kopfzeile sagt abgemeldet
+„Mein Profil“, nicht „Anmelden“; `/konto` heißt „Dein Profil“, der Knopf
+„Profil anlegen“. „Anmelden“ versprach ein echtes Konto mit Passwort,
+das es nicht gibt — gegen die Regel „Was es nicht gibt, wird auch nicht
+angedeutet“ (CLAUDE.md). Angemeldet steht weiter der Vorname dort.
 
 ## Konsequenzen
 
