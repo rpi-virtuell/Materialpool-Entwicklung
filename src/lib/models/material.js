@@ -36,7 +36,7 @@ import { faecherAusBegriffen, stufeAusBegriffen, stufenAusBegriffen, typAusBegri
  * @property {string} jsonPfad      rohes Event: /m/<kennung>/json, ebenso mit `?von=`
  * @property {string} name
  * @property {string} beschreibung
- * @property {string|null} url      `encoding:contentUrl` (direkt beim Anbieter), sonst `d`, sonst erstes http-`r`
+ * @property {string|null} url      `encoding:contentUrl` (direkt beim Anbieter), außer sie ist eine Datei und `d` eine Seite; sonst `d`, sonst erstes http-`r`
  * @property {string|null} bild     `image`, nur mit http(s)-Adresse
  * @property {string|null} lizenz   Lizenzangabe (`license:id`), wie im Event
  * @property {string|null} lizenzUrl  dieselbe, nur mit http(s)-Adresse — sonst kein Link
@@ -129,6 +129,19 @@ function istHttp(s) {
   return typeof s === 'string' && /^https?:\/\//i.test(s);
 }
 
+/** Dateiendungen, die beim Öffnen einen Download starten statt einer Seite. */
+const DATEIENDUNG = /\.(pdf|docx?|pptx?|xlsx?|odt|odp|ods|rtf|zip|mp3|mp4|m4a|wav|epub)$/i;
+
+/** @param {string|null} url */
+function istDatei(url) {
+  if (!url) return false;
+  try {
+    return DATEIENDUNG.test(new URL(url).pathname);
+  } catch {
+    return false;
+  }
+}
+
 /** Höchstens so viele Themen je Material (Prototyp). */
 export const THEMEN_MAX = 4;
 
@@ -172,8 +185,12 @@ export function materialAusEvent(event) {
   const lizenz = erstes(tags, 'license:id');
   // Direkt zum Anbieter: Beim Materialpool ist `d` die Katalogseite bei
   // rpi-virtuell, von der man noch einmal weiterklicken müsste; die
-  // contentUrl führt am Katalog vorbei (wie in ReliDesk).
-  const url = [erstes(tags, 'encoding:contentUrl'), d, ...alle(tags, 'r')].find(istHttp) ?? null;
+  // contentUrl führt am Katalog vorbei (wie in ReliDesk). Ist sie eine
+  // Datei, startete „Material öffnen“ einen Download — dann bleibt es bei
+  // der Seite, die das Material beschreibt, wenn es eine gibt.
+  const contentUrl = erstes(tags, 'encoding:contentUrl');
+  const direkt = istHttp(contentUrl) && !(istDatei(contentUrl) && istHttp(d)) ? contentUrl : null;
+  const url = [direkt, d, contentUrl, ...alle(tags, 'r')].find(istHttp) ?? null;
   const bildRoh = erstes(tags, 'image');
   const urheber = alle(tags, 'creator:name');
   const herausgeber = alle(tags, 'publisher:name');

@@ -49,7 +49,9 @@ Wir prüfen nur eindeutige Fälle und blenden aus:
   2026-09-23). Im Bestand vom 08.10. hatten 7.701 von 7.702
   Materialpool-Einträgen eine; bei 167 zeigt auch sie auf
   rpi-virtuell. „Material öffnen“ und die Link-Prüfung gehen damit am
-  Katalog vorbei, der Punkt oben gilt nur noch für diese Reste.
+  Katalog vorbei, der Punkt oben gilt nur noch für diese Reste — und
+  für die 1.331, deren contentUrl eine Datei ist: Dort bleibt es bei
+  der Katalogseite, damit „Material öffnen“ keinen Download startet.
 - Falsch wäre die Entscheidung, wenn Materialien zu Unrecht
   verschwinden (ein Server antwortet Prüfprogrammen mit 404). Dann: die
   Liste der ausgeblendeten Links ansehen und solche Server ausnehmen,
