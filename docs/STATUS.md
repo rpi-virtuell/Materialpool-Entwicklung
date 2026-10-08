@@ -104,7 +104,8 @@ nicht gibt.
 Danach auch ADR-0004 angenommen: Das Schaufenster heißt „Materialpool
 Religion“.
 
-**Nächster Schritt:** `.env` des Servers nach ADR-0007 (Jörg). Offen
+**Nächster Schritt:** `.env` des Servers nach ADR-0007 — Issue #15 (Jörg
+oder Ludger). Offen
 bleibt ADR-0003 (wem der Materialpool-Schlüssel gehört und wie neue
 Einträge aufs Relay kommen) — Frage an Jörg, edufeed oder die Redaktion.
 
