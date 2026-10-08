@@ -15,16 +15,16 @@
 <main class="konto-page">
   <div class="konto-inner">
     {#if !konto.angemeldet}
-      <h1>Anmelden</h1>
+      <h1>Dein Profil</h1>
       <p class="konto-lead">
-        Mit einem Konto sagst du einmal, wo du arbeitest, und der Materialpool zeigt dir danach gleich das Passende.
+        Mit einem Profil sagst du einmal, wo du arbeitest, und der Materialpool zeigt dir danach gleich das Passende.
       </p>
       <form class="konto-anmelden" method="post" action="?/anmelden">
         <label class="konto-feld">
           <span>Dein Name</span>
           <input type="text" name="name" value={konto.name} required maxlength="60" autocomplete="given-name" />
         </label>
-        <button class="konto-knopf" type="submit">Anmelden</button>
+        <button class="konto-knopf" type="submit">Profil anlegen</button>
       </form>
       {#if fehler}<p class="konto-fehler" role="alert">{fehler}</p>{/if}
       <p class="konto-hinweis">

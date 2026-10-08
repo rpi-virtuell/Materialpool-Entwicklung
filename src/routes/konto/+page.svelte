@@ -5,7 +5,7 @@
 </script>
 
 <svelte:head>
-  <title>{data.konto.angemeldet ? 'Dein Profil' : 'Anmelden'} — Materialpool Religion</title>
+  <title>Dein Profil — Materialpool Religion</title>
 </svelte:head>
 
 <Konto seite={data} gespeichert={data.gespeichert} fehler={form?.fehler ?? null} />

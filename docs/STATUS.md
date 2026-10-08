@@ -8,6 +8,24 @@ das Gesamtbild in `superpowers/specs/2026-09-28-materialpool-neustart-design.md`
 
 ---
 
+## 2026-10-08 (3) — Entscheidungen 0006–0009 angenommen, Menüpunkt „Mein Profil“
+
+**Passiert:** Das Projekt liegt seit heute bei Christina (mit Jörg
+abgesprochen); sie merget selbst und entscheidet die ADRs. Angenommen:
+Kontoebene (0006), drei Relays mit allen Religionsfächern (0007),
+Merkliste (0008), Signaturprüfung (0009); Nachträge in 0001 und 0004.
+Jörgs offene Frage zu 0006 ist entschieden: Die Kopfzeile sagt
+abgemeldet „Mein Profil“ statt „Anmelden“, `/konto` heißt „Dein Profil“,
+der Knopf „Profil anlegen“ — „Anmelden“ versprach ein Konto, das es
+nicht gibt.
+
+**Wo steht das Projekt:** `pnpm check` 0 Fehler, 252 Tests grün.
+
+**Nächster Schritt:** `.env` des Servers nach ADR-0007 (Jörg). Offen
+bleiben ADR-0003 (Datenquelle) und ADR-0004 (Startseite).
+
+---
+
 ## 2026-10-08 (2) — `QUELLE_FAECHER` erreicht den Container
 
 **Passiert:** Der offene Befund aus 2026-09-30 (3): `docker-compose.yml`

@@ -1,6 +1,6 @@
 # ADR-0004: Die Startseite übernimmt Gestaltung und Aufbau des Materialpool-2.0-Prototyps, bleibt aber serverseitig gerendert aus dem Spiegel
 
-**Status:** offen (umgesetzt am 2026-09-29 unter Vorbehalt der Besprechung)
+**Status:** offen (umgesetzt am 2026-09-29 unter Vorbehalt der Besprechung) · Nachtrag 2026-10-08: Kontoebene (ADR-0006) und Merkliste (ADR-0008) sind angenommen und ergänzen den Ausschluss von Anmeldung und Merkliste hier.
 **Beteiligte:** Jörg Lohrer; zu bestätigen mit Christina Kreutz
 
 ## Kontext

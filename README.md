@@ -60,7 +60,7 @@ Routen   /            Startseite (Suche, Themen, Stufen, Empfehlung)
                       ein Satz wird zu Facetten + Themenwörtern (frage=,
                       wortlaut=); profil=1 setzt Stufe/Fach aus dem Profil
          /m/<kennung> Detail; /m/<kennung>/json rohes Event
-         /konto       Anmelden und Profil, prototypisch (ADR-0006)
+         /konto       „Mein Profil“, prototypisch (ADR-0006)
          /merkliste   „Gemerkt“; Lesezeichen per POST ?/umschalten (ADR-0008)
 ```
 
