@@ -36,7 +36,7 @@ import { faecherAusBegriffen, stufeAusBegriffen, stufenAusBegriffen, typAusBegri
  * @property {string} jsonPfad      rohes Event: /m/<kennung>/json, ebenso mit `?von=`
  * @property {string} name
  * @property {string} beschreibung
- * @property {string|null} url      `d`, sonst `encoding:contentUrl`, sonst erstes http-`r`
+ * @property {string|null} url      `encoding:contentUrl` (direkt beim Anbieter), sonst `d`, sonst erstes http-`r`
  * @property {string|null} bild     `image`, nur mit http(s)-Adresse
  * @property {string|null} lizenz   Lizenzangabe (`license:id`), wie im Event
  * @property {string|null} lizenzUrl  dieselbe, nur mit http(s)-Adresse — sonst kein Link
@@ -170,9 +170,10 @@ export function materialAusEvent(event) {
   const d = erstes(tags, 'd') ?? '';
   const kennung = kennungAusD(d);
   const lizenz = erstes(tags, 'license:id');
-  const url = istHttp(d)
-    ? d
-    : [erstes(tags, 'encoding:contentUrl'), ...alle(tags, 'r')].find(istHttp) ?? null;
+  // Direkt zum Anbieter: Beim Materialpool ist `d` die Katalogseite bei
+  // rpi-virtuell, von der man noch einmal weiterklicken müsste; die
+  // contentUrl führt am Katalog vorbei (wie in ReliDesk).
+  const url = [erstes(tags, 'encoding:contentUrl'), d, ...alle(tags, 'r')].find(istHttp) ?? null;
   const bildRoh = erstes(tags, 'image');
   const urheber = alle(tags, 'creator:name');
   const herausgeber = alle(tags, 'publisher:name');

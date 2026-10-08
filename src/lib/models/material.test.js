@@ -10,7 +10,7 @@ describe('materialAusEvent', () => {
     const m = materialAusEvent(arbeitsheft);
     expect(m.name).toBe('Religionen und miteinander leben in Deutschland - jetzt versteh ich das! (Arbeitsheft)');
     expect(m.beschreibung).toMatch(/abrahamitischen Religionen/);
-    expect(m.url).toBe('https://material.rpi-virtuell.de/material/religionen-und-miteinander-leben-in-deutschland-jetzt-versteh-ich-das-arbeitsheft/');
+    expect(m.url).toBe('https://www.bpb.de/shop/materialien/hanisauland/324897/religionen-und-miteinander-leben-in-deutschland-jetzt-versteh-ich-das-arbeitsheft/?pk_campaign=nl2021-01-13&pk_kwd=324897');
     expect(m.bild).toMatch(/^https:\/\/www\.bpb\.de\//);
     expect(m.schlagworte).toHaveLength(7);
     expect(m.schlagworte.slice(0, 2)).toEqual(['Abrahamitische Religionen', 'Christentum']);
@@ -96,10 +96,13 @@ describe('materialAusEvent', () => {
     expect(herkunftBilden({ urheber: ['A'], herausgeber: ['A', 'B'], mitwirkende: ['B'], url: null })).toBe('A · B');
   });
 
-  it('findet die URL: d, sonst encoding:contentUrl, sonst erstes http-r', () => {
-    expect(materialAusEvent(erntedank).url).toBe('https://material.rpi-virtuell.de/material/ekd-erntedankfest/');
-    const ohneHttpD = { ...erntedank, tags: erntedank.tags.map((t) => (t[0] === 'd' ? ['d', 'urn:test'] : t)) };
-    expect(materialAusEvent(ohneHttpD).url).toBe('https://www.ekd.de/erntedank-10832.htm');
+  it('findet die URL: direkt beim Anbieter (encoding:contentUrl), sonst d, sonst erstes http-r', () => {
+    // d ist beim Materialpool die Katalogseite bei rpi-virtuell; contentUrl führt am Katalog vorbei.
+    expect(materialAusEvent(erntedank).url).toBe('https://www.ekd.de/erntedank-10832.htm');
+    const ohneContent = { ...erntedank, tags: erntedank.tags.filter((t) => t[0] !== 'encoding:contentUrl') };
+    expect(materialAusEvent(ohneContent).url).toBe('https://material.rpi-virtuell.de/material/ekd-erntedankfest/');
+    const contentOhneHttp = { ...erntedank, tags: erntedank.tags.map((t) => (t[0] === 'encoding:contentUrl' ? ['encoding:contentUrl', 'javascript:x'] : t)) };
+    expect(materialAusEvent(contentOhneHttp).url).toBe('https://material.rpi-virtuell.de/material/ekd-erntedankfest/');
     const nurR = { ...jenseits, tags: [['d', 'urn:y'], ['r', 'mailto:x'], ['r', 'https://r.example/']] };
     expect(materialAusEvent(nurR).url).toBe('https://r.example/');
     expect(materialAusEvent({ ...jenseits, tags: [['d', 'urn:z']] }).url).toBeNull();

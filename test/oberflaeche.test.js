@@ -390,7 +390,8 @@ describe('Detail', () => {
 
   it('führt mit „Material öffnen“ zur Ressource und mit „Zurück“ dorthin, woher man kam', () => {
     const body = detail({ zurueck: '/materialien?stufe=elem' });
-    expect(body).toMatch(/<a class="knopf-primaer[^"]*" href="https:\/\/material\.rpi-virtuell\.de\/material\/zwischen-jericho-und-jerusalem\/" rel="external noopener">/);
+    // direkt beim Anbieter, nicht über die Katalogseite bei rpi-virtuell
+    expect(body).toMatch(/<a class="knopf-primaer[^"]*" href="https:\/\/horstheller\.wordpress\.com\/2024\/12\/07\/welt-jesus\/" rel="external noopener">/);
     expect(body).toContain('Material öffnen');
     expect(body).toMatch(/<a class="zurueck[^"]*" href="\/materialien\?stufe=elem">/);
   });
