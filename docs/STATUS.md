@@ -20,8 +20,12 @@ nicht gibt.
 
 **Wo steht das Projekt:** `pnpm check` 0 Fehler, 252 Tests grün.
 
+Danach auch ADR-0004 angenommen: Das Schaufenster heißt „Materialpool
+Religion“.
+
 **Nächster Schritt:** `.env` des Servers nach ADR-0007 (Jörg). Offen
-bleiben ADR-0003 (Datenquelle) und ADR-0004 (Startseite).
+bleibt ADR-0003 (wem der Materialpool-Schlüssel gehört und wie neue
+Einträge aufs Relay kommen) — Frage an Jörg, edufeed oder die Redaktion.
 
 ---
 

@@ -1,7 +1,7 @@
 # ADR-0004: Die Startseite übernimmt Gestaltung und Aufbau des Materialpool-2.0-Prototyps, bleibt aber serverseitig gerendert aus dem Spiegel
 
-**Status:** offen (umgesetzt am 2026-09-29 unter Vorbehalt der Besprechung) · Nachtrag 2026-10-08: Kontoebene (ADR-0006) und Merkliste (ADR-0008) sind angenommen und ergänzen den Ausschluss von Anmeldung und Merkliste hier.
-**Beteiligte:** Jörg Lohrer; zu bestätigen mit Christina Kreutz
+**Status:** angenommen (2026-10-08); umgesetzt am 2026-09-29 · Nachträge: Suche per NIP-50 am Relay statt nur im Spiegel (ADR-0005, 2026-09-29); Kontoebene (ADR-0006) und Merkliste (ADR-0008) heben den Ausschluss von Anmeldung und Merkliste hier auf (2026-10-08).
+**Beteiligte:** Jörg Lohrer, Christina Kreutz (Prototyp Materialpool 2.0)
 
 ## Kontext
 
@@ -39,9 +39,8 @@ oder entfällt:
   `src/lib/models/farben.js` (Farbdaten für Inline-Variablen); nirgends
   sonst. Der Architekturtest prüft das.
 
-Zur Entscheidung fehlt: Bestätigung, dass „Materialpool Religion“ der
-Name des Schaufensters ist, und ob `QUELLE_FAECHER` auf Religion
-(`s1024`, `s1026`) stehen soll, solange ADR-0003 offen ist.
+Am 2026-10-08 angenommen: Das Schaufenster heißt „Materialpool
+Religion“; `QUELLE_FAECHER` nennt alle Religionsfächer (ADR-0007).
 
 ## Konsequenzen
 

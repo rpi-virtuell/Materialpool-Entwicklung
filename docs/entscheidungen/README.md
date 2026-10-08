@@ -19,7 +19,7 @@ geprüfte Events im Spiegel (0009).
 | [0001](0001-svelte-schaufenster-nach-oer-community-muster.md) | Der Materialpool wird als Svelte-Schaufenster für AMB-Events nach dem Muster von oer-community neu begonnen | angenommen (2026-09-28), Nachträge 2026-09-29, 2026-10-08 |
 | [0002](0002-archiv-statt-loeschung.md) | Joachims Vault wird archiviert, nicht gelöscht; die Historie bleibt | angenommen (2026-09-28) |
 | [0003](0003-datenquelle-materialpool-events.md) | Welcher Schlüssel publiziert Materialpool-Einträge als kind:30142 auf welches Relay | offen |
-| [0004](0004-startseite-nach-prototyp-serverseitig.md) | Die Startseite übernimmt Gestaltung und Aufbau des Materialpool-2.0-Prototyps, bleibt aber serverseitig gerendert aus dem Spiegel | offen |
+| [0004](0004-startseite-nach-prototyp-serverseitig.md) | Die Startseite übernimmt Gestaltung und Aufbau des Materialpool-2.0-Prototyps, bleibt aber serverseitig gerendert aus dem Spiegel | angenommen (2026-10-08), Nachträge 2026-09-29, 2026-10-08 |
 | [0005](0005-suche-per-nip-50-am-relay.md) | Die Suche fragt die konfigurierten Relays per NIP-50 und rendert die Treffer aus dem Spiegel-Modell | angenommen (2026-09-29) |
 | [0006](0006-prototypische-kontoebene-ohne-echte-konten.md) | Eine prototypische Kontoebene stellt das Stöbern nach Bereich und Fach vor — ohne echte Konten, das Profil liegt im Cookie des Browsers | angenommen (2026-10-08), Nachtrag 2026-10-08 |
 | [0007](0007-alle-religionsfaecher-von-drei-relays.md) | Der Spiegel liest alle Religionsfächer von amb-relay, sodix und oersi — nicht nur den Materialpool-Schlüssel | angenommen (2026-10-08) |
