@@ -16,6 +16,12 @@ describe('Betrieb', () => {
     expect(laufzeit).toMatch(/^USER node$/m);
     expect(laufzeit.indexOf('USER node')).toBeLessThan(laufzeit.indexOf('CMD'));
   });
+  it('docker-compose.yml reicht jede Einstellung aus konfig.js an den Container durch', () => {
+    const namen = [...lesen('src/lib/konfig.js').matchAll(/quelle\.([A-Z_]+)/g)].map((m) => m[1]);
+    expect(namen).toContain('QUELLE_FAECHER');
+    const compose = lesen('docker-compose.yml');
+    for (const name of namen) expect(compose, name).toMatch(new RegExp(`^\\s+${name}: \\$\\{${name}`, 'm'));
+  });
   it('ORIGIN steht in .env.example, docker-compose.yml und docs/betrieb.md', () => {
     expect(lesen('.env.example')).toMatch(/^# ORIGIN=https:\/\//m);
     expect(lesen('docker-compose.yml')).toMatch(/ORIGIN: \$\{ORIGIN:-http:\/\/localhost:8080\}/);

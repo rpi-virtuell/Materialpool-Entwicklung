@@ -8,6 +8,23 @@ das Gesamtbild in `superpowers/specs/2026-09-28-materialpool-neustart-design.md`
 
 ---
 
+## 2026-10-08 (2) — `QUELLE_FAECHER` erreicht den Container
+
+**Passiert:** Der offene Befund aus 2026-09-30 (3): `docker-compose.yml`
+reichte `QUELLE_FAECHER` nicht durch. Eine Zeile ergänzt; ein Test in
+`test/betrieb.test.js` prüft jetzt jede Einstellung, die `konfig.js`
+liest, gegen `docker-compose.yml`.
+
+**Wo steht das Projekt:** Live seit heute Detailseite und Review-Befunde
+(siehe unten). Der Server zeigt 290 Materialien von relay.edufeed.org und
+relay-rpi.edufeed.org — seine `.env` folgt noch nicht ADR-0007.
+
+**Nächster Schritt:** Jörg übernimmt `RELAYS` und `QUELLE_FAECHER` aus
+`.env.example` in die `.env` des Servers — erst jetzt, sonst hätte der
+Spiegel von drei Relays alle Fächer geholt.
+
+---
+
 ## 2026-10-08 — Review-Befunde nachgezogen (Branch `fix/review-befunde-nachziehen`)
 
 **Passiert:** `fix/review-befunde` (Eintrag 2026-09-30 (3)) zweigte von
