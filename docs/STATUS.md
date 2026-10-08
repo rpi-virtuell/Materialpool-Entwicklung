@@ -8,6 +8,30 @@ das Gesamtbild in `superpowers/specs/2026-09-28-materialpool-neustart-design.md`
 
 ---
 
+## 2026-10-08 (5) — Link-Prüfung blendet tote Links aus (ADR-0010)
+
+**Passiert:** Neuer Hintergrundlauf neben dem Spiegel
+(`services/linkpruefung.js`, Regeln in `models/linkstatus.js`): je Takt
+(`LINKPRUEFUNG_TAKT_S`, 60) bis zu `LINKPRUEFUNG_JE_TAKT` (20) fällige
+Links, `HEAD`, bei 404/405/410/501 `GET` hinterher. Nur 404/410 sind
+„weg“; nach zwei „weg“ hintereinander fehlt das Material in Liste, Suche
+und Startseite, die Liste nennt die Zahl, die Detailseite bleibt mit
+Hinweis und ohne „Material öffnen“. 403, 429, 5xx, keine Antwort:
+unklar, ändert nichts. Stand in `daten/linkpruefung.json`
+(`.gitignore`), abschaltbar mit `LINKPRUEFUNG=aus`.
+
+**Wo steht das Projekt:** `pnpm check` 0 Fehler, 273 Tests grün, `pnpm
+build` läuft. Im Dev-Server gegen 8.381 Materialien: ein künstlich als
+zweimal „weg“ eingetragener Link fehlt in Liste und Suche, Hinweise
+stehen; der erste echte Takt prüfte 20 Links (13 × 200, 7 × 403 bei
+`download.sodix.de/s3/…` — unklar, bleiben sichtbar).
+
+**Nächster Schritt:** Nach einigen Tagen live ansehen, was ausgeblendet
+ist (`daten/linkpruefung.json` auf dem Server), und ob ein Server
+Prüfprogrammen fälschlich 404 sagt.
+
+---
+
 ## 2026-10-08 (4) — Klartext statt Kürzel bei Materialart und Bildungsstufe
 
 **Passiert:** Live zeigten 173 von 290 Detailseiten Kürzel wie „text“,

@@ -21,6 +21,7 @@ function konfig(teil = {}) {
     autoren: [],
     faecher: [],
     vorrang: [],
+    linkpruefung: { an: false, pfad: 'daten/test-links.json', intervallS: 1, taktS: 1, jeTakt: 1 },
     spiegelPfad: 'daten/test.json',
     spiegelIntervallS: 600,
     spiegelStartwartezeitS: 1,

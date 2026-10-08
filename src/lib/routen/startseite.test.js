@@ -55,6 +55,13 @@ describe('startseiteLaden', () => {
     expect(a.status).toBeNull();
   });
 
+  it('empfiehlt kein Material mit totem Link (ADR-0010)', () => {
+    const a = startseiteLaden({ inhalt, fehlschlag: null, relays, heute: september });
+    const tot = beispiele.map(materialAusEvent).find((m) => m.id === a.empfehlung?.id)?.url ?? null;
+    const b = startseiteLaden({ inhalt, fehlschlag: null, relays, heute: september, weg: (url) => url === tot });
+    expect(b.empfehlung?.id).not.toBe(a.empfehlung?.id);
+  });
+
   it('ohne Saisontreffer: irgendein Material mit Bild', () => {
     const { empfehlung } = startseiteLaden({ inhalt, fehlschlag: null, relays, heute: juli });
     expect(empfehlung?.bild).toMatch(/^https?:/);

@@ -17,7 +17,7 @@
    * 900 px liegen die Facetten über den Karten hinter einem Knopf „Filter“.
    * @type {ReturnType<typeof import('$lib/routen/uebersicht.js').listeLaden>}
    */
-  let { karten, treffer, seiten, zurueck, filter, pillen, facetten, sortierungen, suche, frage, profilHinweis, gesamt, leerstand } = $props();
+  let { karten, treffer, seiten, zurueck, filter, pillen, facetten, sortierungen, suche, frage, profilHinweis, gesamt, ausgeblendet, leerstand } = $props();
   /** Schlagwort-Chips vor „mehr …“. */
   const SCHLAGWORTE_SICHTBAR = 6;
   /** Auf dem Handy liegen die Facetten hinter „Filter“; mit aktiven Filtern steht es offen. */
@@ -143,6 +143,12 @@
           </nav>
         {/if}
       {/if}
+      <!-- Link-Prüfung (ADR-0010): Was fehlt, wird gesagt, nie still. -->
+      {#if ausgeblendet > 0}
+        <p class="ausgeblendet-hinweis">
+          {ausgeblendet === 1 ? '1 Material ist' : `${ausgeblendet} Materialien sind`} ausgeblendet, weil {ausgeblendet === 1 ? 'sein' : 'ihr'} Link nicht mehr erreichbar ist.
+        </p>
+      {/if}
       </div>
       </div>
     {/if}
@@ -150,6 +156,7 @@
 </main>
 
 <style>
+  .ausgeblendet-hinweis { margin-top: var(--sp-6); font-size: var(--fs-200); color: var(--text-muted); }
   .liste-inner {
     max-width: var(--content-max);
     margin: 0 auto;

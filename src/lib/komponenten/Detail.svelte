@@ -12,10 +12,13 @@
    *   cover: { ink: string, tint: string },
    *   icon: string,
    *   zurueck?: string,
-   *   merken?: { schluessel: string, gemerkt: boolean }|null
+   *   merken?: { schluessel: string, gemerkt: boolean }|null,
+   *   linkWeg?: boolean
    * }}
+   * `linkWeg`: Die Link-Prüfung hat den Link zweimal nicht gefunden
+   * (ADR-0010) — Hinweis statt „Material öffnen“.
    */
-  let { material, relays, cover, icon, zurueck = '/materialien', merken = null } = $props();
+  let { material, relays, cover, icon, zurueck = '/materialien', merken = null, linkWeg = false } = $props();
   const begriffe = (/** @type {{ label: string }[]} */ liste) => liste.map((b) => b.label).join(', ');
 </script>
 
@@ -38,8 +41,12 @@
   <p class="detail-von">{material.herkunft}</p>
   <p class="detail-beschreibung">{material.beschreibung || 'Keine Beschreibung vorhanden.'}</p>
 
+  {#if linkWeg}
+    <p class="detail-linkweg" role="note">Der Link zu diesem Material war zuletzt nicht erreichbar.</p>
+  {/if}
+
   <div class="detail-aktionen">
-    {#if material.url}
+    {#if material.url && !linkWeg}
       <a class="knopf-primaer" href={material.url} rel="external noopener"><Icon name="external-link" /> Material öffnen</a>
     {/if}
     {#if merken}
@@ -136,6 +143,7 @@
   .detail-von { margin: 0 0 var(--sp-6); font-size: var(--fs-300); color: var(--text-muted); }
   .detail-beschreibung { margin: 0 0 var(--sp-6); font-size: var(--fs-400); line-height: 1.7; white-space: pre-line; color: var(--text-body); }
 
+  .detail-linkweg { margin: 0 0 var(--sp-6); padding-left: var(--sp-3); border-left: 3px solid var(--blue); color: var(--text-body); }
   .detail-aktionen { display: flex; flex-wrap: wrap; gap: var(--sp-3); margin-bottom: var(--sp-8); }
   .merken { margin: 0; display: contents; }
   .knopf-primaer,

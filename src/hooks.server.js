@@ -8,13 +8,19 @@
 import { dev } from '$app/environment';
 import { env } from '$env/dynamic/private';
 import { konfigLesen } from '$lib/konfig.js';
+import { materialienVon } from '$lib/routen/bestand.js';
 import { antwortKoepfe } from '$lib/routen/koepfe.js';
-import { spiegelBereit, spiegelStarten } from '$lib/services/spiegel.js';
+import { linkpruefungStarten } from '$lib/services/linkpruefung.js';
+import { spiegelBereit, spiegelHolen, spiegelStarten } from '$lib/services/spiegel.js';
 
 /** @type {import('@sveltejs/kit').ServerInit} */
 export async function init() {
-  spiegelStarten(konfigLesen(env));
+  const konfig = konfigLesen(env);
+  spiegelStarten(konfig);
   await spiegelBereit();
+  // Link-Prüfung (ADR-0010) im Hintergrund, je Takt mit den Links des aktuellen Spiegelstands.
+  const urlsHolen = () => materialienVon(spiegelHolen().lesen()).flatMap((m) => (m.url ? [m.url] : []));
+  await linkpruefungStarten(konfig.linkpruefung, urlsHolen);
 }
 
 /** Sicherheitsrichtlinie und Cache-Regeln auf jeder Antwort (routen/koepfe.js). @type {import('@sveltejs/kit').Handle} */

@@ -348,10 +348,22 @@ describe('Uebersicht (Liste)', () => {
     expect(body).toContain('noch keinen Stand');
     expect(body).not.toContain('<article');
   });
+
+  it('sagt, wie viele Materialien wegen toter Links fehlen — nie still (ADR-0010)', () => {
+    const tot = materialien[0].url;
+    const daten = listeLaden({ inhalt, fehlschlag: null, relays, weg: (url) => url === tot });
+    expect(render(Uebersicht, { props: daten }).body).toContain('1 Material ist ausgeblendet, weil sein Link nicht mehr erreichbar ist.');
+    expect(render(Uebersicht, { props: listeLaden({ inhalt, fehlschlag: null, relays }) }).body).not.toContain('ausgeblendet');
+  });
 });
 
 describe('Detail', () => {
   const jericho = materialien[6];
+  it('toter Link: Hinweis statt „Material öffnen“ (ADR-0010)', () => {
+    const body = render(Detail, { props: { material: jericho, relays: [], cover: coverFarben(jericho), icon: 'notebook', linkWeg: true } }).body;
+    expect(body).toContain('Der Link zu diesem Material war zuletzt nicht erreichbar.');
+    expect(body).not.toContain('Material öffnen');
+  });
   /** @param {Partial<{ zurueck: string }>} extra */
   const detail = (extra = {}) =>
     render(Detail, { props: { material: jericho, relays: ['wss://eins/'], cover: coverFarben(jericho), icon: 'notebook', ...extra } }).body;

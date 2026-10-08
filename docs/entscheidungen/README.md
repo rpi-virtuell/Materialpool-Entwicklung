@@ -12,7 +12,8 @@ gefunden (0003), Startseite nach dem Materialpool-2.0-Prototyp, serverseitig
 aus dem Spiegel (0004), Suche per NIP-50 am Relay (0005), prototypische
 Kontoebene ohne echte Konten, im Menü „Mein Profil“ (0006), alle
 Religionsfächer von drei Relays (0007), Merkliste im Cookie (0008), nur
-geprüfte Events im Spiegel (0009).
+geprüfte Events im Spiegel (0009), Materialien mit totem Link
+ausgeblendet (0010).
 
 | Nr. | Titel | Status |
 |---|---|---|
@@ -25,3 +26,4 @@ geprüfte Events im Spiegel (0009).
 | [0007](0007-alle-religionsfaecher-von-drei-relays.md) | Der Spiegel liest alle Religionsfächer von amb-relay, sodix und oersi — nicht nur den Materialpool-Schlüssel | angenommen (2026-10-08) |
 | [0008](0008-merkliste-im-cookie-ohne-javascript.md) | Eine Merkliste „Gemerkt“ sammelt Materialien per Lesezeichen — als Cookie des Browsers, ohne JavaScript | angenommen (2026-10-08) |
 | [0009](0009-vertrauen-signatur-autoren-adressen.md) | Der Spiegel nimmt nur Events mit gültiger id und Signatur, filtert Autoren selbst und adressiert Materialien über (pubkey, d) | angenommen (2026-10-08) |
+| [0010](0010-linkpruefung-blendet-tote-links-aus.md) | Eine Link-Prüfung im Server blendet Materialien aus, deren Link zweimal hintereinander „gibt es nicht“ meldet | angenommen (2026-10-08) |

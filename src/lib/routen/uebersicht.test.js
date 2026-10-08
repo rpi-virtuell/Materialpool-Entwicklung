@@ -212,6 +212,19 @@ describe('listeLaden', () => {
     expect(daten.sortierungen.find((s) => s.aktiv)?.key).toBe('empfohlen');
     expect(daten.sortierungen.find((s) => s.key === 'titel')?.pfad).toBe('/materialien?sort=titel');
   });
+  it('blendet Materialien mit totem Link aus, auch in der Suche, und sagt wie viele (ADR-0010)', () => {
+    const tot = materialAusEvent(beispiele[0]).url;
+    const weg = (/** @type {string|null} */ url) => url === tot;
+    const daten = listeLaden({ inhalt, fehlschlag: null, relays, weg });
+    expect(daten.treffer).toBe(6);
+    expect(daten.gesamt).toBe(6);
+    expect(daten.ausgeblendet).toBe(1);
+    expect(daten.karten.some((k) => k.material.url === tot)).toBe(false);
+    const suche = { events: [beispiele[0], beispiele[2]], gefragteRelays: relays, grund: null };
+    const gesucht = listeLaden({ inhalt, fehlschlag: null, relays, weg, filter: filter({ q: 'x' }), suche });
+    expect(gesucht.karten.map((k) => k.material.url)).not.toContain(tot);
+    expect(listeLaden({ inhalt, fehlschlag: null, relays }).ausgeblendet).toBe(0);
+  });
   it('wendet Filter und Sortierung an und behält gesamt', () => {
     const daten = listeLaden({ inhalt, fehlschlag: null, relays, filter: filter({ q: 'pfingsten', sortierung: 'titel' }) });
     expect(daten.karten).toHaveLength(1);
