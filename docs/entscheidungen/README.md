@@ -12,8 +12,7 @@ gefunden (0003), Startseite nach dem Materialpool-2.0-Prototyp, serverseitig
 aus dem Spiegel (0004), Suche per NIP-50 am Relay (0005), prototypische
 Kontoebene ohne echte Konten, im Menü „Mein Profil“ (0006), alle
 Religionsfächer von drei Relays (0007), Merkliste im Cookie (0008), nur
-geprüfte Events im Spiegel (0009). Seit 2026-10-08 entscheidet Christina
-Kreutz.
+geprüfte Events im Spiegel (0009).
 
 | Nr. | Titel | Status |
 |---|---|---|

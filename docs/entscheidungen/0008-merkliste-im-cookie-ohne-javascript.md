@@ -1,7 +1,7 @@
 # ADR-0008: Eine Merkliste „Gemerkt“ sammelt Materialien per Lesezeichen — als Cookie des Browsers, ohne JavaScript
 
-**Status:** angenommen (2026-10-08, Christina Kreutz); umgesetzt am 2026-10-02
-**Beteiligte:** Christina Kreutz (Vorschlag und Entscheidung — das Projekt liegt seit 2026-10-08 bei ihr, abgesprochen mit Jörg Lohrer), Claude (Umsetzung)
+**Status:** angenommen (2026-10-08); umgesetzt am 2026-10-02
+**Beteiligte:** Christina Kreutz (Vorschlag, Prototyp Materialpool 2.0), Claude (Umsetzung)
 
 ## Kontext
 

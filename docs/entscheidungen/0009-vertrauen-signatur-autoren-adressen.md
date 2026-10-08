@@ -1,7 +1,7 @@
 # ADR-0009: Der Spiegel nimmt nur Events mit gültiger id und Signatur, filtert Autoren selbst und adressiert Materialien über (pubkey, d)
 
-**Status:** angenommen (2026-10-08, Christina Kreutz); umgesetzt am 2026-09-30, live seit 2026-10-08
-**Beteiligte:** Jörg Lohrer (Review), Claude (Review-Befund und Umsetzung), Christina Kreutz (Entscheidung — das Projekt liegt seit 2026-10-08 bei ihr)
+**Status:** angenommen (2026-10-08); umgesetzt am 2026-09-30, live seit 2026-10-08
+**Beteiligte:** Jörg Lohrer (Review), Claude (Review-Befund und Umsetzung)
 
 ## Kontext
 

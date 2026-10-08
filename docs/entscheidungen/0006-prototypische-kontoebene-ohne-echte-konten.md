@@ -1,7 +1,7 @@
 # ADR-0006: Eine prototypische Kontoebene stellt das Stöbern nach Bereich und Fach vor — ohne echte Konten, das Profil liegt im Cookie des Browsers
 
-**Status:** angenommen (2026-10-08, Christina Kreutz), Nachtrag 2026-10-08 (Menüpunkt „Mein Profil“)
-**Beteiligte:** Christina Kreutz (Vorschlag und Entscheidung — das Projekt liegt seit 2026-10-08 bei ihr, abgesprochen mit Jörg Lohrer), Claude (Umsetzung)
+**Status:** angenommen (2026-10-08), Nachtrag 2026-10-08 (Menüpunkt „Mein Profil“)
+**Beteiligte:** Christina Kreutz (Vorschlag, Prototyp Materialpool 2.0), Claude (Umsetzung)
 
 ## Kontext
 

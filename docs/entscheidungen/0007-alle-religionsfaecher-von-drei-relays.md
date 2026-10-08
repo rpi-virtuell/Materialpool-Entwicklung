@@ -1,7 +1,7 @@
 # ADR-0007: Der Spiegel liest alle Religionsfächer von amb-relay, sodix und oersi — nicht nur den Materialpool-Schlüssel
 
-**Status:** angenommen (2026-10-08, Christina Kreutz); umgesetzt am 2026-09-30 in `.env.example`, auf dem Server noch nicht eingestellt
-**Beteiligte:** Christina Kreutz (Vorschlag und Entscheidung — das Projekt liegt seit 2026-10-08 bei ihr, abgesprochen mit Jörg Lohrer), Claude (Befund und Umsetzung)
+**Status:** angenommen (2026-10-08); umgesetzt am 2026-09-30 in `.env.example`, auf dem Server noch nicht eingestellt
+**Beteiligte:** Christina Kreutz (Vorschlag), Claude (Befund und Umsetzung)
 
 ## Kontext
 
