@@ -5,6 +5,7 @@ import { frageHinweis, frageUmleitung } from '$lib/routen/frage.js';
 import { KONTO_COOKIE, kontoLesen, profilEinsetzen, profilHinweis } from '$lib/routen/konto.js';
 import { MERKLISTE_COOKIE, merklisteLesen } from '$lib/routen/merkliste.js';
 import { filterLesen, listeLaden, listenPfad } from '$lib/routen/uebersicht.js';
+import { linkpruefungHolen } from '$lib/services/linkpruefung.js';
 import { relaySuche, spiegelHolen } from '$lib/services/spiegel.js';
 
 export const prerender = false;
@@ -35,6 +36,7 @@ export async function load({ url, cookies }) {
     suche,
     frage: frageHinweis(url.searchParams),
     profilHinweis: profilHinweis(filter, konto),
-    merkKeys: merklisteLesen(cookies.get(MERKLISTE_COOKIE))
+    merkKeys: merklisteLesen(cookies.get(MERKLISTE_COOKIE)),
+    weg: linkpruefungHolen().weg
   });
 }

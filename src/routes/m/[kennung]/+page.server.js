@@ -3,6 +3,7 @@ import { env } from '$env/dynamic/private';
 import { konfigLesen } from '$lib/konfig.js';
 import { materialLaden, zurueckZiel } from '$lib/routen/material.js';
 import { MERKLISTE_COOKIE, merklisteLesen, merkSchluessel } from '$lib/routen/merkliste.js';
+import { linkpruefungHolen } from '$lib/services/linkpruefung.js';
 import { spiegelHolen } from '$lib/services/spiegel.js';
 
 /** @type {import('./$types').PageServerLoad} */
@@ -21,6 +22,8 @@ export function load({ params, cookies, request, url }) {
     ...treffer,
     // „Zurück“ ohne JavaScript: auf die Liste, Merkliste oder Startseite, von der man kam.
     zurueck: zurueckZiel(request.headers.get('referer'), url.origin, url.pathname),
-    merken: { schluessel, gemerkt: merklisteLesen(cookies.get(MERKLISTE_COOKIE)).includes(schluessel) }
+    merken: { schluessel, gemerkt: merklisteLesen(cookies.get(MERKLISTE_COOKIE)).includes(schluessel) },
+    // Link-Prüfung (ADR-0010): erreichbar bleibt die Seite, nur ohne „Material öffnen“.
+    linkWeg: linkpruefungHolen().weg(treffer.material.url)
   };
 }

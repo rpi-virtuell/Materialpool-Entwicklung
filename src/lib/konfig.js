@@ -8,6 +8,8 @@
  * @property {number} spiegelIntervallS      Abstand zwischen zwei Läufen
  * @property {number} spiegelStartwartezeitS wie lange der Start auf den ersten Lauf wartet
  * @property {number} spiegelLimit           Höchstzahl Events je Relay (blätternd zu je 250)
+ * @property {{ an: boolean, pfad: string, intervallS: number, taktS: number, jeTakt: number }} linkpruefung
+ *   Link-Prüfung (ADR-0010): JSON-Datei, Abstand je Link, Takt und Links je Takt
  */
 
 const HEX64 = /^[0-9a-f]{64}$/;
@@ -95,11 +97,23 @@ export function konfigLesen(quelle) {
     throw new Error(`QUELLE_FAECHER: keine URI: ${keineUri.join(', ')}`);
   }
 
+  const schalter = (quelle.LINKPRUEFUNG ?? '').trim().toLowerCase();
+  if (!['', 'an', 'aus'].includes(schalter)) {
+    throw new Error(`LINKPRUEFUNG muss "an" oder "aus" sein, ist aber "${quelle.LINKPRUEFUNG}".`);
+  }
+
   return {
     relays,
     autoren,
     faecher,
     vorrang,
+    linkpruefung: {
+      an: schalter !== 'aus',
+      pfad: (quelle.LINKPRUEFUNG_PFAD ?? '').trim() || 'daten/linkpruefung.json',
+      intervallS: positiveGanzzahl(quelle.LINKPRUEFUNG_INTERVALL_S, 7 * 24 * 60 * 60, 'LINKPRUEFUNG_INTERVALL_S'),
+      taktS: positiveGanzzahl(quelle.LINKPRUEFUNG_TAKT_S, 60, 'LINKPRUEFUNG_TAKT_S'),
+      jeTakt: positiveGanzzahl(quelle.LINKPRUEFUNG_JE_TAKT, 20, 'LINKPRUEFUNG_JE_TAKT')
+    },
     spiegelPfad: (quelle.SPIEGEL_PFAD ?? '').trim() || 'daten/spiegel.json',
     spiegelIntervallS: positiveGanzzahl(quelle.SPIEGEL_INTERVALL_S, 600, 'SPIEGEL_INTERVALL_S'),
     spiegelStartwartezeitS: positiveGanzzahl(

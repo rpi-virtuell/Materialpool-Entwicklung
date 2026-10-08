@@ -51,6 +51,15 @@ describe('konfigLesen', () => {
     expect(() => konfigLesen({ RELAYS: 'wss://a/', QUELLE_FAECHER: 's1024' })).toThrow(/QUELLE_FAECHER/);
   });
 
+  it('Link-Prüfung (ADR-0010): an mit Standardwerten, abschaltbar, Unbrauchbares bricht ab', () => {
+    const k = konfigLesen({ RELAYS: 'wss://a/' });
+    expect(k.linkpruefung).toEqual({ an: true, pfad: 'daten/linkpruefung.json', intervallS: 604800, taktS: 60, jeTakt: 20 });
+    expect(konfigLesen({ RELAYS: 'wss://a/', LINKPRUEFUNG: 'aus' }).linkpruefung.an).toBe(false);
+    expect(konfigLesen({ RELAYS: 'wss://a/', LINKPRUEFUNG_JE_TAKT: '5' }).linkpruefung.jeTakt).toBe(5);
+    expect(() => konfigLesen({ RELAYS: 'wss://a/', LINKPRUEFUNG: 'vielleicht' })).toThrow(/LINKPRUEFUNG/);
+    expect(() => konfigLesen({ RELAYS: 'wss://a/', LINKPRUEFUNG_TAKT_S: '0' })).toThrow(/LINKPRUEFUNG_TAKT_S/);
+  });
+
   it('bricht bei unbrauchbarer Ganzzahl ab statt still auf den Standard zu fallen', () => {
     expect(() => konfigLesen({ RELAYS: 'wss://a/', SPIEGEL_LIMIT: 'viele' })).toThrow(/SPIEGEL_LIMIT/);
     expect(() => konfigLesen({ RELAYS: 'wss://a/', SPIEGEL_INTERVALL_S: '0' })).toThrow(/SPIEGEL_INTERVALL_S/);
