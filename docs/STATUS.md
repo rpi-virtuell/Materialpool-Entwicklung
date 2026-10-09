@@ -8,6 +8,18 @@ das Gesamtbild in `superpowers/specs/2026-09-28-materialpool-neustart-design.md`
 
 ---
 
+## 2026-10-09 (4) — Vier Unterschiede wie im Prototyp
+
+**Passiert:** Christina hat die offenen Unterschiede aus dem Vergleich
+entschieden: Liste heißt „Materialien durchstöbern“, Sortieren
+„Empfohlen · Neueste · Titel A–Z · Anbieter A–Z“ („Neueste“ statt
+„Zuletzt eingestellt“, weil `neu` nach dem Datum des Materials sortiert),
+Karten mit 6 px Ecken, Merkliste heißt „Deine gemerkten Materialien“.
+
+**Wo steht das Projekt:** `pnpm check` 0 Fehler, 287 Tests grün.
+
+---
+
 ## 2026-10-09 (3) — Kleinigkeiten aus dem Vergleich mit dem Prototyp
 
 **Passiert:** Vergleich Prototyp ↔ dieses Repo (Startseite, Liste,

@@ -12,7 +12,7 @@
 
 <main class="merkliste-page">
   <div class="merkliste-inner">
-    <h1>Gemerkt</h1>
+    <h1>Deine gemerkten Materialien</h1>
     {#if karten.length === 0 && fehlend === 0}
       <div class="merkliste-leer">
         <h2>Noch nichts gemerkt</h2>
