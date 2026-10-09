@@ -448,6 +448,17 @@ describe('Detail', () => {
     expect(body).toMatch(/<a class="zurueck[^"]*" href="\/materialien\?stufe=elem">/);
   });
 
+  it('nennt das Ziel nicht, wenn es schon in Herkunft oder Beschreibung steht', () => {
+    /** @param {Partial<import('../src/lib/models/material.js').Material>} teil */
+    const mit = (teil) => {
+      const m = { ...jericho, url: 'https://www.religionen-entdecken.de/lexikon/m/martin-luther', ...teil };
+      return render(Detail, { props: { material: m, relays: [], cover: coverFarben(m), icon: 'notebook' } }).body;
+    };
+    expect(mit({ herkunft: 'religionen-entdecken.de' })).not.toContain('oeffnen-ziel');
+    expect(mit({ beschreibung: 'Artikel auf religionen-entdecken.de' })).not.toContain('oeffnen-ziel');
+    expect(mit({ herkunft: 'Horst Heller', beschreibung: 'Ein Lexikonartikel.' })).toContain('auf religionen-entdecken.de');
+  });
+
   it('nennt die Angaben als benannte Zeilen, AMB-Typ nur in der Entwickleransicht', () => {
     const body = detail();
     for (const dt of ['Bildungsstufe', 'Fach', 'Materialart', 'Lizenz', 'Datum']) expect(body).toMatch(new RegExp(`<dt[^>]*>${dt}</dt>`));

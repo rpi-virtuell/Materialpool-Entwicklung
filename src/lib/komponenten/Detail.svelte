@@ -21,7 +21,14 @@
    */
   let { material, relays, cover, icon, zurueck = '/materialien', merken = null, linkWeg = false } = $props();
   const begriffe = (/** @type {{ label: string }[]} */ liste) => liste.map((b) => b.label).join(', ');
-  const ziel = $derived(zielName(material.url));
+  // Das Ziel nur nennen, wenn es nicht schon dasteht — sonst liest man
+  // dieselbe Adresse dreimal (Herkunft, Beschreibung, Knopf).
+  const ziel = $derived.by(() => {
+    const name = zielName(material.url);
+    if (!name) return null;
+    const schonDa = `${material.herkunft} ${material.beschreibung}`.toLowerCase();
+    return schonDa.includes(name) ? null : name;
+  });
 </script>
 
 <article class="detail" style="--cover-ink:{cover.ink};--cover-tint:{cover.tint}">

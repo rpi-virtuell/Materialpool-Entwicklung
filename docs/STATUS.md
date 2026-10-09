@@ -13,7 +13,9 @@ das Gesamtbild in `superpowers/specs/2026-09-28-materialpool-neustart-design.md`
 **Passiert:** Unter dem Knopf steht klein, wohin er führt: „auf
 religionen-entdecken.de“ (`zielName` in `models/anzeige.js`, Rechnername
 ohne „www.“, per `aria-describedby` am Knopf). Derselbe Tab, kein
-`target` (Christinas Wahl). Vorher geprüft: Live lädt keine Seite mehr
+`target` (Christinas Wahl). Nicht, wenn die Adresse schon in Herkunft
+oder Beschreibung steht — sonst stand sie bei Materialien ohne
+Anbieternamen dreimal untereinander (lokal: 7.303 mit Ziel, 1.077 ohne). Vorher geprüft: Live lädt keine Seite mehr
 etwas von fremden Servern — Schriften und CSS kommen vom eigenen Server,
 kein JavaScript, keine Einbettungen, Bilder sind aus. Der Server selbst
 schickt Suchtexte an die Relays (ohne Besucher-IP) und fragt bei der
