@@ -8,6 +8,7 @@
 import { dev } from '$app/environment';
 import { env } from '$env/dynamic/private';
 import { konfigLesen } from '$lib/konfig.js';
+import { vorschaubilderErlauben } from '$lib/models/material.js';
 import { materialienVon } from '$lib/routen/bestand.js';
 import { antwortKoepfe } from '$lib/routen/koepfe.js';
 import { linkpruefungStarten } from '$lib/services/linkpruefung.js';
@@ -16,6 +17,8 @@ import { spiegelBereit, spiegelHolen, spiegelStarten } from '$lib/services/spieg
 /** @type {import('@sveltejs/kit').ServerInit} */
 export async function init() {
   const konfig = konfigLesen(env);
+  // Vor dem ersten Material: Vorschaubilder fremder Server nur mit VORSCHAUBILDER=an.
+  vorschaubilderErlauben(konfig.vorschaubilder);
   spiegelStarten(konfig);
   await spiegelBereit();
   // Link-Prüfung (ADR-0010) im Hintergrund, je Takt mit den Links des aktuellen Spiegelstands.

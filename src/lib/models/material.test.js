@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import beispiele from '../../../test/fixtures/amb-beispiele.json';
-import { begriffe, herkunftBilden, kennungAusD, letzterPfadteil, lizenzKuerzel, materialAusEvent } from './material.js';
+import { begriffe, herkunftBilden, kennungAusD, letzterPfadteil, lizenzKuerzel, materialAusEvent, vorschaubilderErlauben } from './material.js';
 
 // Echte Events vom Materialpool-Schlüssel (test/fixtures/README.md).
 const [arbeitsheft, berufsorientierung, erntedank, geist, jenseits, fluechtlinge, jericho] = beispiele;
@@ -135,6 +135,16 @@ describe('materialAusEvent', () => {
     const nurR = { ...jenseits, tags: [['d', 'urn:y'], ['r', 'mailto:x'], ['r', 'https://r.example/']] };
     expect(materialAusEvent(nurR).url).toBe('https://r.example/');
     expect(materialAusEvent({ ...jenseits, tags: [['d', 'urn:z']] }).url).toBeNull();
+  });
+
+  it('zeigt keine Vorschaubilder, solange sie ausgeschaltet sind', () => {
+    vorschaubilderErlauben(false);
+    try {
+      expect(materialAusEvent(geist).bild).toBeNull();
+    } finally {
+      vorschaubilderErlauben(true);
+    }
+    expect(materialAusEvent(geist).bild).toMatch(/^http/);
   });
 
   it('nimmt ein Bild nur mit http(s)-Adresse', () => {

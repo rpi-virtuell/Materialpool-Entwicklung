@@ -10,6 +10,7 @@
  * @property {number} spiegelLimit           Höchstzahl Events je Relay (blätternd zu je 250)
  * @property {{ an: boolean, pfad: string, intervallS: number, taktS: number, jeTakt: number }} linkpruefung
  *   Link-Prüfung (ADR-0010): JSON-Datei, Abstand je Link, Takt und Links je Takt
+ * @property {boolean} vorschaubilder       Bilder fremder Server zeigen; aus, bis VORSCHAUBILDER=an
  */
 
 const HEX64 = /^[0-9a-f]{64}$/;
@@ -102,11 +103,18 @@ export function konfigLesen(quelle) {
     throw new Error(`LINKPRUEFUNG muss "an" oder "aus" sein, ist aber "${quelle.LINKPRUEFUNG}".`);
   }
 
+  const bilder = (quelle.VORSCHAUBILDER ?? '').trim().toLowerCase();
+  if (!['', 'an', 'aus'].includes(bilder)) {
+    throw new Error(`VORSCHAUBILDER muss "an" oder "aus" sein, ist aber "${quelle.VORSCHAUBILDER}".`);
+  }
+
   return {
     relays,
     autoren,
     faecher,
     vorrang,
+    // Standard aus: bis Rechte und Datenschutz der fremden Bilder geklärt sind (2026-10-09).
+    vorschaubilder: bilder === 'an',
     linkpruefung: {
       an: schalter !== 'aus',
       pfad: (quelle.LINKPRUEFUNG_PFAD ?? '').trim() || 'daten/linkpruefung.json',

@@ -60,6 +60,13 @@ describe('konfigLesen', () => {
     expect(() => konfigLesen({ RELAYS: 'wss://a/', LINKPRUEFUNG_TAKT_S: '0' })).toThrow(/LINKPRUEFUNG_TAKT_S/);
   });
 
+  it('Vorschaubilder sind aus, bis VORSCHAUBILDER=an gesetzt ist', () => {
+    expect(konfigLesen({ RELAYS: 'wss://a/' }).vorschaubilder).toBe(false);
+    expect(konfigLesen({ RELAYS: 'wss://a/', VORSCHAUBILDER: 'an' }).vorschaubilder).toBe(true);
+    expect(konfigLesen({ RELAYS: 'wss://a/', VORSCHAUBILDER: 'aus' }).vorschaubilder).toBe(false);
+    expect(() => konfigLesen({ RELAYS: 'wss://a/', VORSCHAUBILDER: 'ja' })).toThrow(/VORSCHAUBILDER/);
+  });
+
   it('bricht bei unbrauchbarer Ganzzahl ab statt still auf den Standard zu fallen', () => {
     expect(() => konfigLesen({ RELAYS: 'wss://a/', SPIEGEL_LIMIT: 'viele' })).toThrow(/SPIEGEL_LIMIT/);
     expect(() => konfigLesen({ RELAYS: 'wss://a/', SPIEGEL_INTERVALL_S: '0' })).toThrow(/SPIEGEL_INTERVALL_S/);
