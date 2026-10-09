@@ -19,7 +19,7 @@ import Kopfzeile from '../src/lib/komponenten/Kopfzeile.svelte';
 import { LEERES_KONTO } from '../src/lib/models/konto.js';
 import { kontoSeite } from '../src/lib/routen/konto.js';
 import Startseite from '../src/lib/komponenten/startseite/Startseite.svelte';
-import { ZIELGRUPPEN } from '../src/lib/komponenten/startseite/HeroZielgruppe.svelte';
+import { ZIELGRUPPEN, ZIELGRUPPEN_ZUSAMMEN } from '../src/lib/komponenten/startseite/HeroZielgruppe.svelte';
 import Uebersicht from '../src/lib/komponenten/Uebersicht.svelte';
 import { coverFarben } from '../src/lib/models/farben.js';
 import { materialAusEvent } from '../src/lib/models/material.js';
@@ -171,6 +171,17 @@ describe('Startseite', () => {
       const abstand = Math.abs(ZIELGRUPPEN.indexOf(a) - ZIELGRUPPEN.indexOf(b));
       expect(Math.min(abstand, n - abstand), `${a} / ${b}`).toBeGreaterThan(1);
     }
+  });
+
+  it('nennt alle Bereiche in einer Zeile: still bei „wenig Bewegung“, vorgelesen statt der wechselnden Wörter', () => {
+    const daten = startseiteLaden({ inhalt: leererInhalt(), fehlschlag: null, relays, heute: september });
+    const { body } = render(Startseite, { props: daten });
+    expect(body).toMatch(new RegExp(`<span class="hero-zielgruppe-alle[^"]*">${ZIELGRUPPEN_ZUSAMMEN}</span>`));
+    expect(ZIELGRUPPEN_ZUSAMMEN).toBe('für Schule, Kita, Gemeinde und Bildungsarbeit');
+    // Die wechselnden Wörter liest kein Vorleseprogramm mehr, auch das erste nicht.
+    const woerter = body.match(/<span class="hero-zielgruppe-wort[^>]*>/g) ?? [];
+    expect(woerter).toHaveLength(ZIELGRUPPEN.length);
+    for (const w of woerter) expect(w).toContain('aria-hidden="true"');
   });
 
   it('rendert ohne Daten sofort: Kopf, Suche, Kacheln, Hinweis „wird geladen“', () => {

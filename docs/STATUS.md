@@ -8,6 +8,25 @@ das Gesamtbild in `superpowers/specs/2026-09-28-materialpool-neustart-design.md`
 
 ---
 
+## 2026-10-09 — Zielgruppen-Wechsel: nur Überblenden, bei „wenig Bewegung“ alle Bereiche
+
+**Passiert:** Christina sah live keinen Wechsel unter der Überschrift —
+ihr Rechner meldet `prefers-reduced-motion: reduce` (Windows-
+Animationseffekte aus, oft eine IT-Vorgabe), und dann stand allein „für
+die Schule“; die Breite des Materialpools ging verloren. Und der Wechsel
+war ihr zu schwer: Im Prototyp sah sie ihn auf diesem Rechner immer nur
+überblendend, ohne Hochrutschen. Jetzt: Für alle nur Überblenden (kein
+`translateY` mehr), Takt wie bisher. Bei „wenig Bewegung“ wechselt
+nichts; dann steht `ZIELGRUPPEN_ZUSAMMEN`, „für Schule, Kita, Gemeinde
+und Bildungsarbeit“ (`text-wrap: balance`). Vorleseprogramme lesen immer
+diese Zeile, nie die wechselnden Wörter (vorher nur „für die Schule“).
+
+**Wo steht das Projekt:** `pnpm check` 0 Fehler, 279 Tests grün; im
+Dev-Server: Wechsel ohne Bewegung, und die Regel für „wenig Bewegung“
+von Hand eingeschaltet geprüft (zwei ausgewogene Zeilen bei 1100 px).
+
+---
+
 ## 2026-10-08 (8) — Seite „Ausgeblendete Materialien“
 
 **Passiert:** Christina: Ausblenden darf nicht still passieren, jemand
