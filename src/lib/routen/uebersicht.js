@@ -40,12 +40,16 @@ import { karteMitMerken } from './merkliste.js';
  * @property {FachKey[]} faecher
  */
 
-/** @type {{ key: Sortierung, label: string }[]} */
+/**
+ * Namen wie im Prototyp, nur „Neueste“ statt „Zuletzt eingestellt“: `neu`
+ * sortiert nach dem Datum des Materials, nicht nach dem Eingang im Pool.
+ * @type {{ key: Sortierung, label: string }[]}
+ */
 export const SORTIERUNGEN = [
   { key: 'empfohlen', label: 'Empfohlen' },
-  { key: 'neu', label: 'Neu' },
-  { key: 'titel', label: 'Titel' },
-  { key: 'anbieter', label: 'Anbieter' }
+  { key: 'neu', label: 'Neueste' },
+  { key: 'titel', label: 'Titel A–Z' },
+  { key: 'anbieter', label: 'Anbieter A–Z' }
 ];
 
 /** Höchstzahl der Schlagwort-Chips. */

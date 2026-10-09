@@ -36,7 +36,7 @@
 
 <main class="liste-page">
   <div class="liste-inner">
-    <h1>Materialien</h1>
+    <h1>Materialien durchstöbern</h1>
     <form class="liste-suche" action="/materialien" method="get" role="search">
       <Icon name="search" />
       <input type="search" name="q" value={filter.q} placeholder="Stichwort oder in eigenen Worten …" aria-label="Materialien durchsuchen" />

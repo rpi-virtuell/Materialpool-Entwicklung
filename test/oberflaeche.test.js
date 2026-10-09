@@ -111,6 +111,7 @@ describe('Merkliste (ADR-0008)', () => {
   });
   it('Seite: leer mit Erklärung, sonst die Karten und was fehlt', () => {
     expect(render(Merkliste, { props: { karten: [], fehlend: 0 } }).body).toContain('Noch nichts gemerkt');
+    expect(render(Merkliste, { props: { karten: [], fehlend: 0 } }).body).toMatch(/<h1[^>]*>Deine gemerkten Materialien<\/h1>/);
     const { body } = render(Merkliste, { props: { karten: [karteMitMerken(erntedank, [])], fehlend: 2 } });
     expect(body).toContain('1 Material');
     expect(body).toContain('2 sind nicht mehr im Bestand');
@@ -359,6 +360,12 @@ describe('Uebersicht (Liste)', () => {
     const { body } = render(Uebersicht, { props: daten });
     expect(body).toContain('noch keinen Stand');
     expect(body).not.toContain('<article');
+  });
+
+  it('heißt „Materialien durchstöbern“ und sortiert mit den Namen des Prototyps', () => {
+    const { body } = render(Uebersicht, { props: listeLaden({ inhalt, fehlschlag: null, relays }) });
+    expect(body).toMatch(/<h1[^>]*>Materialien durchstöbern<\/h1>/);
+    for (const name of ['Empfohlen', 'Neueste', 'Titel A–Z', 'Anbieter A–Z']) expect(body).toMatch(new RegExp(`>${name}</a>`));
   });
 
   it('sagt, wie viele Materialien wegen toter Links fehlen — nie still (ADR-0010)', () => {
