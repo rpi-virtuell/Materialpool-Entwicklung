@@ -1,5 +1,5 @@
 <script>
-  import { datumDeutsch, spracheName } from '$lib/models/anzeige.js';
+  import { datumDeutsch, spracheName, zielName } from '$lib/models/anzeige.js';
   import Icon from './Icon.svelte';
   /**
    * Detailseite nach dem Prototyp Materialpool 2.0: eine Lesespalte, oben
@@ -21,6 +21,7 @@
    */
   let { material, relays, cover, icon, zurueck = '/materialien', merken = null, linkWeg = false } = $props();
   const begriffe = (/** @type {{ label: string }[]} */ liste) => liste.map((b) => b.label).join(', ');
+  const ziel = $derived(zielName(material.url));
 </script>
 
 <article class="detail" style="--cover-ink:{cover.ink};--cover-tint:{cover.tint}">
@@ -48,7 +49,12 @@
 
   <div class="detail-aktionen">
     {#if material.url && !linkWeg}
-      <a class="knopf-primaer" href={material.url} rel="external noopener"><Icon name="external-link" /> Material öffnen</a>
+      <!-- Wohin es geht, steht klein darunter: Man verlässt den Materialpool
+           (Christina, 09.10.2026). Derselbe Tab, kein target. -->
+      <div class="oeffnen">
+        <a class="knopf-primaer" href={material.url} rel="external noopener" aria-describedby={ziel ? 'oeffnen-ziel' : undefined}><Icon name="external-link" /> Material öffnen</a>
+        {#if ziel}<span class="oeffnen-ziel" id="oeffnen-ziel">auf {ziel}</span>{/if}
+      </div>
     {/if}
     {#if merken}
       <form class="merken" method="post" action="/merkliste?/umschalten">
@@ -145,7 +151,9 @@
   .detail-beschreibung { margin: 0 0 var(--sp-6); font-size: var(--fs-400); line-height: 1.7; white-space: pre-line; color: var(--text-body); }
 
   .detail-linkweg { margin: 0 0 var(--sp-6); padding-left: var(--sp-3); border-left: 3px solid var(--blue); color: var(--text-body); }
-  .detail-aktionen { display: flex; flex-wrap: wrap; gap: var(--sp-3); margin-bottom: var(--sp-8); }
+  .detail-aktionen { display: flex; flex-wrap: wrap; align-items: flex-start; gap: var(--sp-3); margin-bottom: var(--sp-8); }
+  .oeffnen { display: flex; flex-direction: column; align-items: flex-start; gap: var(--sp-1); }
+  .oeffnen-ziel { font-size: var(--fs-200); color: var(--text-muted); overflow-wrap: anywhere; }
   .merken { margin: 0; display: contents; }
   .knopf-primaer,
   .merken-btn {
@@ -197,8 +205,10 @@
     h1 { font-size: 26px; }
     /* Nebeneinander bleiben auf 320 px vom Knopf „Material öffnen“ drei
        Buchstaben übrig — untereinander, volle Breite. */
+    .oeffnen,
     .knopf-primaer,
     .merken-btn { flex: 1 1 100%; justify-content: center; }
+    .oeffnen { align-items: stretch; }
     /* Eine 130-px-Spalte für die Bezeichnung frisst auf dem Handy die
        halbe Zeile. */
     .detail-angaben { grid-template-columns: 1fr; gap: 0; }

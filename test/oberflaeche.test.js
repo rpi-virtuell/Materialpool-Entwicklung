@@ -439,8 +439,12 @@ describe('Detail', () => {
   it('führt mit „Material öffnen“ zur Ressource und mit „Zurück“ dorthin, woher man kam', () => {
     const body = detail({ zurueck: '/materialien?stufe=elem' });
     // direkt beim Anbieter, nicht über die Katalogseite bei rpi-virtuell
-    expect(body).toMatch(/<a class="knopf-primaer[^"]*" href="https:\/\/horstheller\.wordpress\.com\/2024\/12\/07\/welt-jesus\/" rel="external noopener">/);
+    expect(body).toMatch(/<a class="knopf-primaer[^"]*" href="https:\/\/horstheller\.wordpress\.com\/2024\/12\/07\/welt-jesus\/" rel="external noopener"[^>]*>/);
     expect(body).toContain('Material öffnen');
+    // Wohin es geht, steht klein darunter; derselbe Tab, kein target.
+    expect(body).toMatch(/<span class="oeffnen-ziel[^"]*" id="oeffnen-ziel">auf horstheller\.wordpress\.com<\/span>/);
+    expect(body).toMatch(/<a class="knopf-primaer[^>]*aria-describedby="oeffnen-ziel"/);
+    expect(body).not.toContain('target=');
     expect(body).toMatch(/<a class="zurueck[^"]*" href="\/materialien\?stufe=elem">/);
   });
 

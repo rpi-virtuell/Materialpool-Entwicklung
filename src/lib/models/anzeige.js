@@ -16,6 +16,20 @@ export function datumDeutsch(iso) {
   return iso;
 }
 
+/**
+ * Wohin ein Link führt, kurz: Rechnername ohne „www.“, z. B. „ekd.de“.
+ * @param {string|null} url
+ * @returns {string|null}
+ */
+export function zielName(url) {
+  if (!url) return null;
+  try {
+    return new URL(url).hostname.toLowerCase().replace(/^www\./, '');
+  } catch {
+    return null;
+  }
+}
+
 /** @type {Intl.DisplayNames|null} */
 let namen = null;
 

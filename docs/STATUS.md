@@ -8,6 +8,22 @@ das Gesamtbild in `superpowers/specs/2026-09-28-materialpool-neustart-design.md`
 
 ---
 
+## 2026-10-09 (6) — „Material öffnen“ nennt das Ziel
+
+**Passiert:** Unter dem Knopf steht klein, wohin er führt: „auf
+religionen-entdecken.de“ (`zielName` in `models/anzeige.js`, Rechnername
+ohne „www.“, per `aria-describedby` am Knopf). Derselbe Tab, kein
+`target` (Christinas Wahl). Vorher geprüft: Live lädt keine Seite mehr
+etwas von fremden Servern — Schriften und CSS kommen vom eigenen Server,
+kein JavaScript, keine Einbettungen, Bilder sind aus. Der Server selbst
+schickt Suchtexte an die Relays (ohne Besucher-IP) und fragt bei der
+Link-Prüfung fremde Seiten an.
+
+**Wo steht das Projekt:** `pnpm check` 0 Fehler, 291 Tests grün; im
+Dev-Server bei 1100 px und 375 px angesehen.
+
+---
+
 ## 2026-10-09 (5) — Vorschaubilder aus, bis Rechte und Datenschutz geklärt sind
 
 **Passiert:** Live stammten 141 von 290 Materialien von e-teaching.org
