@@ -8,6 +8,35 @@ das Gesamtbild in `superpowers/specs/2026-09-28-materialpool-neustart-design.md`
 
 ---
 
+## 2026-10-09 (3) — Kleinigkeiten aus dem Vergleich mit dem Prototyp
+
+**Passiert:** Vergleich Prototyp ↔ dieses Repo (Startseite, Liste,
+Detail, Merkliste, Profil). Behoben:
+- **Datum und Sprache** auf der Detailseite deutsch (`models/anzeige.js`):
+  „2017-08-01“ → „01.08.2017“, „de“ → „Deutsch“ (`Intl.DisplayNames`).
+- **Kürzel ohne Namen** lesbar: `lesbarerPfadteil` nimmt den letzten Teil
+  nach `/`, `#` oder `:`, „-amp-“ als „&“, jedes Wort groß
+  („Theologie & Religion“). `begriffsnamen.js` kennt zusätzlich die
+  Fächergruppe Geisteswissenschaften der Hochschulfächersystematik und
+  `educationalLevel/adult_education` („Erwachsenenbildung“, Stufe
+  `fortbildung`).
+- **Großer Anfangsbuchstabe** für Begriffsnamen („evangelisch“ →
+  „Evangelisch“). Schlagworte bleiben, wie die Anbieter sie schreiben.
+- **Theologie zählt als Fach:** Hochschulfächersystematik n02/n03/n18
+  (und Fächer darunter) sowie das nostr-Vokabular
+  `nostr:39738:<pubkey>:evangelisch` usw. ergeben die Konfession.
+
+Nicht geändert, zur Entscheidung bei Christina: Überschrift der Liste
+(„Materialien durchstöbern“ im Prototyp), Sortier-Namen („Zuletzt
+eingestellt“, „Titel A–Z“, „Anbieter A–Z“), Kartenecken (6 statt 8 px),
+Überschrift der Merkliste („Deine gemerkten Materialien“).
+
+**Wo steht das Projekt:** `pnpm check` 0 Fehler, 286 Tests grün; im
+Dev-Server auf drei Listenseiten keine Kürzel mehr bei Bildungsstufe,
+Fach und Materialart.
+
+---
+
 ## 2026-10-09 (2) — Zielgruppen blenden ineinander über
 
 **Passiert:** Christina (jetzt mit Animationen an): Das alte Wort ging

@@ -95,7 +95,30 @@ export function begriffe(tags, praefix) {
   const ids = alle(tags, `${praefix}:id`);
   const de = alle(tags, `${praefix}:prefLabel:de`);
   const en = alle(tags, `${praefix}:prefLabel:en`);
-  return ids.map((id, i) => ({ id, label: de[i] ?? en[i] ?? begriffsname(id) ?? letzterPfadteil(id) }));
+  return ids.map((id, i) => ({ id, label: grossAnfang(de[i] ?? en[i] ?? begriffsname(id) ?? lesbarerPfadteil(id)) }));
+}
+
+/**
+ * Notbezeichnung aus der Kennung, lesbar gemacht: letzter Teil nach `/`,
+ * `#` oder `:`, „-amp-“ als „&“ (ein verunglücktes HTML-`&amp;`), Binde-
+ * und Unterstriche als Leerzeichen, jedes Wort groß wie in einem
+ * Begriffsnamen („Theologie & Religion“, „Andragogische Grundlagen“).
+ * @param {string} uri
+ */
+export function lesbarerPfadteil(uri) {
+  const teil = uri.replace(/[/#:]+$/, '').split(/[/#:]/).pop() || uri;
+  return teil
+    .replace(/-amp-/g, ' & ')
+    .replace(/[-_]+/g, ' ')
+    .trim()
+    .split(/\s+/)
+    .map(grossAnfang)
+    .join(' ');
+}
+
+/** Erster Buchstabe groß — manche Vokabulare schreiben „evangelisch“. @param {string} s */
+function grossAnfang(s) {
+  return s.charAt(0).toLocaleUpperCase('de') + s.slice(1);
 }
 
 /**

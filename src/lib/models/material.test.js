@@ -39,19 +39,39 @@ describe('materialAusEvent', () => {
     const tags = [
       ['d', 'urn:x'],
       ['educationalLevel:id', 'https://w3id.org/kim/educationalLevel/level_B'],
-      ['educationalLevel:id', 'https://w3id.org/kim/educationalLevel/adult_education'],
+      ['educationalLevel:id', 'https://w3id.org/kim/educationalLevel/level_X'],
       ['learningResourceType:id', 'https://w3id.org/kim/hcrt/text'],
       ['learningResourceType:id', 'https://w3id.org/kim/hcrt/web_page']
     ];
     const ohneLabel = { ...jenseits, tags };
     expect(materialAusEvent(ohneLabel).bildungsstufen).toEqual([
       { id: 'https://w3id.org/kim/educationalLevel/level_B', label: 'Vorbereitungsdienst' },
-      // nicht im Vokabular: kein erfundener Name
-      { id: 'https://w3id.org/kim/educationalLevel/adult_education', label: 'adult_education' }
+      // nicht im Vokabular: kein erfundener Name, nur die Kennung lesbar
+      { id: 'https://w3id.org/kim/educationalLevel/level_X', label: 'Level X' }
     ]);
     expect(materialAusEvent(ohneLabel).ressourcentypen.map((r) => r.label)).toEqual(['Textdokument', 'Webseite']);
     expect(materialAusEvent(ohneLabel).beschreibung).toBe('');
     expect(materialAusEvent(ohneLabel).bild).toBeNull();
+  });
+
+  it('macht Kürzel ohne Namen lesbar und schreibt Begriffe groß an', () => {
+    const tags = [
+      ['d', 'urn:x'],
+      ['about:id', 'https://w3id.org/kim/hochschulfaechersystematik/n02'],
+      ['about:id', 'https://w3id.org/reliedu/theologie-amp-religion'],
+      ['about:id', 'https://w3id.org/reliedu/andragogische-grundlagen'],
+      ['about:id', `nostr:39738:${'d'.repeat(64)}:evangelisch`],
+      ['about:prefLabel:de', 'Evangelische Theologie, -Religionslehre'],
+      ['educationalLevel:id', 'https://w3id.org/kim/educationalLevel/adult_education']
+    ];
+    // Ein Label pro Begriff, in Reihenfolge: hier nur für den ersten — die übrigen ohne.
+    const m = materialAusEvent({ ...jenseits, tags });
+    expect(m.faecher.map((f) => f.label)).toEqual([
+      'Evangelische Theologie, -Religionslehre', 'Theologie & Religion', 'Andragogische Grundlagen', 'Evangelisch'
+    ]);
+    expect(m.bildungsstufen.map((b) => b.label)).toEqual(['Erwachsenenbildung']);
+    const klein = materialAusEvent({ ...jenseits, tags: [['d', 'urn:y'], ['about:id', 'https://x/a'], ['about:prefLabel:de', 'evangelisch']] });
+    expect(klein.faecher[0].label).toBe('Evangelisch');
   });
 
   it('kürzt Creative-Commons-Lizenzen; ohne Lizenz null', () => {

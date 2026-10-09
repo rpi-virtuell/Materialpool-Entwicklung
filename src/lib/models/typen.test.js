@@ -49,6 +49,22 @@ describe('Fächer', () => {
     expect(f('s1055')).toEqual(['allgemein']);
     expect(f('s1008', 's1055')).toEqual(['allgemein']);
   });
+  it('erkennt Theologie in der Hochschulfächersystematik und im nostr-Vokabular der Konfessionen', () => {
+    /** @param {string} id */
+    const h = (id) => faecherAusBegriffen([{ id: `https://w3id.org/kim/hochschulfaechersystematik/${id}`, label: id }]);
+    expect(h('n02')).toEqual(['evangelisch']);
+    expect(h('n544')).toEqual(['evangelisch']);
+    expect(h('n03')).toEqual(['katholisch']);
+    expect(h('n086')).toEqual(['katholisch']);
+    expect(h('n18')).toEqual(['islamisch']);
+    expect(h('n08')).toEqual([]);
+    const nostr = (/** @type {string} */ wort) => faecherAusBegriffen([{ id: `nostr:39738:${'d'.repeat(64)}:${wort}`, label: wort }]);
+    expect(nostr('evangelisch')).toEqual(['evangelisch']);
+    expect(nostr('katholisch')).toEqual(['katholisch']);
+    expect(nostr('konfessionell-kooperativ')).toEqual([]);
+    // Ein Schulfach-Pfadteil „n02“ aus einem anderen Vokabular zählt nicht.
+    expect(faecherAusBegriffen([{ id: 'https://example.org/faecher/n02', label: 'x' }])).toEqual([]);
+  });
   it('nennt kein Fach, wenn keine Religions-Kennung dasteht', () => {
     expect(f('s1008', 's1021')).toEqual([]);
     expect(faecherAusBegriffen([])).toEqual([]);
@@ -91,6 +107,7 @@ describe('Stufen', () => {
     expect(stufeAusBegriffen([{ id: 'https://w3id.org/kim/educationalLevel/level_4', label: 'level_4' }]).key).toBe('bbs');
     expect(stufeAusBegriffen([{ id: 'https://w3id.org/kim/educationalLevel/level_A', label: 'level_A' }]).key).toBe('hochschule');
     expect(stufeAusBegriffen([{ id: 'https://w3id.org/kim/educationalLevel/level_C', label: 'level_C' }]).key).toBe('fortbildung');
+    expect(stufeAusBegriffen([{ id: 'https://w3id.org/kim/educationalLevel/adult_education', label: 'x' }]).key).toBe('fortbildung');
   });
 
   it('liefert alle Stufen eines Materials dedupliziert in fester Reihenfolge', () => {
