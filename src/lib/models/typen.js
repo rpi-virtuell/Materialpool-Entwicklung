@@ -96,6 +96,34 @@ const KIM_FACH = /** @type {Record<string, FachKey>} */ ({
 const KIM_UEBERKONFESSIONELL = 's1055';
 
 /**
+ * Theologie in der Hochschulfächersystematik (KIM): Studienbereich und
+ * Fächer darunter (n02 Ev. Theologie, n03 Kath. Theologie, n18 Islamische
+ * Theologie). Manche Materialien tragen nur diese Kennung statt eines
+ * Schulfachs.
+ */
+const HOCHSCHUL_FACH = /** @type {Record<string, FachKey>} */ ({
+  n02: 'evangelisch', n053: 'evangelisch', n161: 'evangelisch', n544: 'evangelisch',
+  n03: 'katholisch', n086: 'katholisch', n162: 'katholisch', n545: 'katholisch',
+  n18: 'islamisch', n292: 'islamisch', n030010001: 'islamisch'
+});
+const HOCHSCHUL_PRAEFIX = 'https://w3id.org/kim/hochschulfaechersystematik/';
+
+/** Konfessionen im nostr-Vokabular (kind 39738), z. B. `nostr:39738:<pubkey>:evangelisch`. */
+const NOSTR_FACH = /^nostr:39738:[0-9a-f]{64}:(evangelisch|katholisch|islamisch|juedisch|alevitisch)$/;
+
+/**
+ * Konfession eines Fach-Begriffs, sonst null.
+ * @param {string} id
+ * @returns {FachKey|null}
+ */
+function fachVon(id) {
+  const nostr = NOSTR_FACH.exec(id);
+  if (nostr) return /** @type {FachKey} */ (nostr[1]);
+  if (id.startsWith(HOCHSCHUL_PRAEFIX)) return HOCHSCHUL_FACH[id.slice(HOCHSCHUL_PRAEFIX.length).replace(/\/+$/, '')] ?? null;
+  return KIM_FACH[pfadteil(id)] ?? null;
+}
+
+/**
  * Alle Konfessionen, die die Fach-Begriffe nennen, in FACH_REIHENFOLGE.
  * Viele Materialien tragen die konfessionelle UND die überkonfessionelle
  * Kennung; „allgemein“ gilt nur, wenn keine Konfession passt und s1055
@@ -106,7 +134,7 @@ const KIM_UEBERKONFESSIONELL = 's1055';
  */
 export function faecherAusBegriffen(begriffe) {
   const teile = begriffe.map((b) => pfadteil(b.id));
-  const keys = new Set(teile.flatMap((t) => (KIM_FACH[t] ? [KIM_FACH[t]] : [])));
+  const keys = new Set(begriffe.flatMap((b) => fachVon(b.id) ?? []));
   const geordnet = FACH_REIHENFOLGE.filter((k) => keys.has(k));
   if (geordnet.length > 0) return geordnet;
   return teile.includes(KIM_UEBERKONFESSIONELL) ? ['allgemein'] : [];
@@ -175,7 +203,9 @@ const KIM_LEVEL_ZU_STUFE = /** @type {Record<string, StufeKey>} */ ({
   level_3: 'sek2',
   level_4: 'bbs',
   level_A: 'hochschule',
-  level_C: 'fortbildung'
+  level_C: 'fortbildung',
+  // Nicht im KIM-Vokabular, aber eindeutig: Erwachsene sind Fortbildung.
+  adult_education: 'fortbildung'
 });
 
 /** @param {string} uri */

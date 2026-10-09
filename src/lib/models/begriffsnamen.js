@@ -6,12 +6,47 @@
  * - Ressourcentyp: https://w3id.org/kim/hcrt/scheme (26 Begriffe)
  * - Bildungsstufe: https://w3id.org/kim/educationalLevel/ (12 Begriffe)
  *
- * beide vollständig, Stand 2026-10-08. Was dort nicht steht (z. B.
- * `educationalLevel/adult_education`), bekommt keinen Namen von hier.
+ * beide vollständig, Stand 2026-10-08, und aus der Hochschulfächersystematik
+ * (https://w3id.org/kim/hochschulfaechersystematik/) die Fächergruppe
+ * Geisteswissenschaften (n1) mit allen Studienbereichen sowie den Fächern
+ * unter den Theologien (n02, n03, n18), Stand 2026-10-09.
+ *
+ * Dazu `educationalLevel/adult_education`: steht in keinem Vokabular,
+ * kommt aber in Events vor und ist eindeutig.
  */
 
 const HCRT = 'https://w3id.org/kim/hcrt/';
 const STUFE = 'https://w3id.org/kim/educationalLevel/';
+const HOCHSCHUL = 'https://w3id.org/kim/hochschulfaechersystematik/';
+
+/** @type {Record<string, string>} */
+const HOCHSCHULFACH = {
+  n1: 'Geisteswissenschaften',
+  n01: 'Geisteswissenschaften allgemein',
+  n02: 'Evangelische Theologie, -Religionslehre',
+  n053: 'Evang. Theologie, -Religionslehre',
+  n161: 'Diakoniewissenschaft',
+  n544: 'Evang. Religionspädagogik, kirchliche Bildungsarbeit',
+  n03: 'Katholische Theologie, -Religionslehre',
+  n086: 'Kath. Theologie, -Religionslehre',
+  n162: 'Caritaswissenschaft',
+  n545: 'Kath. Religionspädagogik, kirchliche Bildungsarbeit',
+  n04: 'Philosophie',
+  n05: 'Geschichte',
+  n06: 'Informations- und Bibliothekswissenschaften',
+  n07: 'Allgemeine und vergleichende Literatur- und Sprachwissenschaft',
+  n08: 'Altphilologie (klassische Philologie), Neugriechisch',
+  n09: 'Germanistik (Deutsch, germanische Sprachen ohne Anglistik)',
+  n10: 'Anglistik, Amerikanistik',
+  n11: 'Romanistik',
+  n12: 'Slawistik, Baltistik, Finno-Ugristik',
+  n13: 'Sonstige Sprach- und Kulturwissenschaften',
+  n14: 'Kulturwissenschaften i.e.S.',
+  n18: 'Islamische Studien/Islamische Theologie',
+  n292: 'Islamische Studien/Islamische Theologie',
+  n030010001: 'Islamische Studien/Islamische Theologie',
+  n19: 'Medienwissenschaft'
+};
 
 /** @type {Record<string, string>} */
 const RESSOURCENTYP = {
@@ -56,13 +91,15 @@ const BILDUNGSSTUFE = {
   level_7: 'Master oder äquivalent',
   level_8: 'Promotion oder äquivalent',
   level_B: 'Vorbereitungsdienst',
-  level_C: 'Fortbildung'
+  level_C: 'Fortbildung',
+  adult_education: 'Erwachsenenbildung'
 };
 
 /** @type {Map<string, string>} */
 const NAMEN = new Map([
   ...Object.entries(RESSOURCENTYP).map(([k, v]) => /** @type {[string, string]} */ ([`${HCRT}${k}`, v])),
-  ...Object.entries(BILDUNGSSTUFE).map(([k, v]) => /** @type {[string, string]} */ ([`${STUFE}${k}`, v]))
+  ...Object.entries(BILDUNGSSTUFE).map(([k, v]) => /** @type {[string, string]} */ ([`${STUFE}${k}`, v])),
+  ...Object.entries(HOCHSCHULFACH).map(([k, v]) => /** @type {[string, string]} */ ([`${HOCHSCHUL}${k}`, v]))
 ]);
 
 /**

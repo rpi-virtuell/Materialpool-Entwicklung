@@ -394,6 +394,12 @@ describe('Ausgeblendet (ADR-0010)', () => {
 
 describe('Detail', () => {
   const jericho = materialien[6];
+  it('schreibt Datum und Sprache deutsch', () => {
+    const m = { ...jericho, datum: '2017-08-01', sprachen: ['de', 'en'] };
+    const body = render(Detail, { props: { material: m, relays: [], cover: coverFarben(m), icon: 'notebook' } }).body;
+    expect(body).toMatch(/<dt[^>]*>Datum<\/dt>\s*<dd[^>]*>01\.08\.2017<\/dd>/);
+    expect(body).toMatch(/<dt[^>]*>Sprache<\/dt>\s*<dd[^>]*>Deutsch, Englisch<\/dd>/);
+  });
   it('toter Link: Hinweis statt „Material öffnen“ (ADR-0010)', () => {
     const body = render(Detail, { props: { material: jericho, relays: [], cover: coverFarben(jericho), icon: 'notebook', linkWeg: true } }).body;
     expect(body).toContain('Der Link zu diesem Material war zuletzt nicht erreichbar.');

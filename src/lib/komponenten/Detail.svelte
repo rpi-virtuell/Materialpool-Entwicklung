@@ -1,4 +1,5 @@
 <script>
+  import { datumDeutsch, spracheName } from '$lib/models/anzeige.js';
   import Icon from './Icon.svelte';
   /**
    * Detailseite nach dem Prototyp Materialpool 2.0: eine Lesespalte, oben
@@ -69,8 +70,8 @@
     {#if material.ressourcentypen.length > 0}<dt>Materialart</dt><dd>{begriffe(material.ressourcentypen)}</dd>{/if}
     {#if material.lizenzUrl}<dt>Lizenz</dt><dd><a href={material.lizenzUrl} rel="license">{material.lizenzKuerzel ?? material.lizenzUrl}</a></dd>
     {:else if material.lizenz}<dt>Lizenz</dt><dd>{material.lizenzKuerzel ?? material.lizenz}</dd>{/if}
-    {#if material.datum}<dt>Datum</dt><dd>{material.datum}</dd>{/if}
-    {#if material.sprachen.length > 0}<dt>Sprache</dt><dd>{material.sprachen.join(', ')}</dd>{/if}
+    {#if material.datum}<dt>Datum</dt><dd>{datumDeutsch(material.datum)}</dd>{/if}
+    {#if material.sprachen.length > 0}<dt>Sprache</dt><dd>{material.sprachen.map(spracheName).join(', ')}</dd>{/if}
     {#if material.schlagworte.length > 0}<dt>Schlagworte</dt><dd>{material.schlagworte.join(' · ')}</dd>{/if}
   </dl>
 
