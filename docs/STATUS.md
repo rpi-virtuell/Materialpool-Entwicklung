@@ -8,6 +8,22 @@ das Gesamtbild in `superpowers/specs/2026-09-28-materialpool-neustart-design.md`
 
 ---
 
+## 2026-10-09 (7) — Suche findet live wieder etwas
+
+**Passiert:** Live fand die Suche gar nichts, auch nicht „Ostern“. Der
+Server fragt (noch, #15) `relay.edufeed.org` und `relay-rpi.edufeed.org`
+— strfry ohne NIP-50 (NIP-11: 1,2,4,9,11,28,40,45,70,77). Sie antworten
+auf jede Suche mit leerem EOSE; `grundmengeBilden` nahm das als „keine
+Treffer“. Jetzt fällt auch ein leeres Relay-Ergebnis auf die Wortsuche im
+Spiegel zurück, mit Hinweis („Die Volltextsuche an den Relays hat nichts
+gefunden …“). Und die Wortsuche verlangt jedes Wort einzeln statt den
+Text am Stück — „Menschen handeln Verantwortung“ (die Satzdeutung nimmt
+„mit“ heraus) findet „Menschen handeln mit Verantwortung“.
+
+**Wo steht das Projekt:** `pnpm check` 0 Fehler, 294 Tests grün.
+
+---
+
 ## 2026-10-09 (6) — „Material öffnen“ nennt das Ziel
 
 **Passiert:** Unter dem Knopf steht klein, wohin er führt: „auf

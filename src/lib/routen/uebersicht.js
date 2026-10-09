@@ -168,10 +168,16 @@ export function filterLesen(params) {
 export function grundmengeBilden(inhalt, filter, suche, weg = () => false) {
   const sichtbar = (/** @type {Material[]} */ liste) => liste.filter((m) => !weg(m.url));
   if (!filter.q) return { materialien: sichtbar(materialienVon(inhalt)), textGefiltert: false, quelle: 'spiegel', hinweis: null };
-  if (suche && suche.grund === null) {
+  if (suche && suche.grund === null && suche.events.length > 0) {
     return { materialien: sichtbar(suche.events.map((e) => materialImBestand(inhalt, e))), textGefiltert: true, quelle: 'relay', hinweis: null };
   }
-  const grund = suche?.grund ? GRUND_TEXT[suche.grund] : 'Die Suche am Relay ist nicht gelaufen.';
+  // Leer heißt nicht immer „gibt es nicht“: Ein Relay ohne NIP-50
+  // (strfry) antwortet auf jede Suche mit nichts. Dann sucht der Spiegel.
+  const grund = suche?.grund
+    ? GRUND_TEXT[suche.grund]
+    : suche
+      ? 'Die Volltextsuche an den Relays hat nichts gefunden.'
+      : 'Die Suche am Relay ist nicht gelaufen.';
   return {
     materialien: sichtbar(materialienVon(inhalt)),
     textGefiltert: false,
@@ -180,10 +186,15 @@ export function grundmengeBilden(inhalt, filter, suche, weg = () => false) {
   };
 }
 
-/** @param {Material} m @param {string} q kleingeschrieben */
+/**
+ * Jedes Wort muss vorkommen, nicht der ganze Text am Stück: „Menschen
+ * handeln Verantwortung“ findet „Menschen handeln mit Verantwortung“.
+ * @param {Material} m @param {string} q kleingeschrieben
+ */
 function passtZuText(m, q) {
   if (!q) return true;
-  return [m.name, m.beschreibung, m.herkunft, ...m.schlagworte].join(' ').toLowerCase().includes(q);
+  const text = [m.name, m.beschreibung, m.herkunft, ...m.schlagworte].join(' ').toLowerCase();
+  return q.split(/\s+/).every((wort) => text.includes(wort));
 }
 
 /** @param {Material} m @param {Pick<Filter, 'stufen'|'typen'|'faecher'|'schlagworte'>} f */

@@ -71,6 +71,10 @@ describe('filterAnwenden', () => {
     expect(filterAnwenden(materialien, filter({ q: 'Grundschule' }))).toHaveLength(1);
     expect(filterAnwenden(materialien, filter({ q: 'gibtesnicht' }))).toEqual([]);
   });
+  it('findet bei mehreren Wörtern alle, auch nicht am Stück', () => {
+    expect(filterAnwenden(materialien, filter({ q: 'Jericho Jerusalem' })).map((m) => m.name)).toEqual(['Zwischen Jericho und Jerusalem']);
+    expect(filterAnwenden(materialien, filter({ q: 'Jericho gibtesnicht' }))).toEqual([]);
+  });
   it('ODER innerhalb einer Facette, UND dazwischen — über alle Stufen und Typen eines Materials', () => {
     expect(filterAnwenden(materialien, filter({ stufen: ['elem'] }))).toHaveLength(3);
     expect(filterAnwenden(materialien, filter({ stufen: ['elem', 'hochschule'] }))).toHaveLength(3);
@@ -284,6 +288,13 @@ describe('listeLaden mit Relay-Suche (ADR-0005)', () => {
     const daten = listeLaden({ inhalt, fehlschlag: null, relays, filter: filter({ q: 'geist' }), suche: suche([geist, erntedank]) });
     expect(daten.facetten.typen.find((o) => o.key === 'video')?.pfad).toBe('/materialien?q=geist&typ=video');
     expect(daten.facetten.faecher.find((o) => o.key === 'evangelisch')?.pfad).toBe('/materialien?q=geist&fach=evangelisch');
+  });
+
+  it('fällt auch auf die Wortsuche zurück, wenn die Relays nichts finden (z. B. ohne NIP-50), und sagt das', () => {
+    const daten = listeLaden({ inhalt, fehlschlag: null, relays, filter: filter({ q: 'erntedank' }), suche: suche([]) });
+    expect(daten.karten.map((k) => k.material.name)).toEqual(['EKD: Erntedankfest']);
+    expect(daten.suche.quelle).toBe('spiegel');
+    expect(daten.suche.hinweis).toMatch(/Volltextsuche.*nichts gefunden.*Spiegel/);
   });
 
   it('fällt ohne erreichbares Relay auf die Wortsuche im Spiegel zurück und sagt das', () => {
