@@ -8,6 +8,22 @@ das Gesamtbild in `superpowers/specs/2026-09-28-materialpool-neustart-design.md`
 
 ---
 
+## 2026-10-09 (2) — Zielgruppen blenden ineinander über
+
+**Passiert:** Christina (jetzt mit Animationen an): Das alte Wort ging
+ganz weg, dann kam das neue — zu hart. Das war die zweite Fassung des
+Prototyps (16.09., „erst raus, dann rein“, wegen Buchstabensalat auf
+schmalen Displays). Zurück zur ersten, sanfteren: Altes und neues Wort
+blenden gleichzeitig in 0,45 s ineinander über (`ease-in-out`). Gemessen,
+wo Wörter unterschiedlich viele Zeilen brauchen: nur bei 320 und 360 px,
+ab 390 px alles einzeilig — nur bis 400 px bleibt „erst raus, dann rein“.
+
+**Wo steht das Projekt:** `pnpm check` 0 Fehler, 279 Tests grün; im
+Dev-Server über 3,4 s nie unter 59 % Deckkraft beim hellsten Wort (nie
+leer).
+
+---
+
 ## 2026-10-09 — Zielgruppen-Wechsel: nur Überblenden, bei „wenig Bewegung“ alle Bereiche
 
 **Passiert:** Christina sah live keinen Wechsel unter der Überschrift —

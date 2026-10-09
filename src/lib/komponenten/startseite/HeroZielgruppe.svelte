@@ -64,17 +64,29 @@
     inset: 0;
     color: var(--weiss-78);
     opacity: 0;
-    animation: zielgruppe var(--dauer) ease infinite;
+    animation: zielgruppe var(--dauer) ease-in-out infinite;
     animation-delay: calc(var(--i) * var(--takt));
   }
-  /* Bei 7 Wörtern à 3 s: 0,22 s warten, 0,28 s einblenden, bis 2,8 s
-     stehen, 0,2 s ausblenden — wie die Transitions des Prototyps. Nur
-     Überblenden, kein Hochrutschen: leichter, so wie Christina den
-     Wechsel kennt (09.10.2026). */
+  /* Nur Überblenden, kein Hochrutschen. Bei 7 Wörtern à 3 s: Das neue Wort
+     blendet in 0,45 s ein, während das alte in 0,45 s ausblendet — die
+     sanfte erste Fassung des Prototyps (16.09.2026), nie eine leere Stelle
+     (Christina, 09.10.2026). */
   @keyframes zielgruppe {
+    0% { opacity: 0; }
+    2.14%, 14.29% { opacity: 1; }
+    16.43%, 100% { opacity: 0; }
+  }
+  /* Sehr schmal brauchen kurze Wörter eine Zeile, lange zwei (gemessen
+     09.10.2026: gemischt bei 320 und 360 px, ab 390 px alles einzeilig);
+     gleichzeitig übereinander gäbe Buchstabensalat. Dort erst raus, dann
+     rein: 0,2 s aus, 0,22 s Pause, 0,28 s ein (Prototyp, zweite Fassung). */
+  @keyframes zielgruppe-nacheinander {
     0%, 1.05% { opacity: 0; }
     2.38%, 13.33% { opacity: 1; }
     14.29%, 100% { opacity: 0; }
+  }
+  @media (max-width: 400px) {
+    .hero-zielgruppe-wort { animation-name: zielgruppe-nacheinander; animation-timing-function: ease; }
   }
   @media (prefers-reduced-motion: reduce) {
     .hero-zielgruppe-platzhalter,
