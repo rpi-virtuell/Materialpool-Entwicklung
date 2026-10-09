@@ -152,6 +152,19 @@ function istHttp(s) {
   return typeof s === 'string' && /^https?:\/\//i.test(s);
 }
 
+/**
+ * Vorschaubilder fremder Server zeigen? Der Server stellt es beim Start
+ * nach VORSCHAUBILDER ein (hooks.server.js); ohne Aufruf an, damit Tests
+ * und Werkzeuge die Bilder sehen. Aus seit 2026-10-09, bis Rechte und
+ * Datenschutz der Bilder geklärt sind und der Fachfilter live ist (#15).
+ */
+let vorschaubilder = true;
+
+/** @param {boolean} an */
+export function vorschaubilderErlauben(an) {
+  vorschaubilder = an;
+}
+
 /** Dateiendungen, die beim Öffnen einen Download starten statt einer Seite. */
 const DATEIENDUNG = /\.(pdf|docx?|pptx?|xlsx?|odt|odp|ods|rtf|zip|mp3|mp4|m4a|wav|epub)$/i;
 
@@ -233,7 +246,7 @@ export function materialAusEvent(event) {
     name: erstes(tags, 'name') ?? (d || '(ohne Titel)'),
     beschreibung: erstes(tags, 'description') ?? '',
     url,
-    bild: istHttp(bildRoh) ? bildRoh : null,
+    bild: vorschaubilder && istHttp(bildRoh) ? bildRoh : null,
     lizenz,
     lizenzUrl: istHttp(lizenz) ? lizenz : null,
     lizenzKuerzel: lizenzKuerzel(lizenz),

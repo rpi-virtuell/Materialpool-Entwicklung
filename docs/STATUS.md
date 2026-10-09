@@ -8,6 +8,31 @@ das Gesamtbild in `superpowers/specs/2026-09-28-materialpool-neustart-design.md`
 
 ---
 
+## 2026-10-09 (5) — Vorschaubilder aus, bis Rechte und Datenschutz geklärt sind
+
+**Passiert:** Live stammten 141 von 290 Materialien von e-teaching.org
+(Hochschul-Veranstaltungen, kein Religionsmaterial — fehlender
+Fachfilter, Issue #15); ihre Vorschaubilder zeigen die Referierenden.
+Christina wollte zur Sicherheit alle Vorschaubilder ausblenden. Neue
+Einstellung `VORSCHAUBILDER` (`an`/`aus`), **Standard aus**, damit es
+ohne Zugang zur Server-`.env` wirkt; `hooks.server.js` stellt
+`vorschaubilderErlauben()` in `models/material.js` beim Start ein, dann
+ist `material.bild` null — Karten, Empfehlung und Detailseite zeigen die
+farbige Fläche mit Typ-Symbol. Offen vor dem Wiedereinschalten: Recht am
+eigenen Bild bei Personenfotos, Urheberrecht beim Einbinden, und
+Datenschutz — jedes fremde Bild verrät dem fremden Server die IP-Adresse
+der Besucher.
+
+**Wo steht das Projekt:** `pnpm check` 0 Fehler, 289 Tests grün; im
+Dev-Server auf Start, Liste, Suche, Detail und Merkliste kein fremdes
+Bild.
+
+**Nächster Schritt:** Vor einem echten Start mit Datenschutz-/Rechtsstelle
+des Comenius-Instituts klären; dann `VORSCHAUBILDER=an` (oder Bilder über
+den eigenen Server ausliefern).
+
+---
+
 ## 2026-10-09 (4) — Vier Unterschiede wie im Prototyp
 
 **Passiert:** Christina hat die offenen Unterschiede aus dem Vergleich
