@@ -17,7 +17,7 @@
 </svelte:head>
 
 <main class="detail-page">
-  <Detail material={data.material} relays={data.relays} cover={data.cover} icon={data.icon} zurueck={data.zurueck} merken={data.merken} linkWeg={data.linkWeg} {melden} />
+  <Detail material={data.material} cover={data.cover} icon={data.icon} zurueck={data.zurueck} merken={data.merken} linkWeg={data.linkWeg} {melden} />
 </main>
 
 <style>

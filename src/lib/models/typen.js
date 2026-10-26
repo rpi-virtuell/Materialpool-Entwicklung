@@ -80,7 +80,9 @@ export const FACH_LABEL = {
   islamisch: 'Islamische Religionslehre',
   juedisch: 'Jüdische Religionslehre',
   alevitisch: 'Alevitische Religionslehre',
-  allgemein: 'Religionslehre (überkonfessionell)'
+  // Offener als „überkonfessionell“: schließt den Religionsunterricht für
+  // alle ein (Christina, 26.10.2026). In den Daten heißt s1055 nur „Religion“.
+  allgemein: 'Religion für alle'
 };
 
 /** Letzter Pfadteil der KIM-Schulfach-URI → Konfession. s1055 (Religion, überkonfessionell) steht nicht hier, siehe unten. */
