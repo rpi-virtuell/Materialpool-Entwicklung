@@ -143,18 +143,17 @@
           </nav>
         {/if}
       {/if}
-      <!-- Link-Prüfung (ADR-0010): Was fehlt, wird gesagt, nie still. -->
+      <!-- Link-Prüfung (ADR-0010) und Meldungen (ADR-0011): Was fehlt, wird
+           gesagt, nie still. Welche es sind, sieht nur die Redaktion
+           (Nachträge 2026-10-26) — darum kein Link. -->
       {#if ausgeblendet > 0}
         <p class="ausgeblendet-hinweis">
           {ausgeblendet === 1 ? '1 Material ist' : `${ausgeblendet} Materialien sind`} ausgeblendet, weil {ausgeblendet === 1 ? 'sein' : 'ihr'} Link nicht mehr erreichbar ist.
-          <a href="/ausgeblendet">{ausgeblendet === 1 ? 'Welches?' : 'Welche?'}</a>
         </p>
       {/if}
-      <!-- Meldungen (ADR-0011): ebenso. -->
       {#if gemeldet > 0}
         <p class="ausgeblendet-hinweis">
           {gemeldet === 1 ? '1 Material ist' : `${gemeldet} Materialien sind`} nach Meldungen ausgeblendet, bis die Redaktion {gemeldet === 1 ? 'es' : 'sie'} geprüft hat.
-          <a href="/ausgeblendet">{gemeldet === 1 ? 'Welches?' : 'Welche?'}</a>
         </p>
       {/if}
       </div>

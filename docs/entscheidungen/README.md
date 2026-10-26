@@ -14,7 +14,8 @@ Kontoebene ohne echte Konten, im Menü „Mein Profil“ (0006), alle
 Religionsfächer von drei Relays (0007), Merkliste im Cookie (0008), nur
 geprüfte Events im Spiegel (0009), Materialien mit totem Link
 ausgeblendet (0010), Meldungen markieren, ab zwei vorläufig ausgeblendet,
-die Redaktion entscheidet (0011).
+die Redaktion entscheidet (0011); was ausgeblendet ist, sieht nur die
+Redaktion unter `/redaktion` (Nachträge 0010, 0011).
 
 | Nr. | Titel | Status |
 |---|---|---|
@@ -27,5 +28,5 @@ die Redaktion entscheidet (0011).
 | [0007](0007-alle-religionsfaecher-von-drei-relays.md) | Der Spiegel liest alle Religionsfächer von amb-relay, sodix und oersi — nicht nur den Materialpool-Schlüssel | angenommen (2026-10-08) |
 | [0008](0008-merkliste-im-cookie-ohne-javascript.md) | Eine Merkliste „Gemerkt“ sammelt Materialien per Lesezeichen — als Cookie des Browsers, ohne JavaScript | angenommen (2026-10-08) |
 | [0009](0009-vertrauen-signatur-autoren-adressen.md) | Der Spiegel nimmt nur Events mit gültiger id und Signatur, filtert Autoren selbst und adressiert Materialien über (pubkey, d) | angenommen (2026-10-08) |
-| [0010](0010-linkpruefung-blendet-tote-links-aus.md) | Eine Link-Prüfung im Server blendet Materialien aus, deren Link zweimal hintereinander „gibt es nicht“ meldet | angenommen (2026-10-08) |
-| [0011](0011-meldungen-markieren-und-ab-zwei-ausblenden.md) | Alle können ein Material melden; eine Meldung markiert es, ab zwei ist es vorläufig ausgeblendet, bis die Redaktion entscheidet | angenommen (2026-10-26) |
+| [0010](0010-linkpruefung-blendet-tote-links-aus.md) | Eine Link-Prüfung im Server blendet Materialien aus, deren Link zweimal hintereinander „gibt es nicht“ meldet | angenommen (2026-10-08), Nachträge 2026-10-08, 2026-10-26 |
+| [0011](0011-meldungen-markieren-und-ab-zwei-ausblenden.md) | Alle können ein Material melden; eine Meldung markiert es, ab zwei ist es vorläufig ausgeblendet, bis die Redaktion entscheidet | angenommen (2026-10-26), Nachtrag 2026-10-26 |

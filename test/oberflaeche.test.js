@@ -5,7 +5,6 @@
 import { render } from 'svelte/server';
 import { describe, expect, it } from 'vitest';
 import beispiele from './fixtures/amb-beispiele.json';
-import Ausgeblendet from '../src/lib/komponenten/Ausgeblendet.svelte';
 import Detail from '../src/lib/komponenten/Detail.svelte';
 import Farbschalter from '../src/lib/komponenten/Farbschalter.svelte';
 import Fusszeile from '../src/lib/komponenten/Fusszeile.svelte';
@@ -376,7 +375,9 @@ describe('Uebersicht (Liste)', () => {
     const daten = listeLaden({ inhalt, fehlschlag: null, relays, weg: (url) => url === tot });
     const body = render(Uebersicht, { props: daten }).body;
     expect(body).toContain('1 Material ist ausgeblendet, weil sein Link nicht mehr erreichbar ist.');
-    expect(body).toMatch(/<a href="\/ausgeblendet"[^>]*>Welches\?<\/a>/);
+    // Die Liste dazu sieht nur die Redaktion (Nachtrag ADR-0010) — kein Link für alle.
+    expect(body).not.toContain('href="/ausgeblendet"');
+    expect(body).not.toContain('href="/redaktion"');
     expect(render(Uebersicht, { props: listeLaden({ inhalt, fehlschlag: null, relays }) }).body).not.toContain('ausgeblendet');
   });
 
@@ -384,47 +385,8 @@ describe('Uebersicht (Liste)', () => {
     const daten = listeLaden({ inhalt, fehlschlag: null, relays, verborgen: (m) => m.id === materialien[0].id || m.id === materialien[1].id });
     const body = render(Uebersicht, { props: daten }).body;
     expect(body).toContain('2 Materialien sind nach Meldungen ausgeblendet, bis die Redaktion sie geprüft hat.');
-    expect(body).toMatch(/<a href="\/ausgeblendet"[^>]*>Welche\?<\/a>/);
+    expect(body).not.toContain('Welche?');
     expect(body).not.toContain('weil sein Link');
-  });
-});
-
-describe('Ausgeblendet nach Meldungen (ADR-0011)', () => {
-  it('nennt Titel, Anbieter, Grund und ob die Redaktion schon entschieden hat', () => {
-    const m = materialien[6];
-    const fall = (/** @type {'vorlaeufig'|'bestaetigt'} */ stand) => ({
-      schluessel: merkSchluessel(m), titel: m.name, pfad: m.pfad, herkunft: m.herkunft,
-      stand: { stand, offen: 2, gruende: ['Lizenz falsch'], seit: '2026-10-20T08:00:00.000Z' }, meldungen: []
-    });
-    const body = render(Ausgeblendet, { props: { eintraege: [], gemeldet: [fall('vorlaeufig'), { ...fall('bestaetigt'), schluessel: 'b' }] } }).body;
-    expect(body).toContain('Nach Meldungen ausgeblendet</h2>');
-    expect(body).toContain(`href="${m.pfad}"`);
-    expect(body).toContain('Lizenz falsch');
-    expect(body).toContain('vorläufig, die Redaktion prüft');
-    expect(body).toContain('von der Redaktion ausgeblendet');
-    expect(body).toContain('20.10.2026');
-    expect(body).not.toContain('Zurzeit ist kein Material ausgeblendet.');
-  });
-});
-
-describe('Ausgeblendet (ADR-0010)', () => {
-  it('nennt je Material Titel, Anbieter, toten Link, Antwort und seit wann', () => {
-    const m = materialien[6];
-    const eintraege = [{ material: m, url: 'https://tot.example/x', status: 404, wegSeit: '2026-10-05T08:00:00.000Z', geprueft: '2026-10-08T08:00:00.000Z' }];
-    const { body } = render(Ausgeblendet, { props: { eintraege } });
-    expect(body).toContain('Ausgeblendete Materialien</h1>');
-    expect(body).toContain(`href="${m.pfad}"`);
-    expect(body).toContain(m.name);
-    expect(body).toContain(m.herkunft);
-    expect(body).toMatch(/href="https:\/\/tot\.example\/x"[^>]*rel="external noopener nofollow"/);
-    expect(body).toContain('404');
-    expect(body).toContain('05.10.2026');
-    expect(body).toContain('08.10.2026');
-  });
-  it('leer: sagt, dass nichts ausgeblendet ist, und wie die Prüfung arbeitet', () => {
-    const { body } = render(Ausgeblendet, { props: { eintraege: [] } });
-    expect(body).toContain('Zurzeit ist kein Material ausgeblendet.');
-    expect(body).toContain('zweimal hintereinander');
   });
 });
 
@@ -591,9 +553,26 @@ describe('Redaktion (ADR-0011)', () => {
     const body = render(Redaktion, { props: { offen: [], ausgeblendet: [], zugang: true, kennwortNoetig: false } }).body;
     expect(body).toContain('noch nicht durch ein Kennwort geschützt');
   });
+  it('nennt auch die toten Links: Titel, Anbieter, Link, Antwort und seit wann (Nachtrag ADR-0010)', () => {
+    const m = materialien[6];
+    const toteLinks = [{ material: m, url: 'https://tot.example/x', status: 404, wegSeit: '2026-10-05T08:00:00.000Z', geprueft: '2026-10-08T08:00:00.000Z' }];
+    const body = render(Redaktion, { props: { offen: [], ausgeblendet: [], toteLinks, zugang: true, kennwortNoetig: true } }).body;
+    expect(body).toContain('Tote Links</h2>');
+    expect(body).toContain('zweimal hintereinander');
+    expect(body).toContain(`href="${m.pfad}"`);
+    expect(body).toContain(m.herkunft);
+    expect(body).toMatch(/href="https:\/\/tot\.example\/x"[^>]*rel="external noopener nofollow"/);
+    expect(body).toContain('Antwort 404');
+    expect(body).toContain('05.10.2026');
+    expect(body).toContain('08.10.2026');
+    expect(render(Redaktion, { props: { offen: [], ausgeblendet: [], toteLinks: [], zugang: true, kennwortNoetig: true } }).body)
+      .toContain('Zurzeit ist kein Material wegen eines toten Links ausgeblendet.');
+  });
   it('ohne Zugang: nur das Kennwortfeld, keine Meldung', () => {
     const daten = redaktionLaden({ inhalt, meldungen: [meldung(a)] });
-    const body = render(Redaktion, { props: { ...daten, zugang: false, kennwortNoetig: true, fehler: 'Das Kennwort stimmt nicht.' } }).body;
+    const toteLinks = [{ material: a, url: 'https://tot.example/x', status: 404, wegSeit: '2026-10-05T08:00:00.000Z', geprueft: '2026-10-08T08:00:00.000Z' }];
+    const body = render(Redaktion, { props: { ...daten, toteLinks, zugang: false, kennwortNoetig: true, fehler: 'Das Kennwort stimmt nicht.' } }).body;
+    expect(body).not.toContain('tot.example');
     expect(body).toMatch(/<form[^>]* method="post" action="\?\/anmelden"/);
     expect(body).toMatch(/type="password" name="kennwort"/);
     expect(body).toContain('Das Kennwort stimmt nicht.');

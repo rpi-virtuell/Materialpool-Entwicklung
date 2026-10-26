@@ -1,7 +1,9 @@
 import { error, fail, redirect } from '@sveltejs/kit';
 import { env } from '$env/dynamic/private';
 import { konfigLesen } from '$lib/konfig.js';
+import { ausgeblendeteLaden } from '$lib/routen/ausgeblendet.js';
 import { REDAKTION_COOKIE, redaktionLaden, zugangErlaubt, zugangsMarke } from '$lib/routen/meldungen.js';
+import { linkpruefungHolen } from '$lib/services/linkpruefung.js';
 import { meldungEntscheiden, meldungenHolen } from '$lib/services/meldungen.js';
 import { spiegelHolen } from '$lib/services/spiegel.js';
 
@@ -20,8 +22,15 @@ const kennwort = () => konfigLesen(env).meldungen.kennwort;
 export function load({ cookies, setHeaders }) {
   setHeaders({ 'cache-control': 'private, no-store' });
   const k = kennwort();
-  if (!zugangErlaubt(k, cookies.get(REDAKTION_COOKIE))) return { zugang: false, kennwortNoetig: true, offen: [], ausgeblendet: [] };
-  return { zugang: true, kennwortNoetig: k !== '', ...redaktionLaden({ inhalt: spiegelHolen().lesen(), meldungen: meldungenHolen().alle() }) };
+  if (!zugangErlaubt(k, cookies.get(REDAKTION_COOKIE))) return { zugang: false, kennwortNoetig: true, offen: [], ausgeblendet: [], toteLinks: [] };
+  const inhalt = spiegelHolen().lesen();
+  return {
+    zugang: true,
+    kennwortNoetig: k !== '',
+    ...redaktionLaden({ inhalt, meldungen: meldungenHolen().alle() }),
+    // Tote Links (ADR-0010, Nachtrag 2026-10-26): nur noch hier.
+    toteLinks: ausgeblendeteLaden({ inhalt, eintrag: linkpruefungHolen().eintrag }).eintraege
+  };
 }
 
 /** @type {import('./$types').Actions} */
