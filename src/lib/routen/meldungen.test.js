@@ -104,7 +104,7 @@ describe('meldenBilden (Detailseite)', () => {
     expect(m.formular).toMatchObject({ offen: true, fehler: 'F', werte: { grund: 'inhalt', begruendung: 'B' } });
   });
   it('Hinweise je Stand; bestätigt oder schon gemeldet: kein Formular', () => {
-    expect(meldenBilden({ material: a, stand: standVon([meldung()]), gemeldetHier: false, an: true, stempel }).hinweis).toMatch(/liegt eine Meldung vor/);
+    expect(meldenBilden({ material: a, stand: standVon([meldung()]), gemeldetHier: false, an: true, stempel }).hinweis).toMatch(/liegt ein Hinweis vor/);
     const vorlaeufig = meldenBilden({ material: a, stand: standVon([meldung(), meldung({ id: 'm2' })]), gemeldetHier: false, an: true, stempel });
     expect(vorlaeufig.hinweis).toMatch(/ausgeblendet, bis die Redaktion/);
     expect(vorlaeufig.ausgeblendet).toBe(true);
@@ -123,7 +123,7 @@ describe('meldenBilden (Detailseite)', () => {
 describe('meldungsBrief', () => {
   it('nennt Material, Grund, Begründung, Stand und beide Links', () => {
     const { betreff, text } = meldungsBrief({ meldung: meldung(), stand: standVon([meldung(), meldung({ id: 'm2' })]), origin: 'https://material.example' });
-    expect(betreff).toBe(`Meldung zu „${a.name}“: Lizenz falsch`);
+    expect(betreff).toBe(`Hinweis zu „${a.name}“: Lizenz falsch`);
     expect(text).toContain('Lizenz ist NC.');
     expect(text).toContain('vorläufig ausgeblendet');
     expect(text).toContain(`https://material.example${a.pfad}`);

@@ -384,7 +384,7 @@ describe('Uebersicht (Liste)', () => {
   it('sagt auch, wie viele nach Meldungen fehlen (ADR-0011)', () => {
     const daten = listeLaden({ inhalt, fehlschlag: null, relays, verborgen: (m) => m.id === materialien[0].id || m.id === materialien[1].id });
     const body = render(Uebersicht, { props: daten }).body;
-    expect(body).toContain('2 Materialien sind nach Meldungen ausgeblendet, bis die Redaktion sie geprüft hat.');
+    expect(body).toContain('2 Materialien sind nach Hinweisen ausgeblendet, bis die Redaktion sie geprüft hat.');
     expect(body).not.toContain('Welche?');
     expect(body).not.toContain('weil sein Link');
   });
@@ -419,15 +419,15 @@ describe('Detail', () => {
 
     it('ein zugeklapptes Formular ohne JavaScript: Grund, Begründung, Fangfeld, Stempel', () => {
       const body = mitMelden();
-      expect(body).toMatch(/<details class="melden[^"]*" id="melden"><summary[^>]*>Stimmt etwas nicht\? Melden<\/summary>/);
+      expect(body).toMatch(/<details class="melden[^"]*" id="melden"><summary[^>]*>Stimmt etwas nicht\? Hinweis geben<\/summary>/);
       expect(body).toContain(`<form method="post" action="${jericho.pfad}?/melden"`);
       expect(body.match(/type="radio" name="grund"/g)).toHaveLength(4);
       expect(body).toContain('Lizenz falsch');
       expect(body).toMatch(/<textarea[^>]*name="begruendung"[^>]*maxlength="1000"[^>]*required/);
       expect(body).toMatch(/<div class="melden-falle[^"]*" aria-hidden="true">.*name="webseite"[^>]*tabindex="-1"/s);
       expect(body).toContain(`name="stempel" value="${stempel}"`);
-      expect(body).toContain('Meldung abschicken');
-      expect(body).toContain('nicht, wer meldet');
+      expect(body).toContain('Hinweis abschicken');
+      expect(body).toContain('nicht, wer ihn gibt');
       expect(body).not.toContain('<script');
     });
     it('nach einem Fehler: aufgeklappt, mit Eingabe und Fehler', () => {
@@ -439,7 +439,7 @@ describe('Detail', () => {
     });
     it('eine Meldung: Hinweis, „Material öffnen“ bleibt', () => {
       const body = mitMelden({ stand: standVon(offene(1)) });
-      expect(body).toMatch(/role="note"[^>]*>Zu diesem Material liegt eine Meldung vor\. Die Redaktion prüft sie\./);
+      expect(body).toMatch(/role="note"[^>]*>Zu diesem Material liegt ein Hinweis vor\. Die Redaktion prüft ihn\./);
       expect(body).toContain('Material öffnen');
     });
     it('zwei Meldungen: Hinweis statt „Material öffnen“', () => {
@@ -449,7 +449,7 @@ describe('Detail', () => {
     });
     it('schon aus diesem Browser gemeldet: Dank statt Formular', () => {
       const body = mitMelden({ stand: standVon(offene(1)), gemeldetHier: true });
-      expect(body).toContain('Danke für deine Meldung');
+      expect(body).toContain('Danke für deinen Hinweis');
       expect(body).not.toContain('<form method="post" action="/m/');
     });
   });
@@ -529,7 +529,7 @@ describe('Redaktion (ADR-0011)', () => {
   it('listet offene Meldungen mit Bestätigen und Verwerfen als POST-Formular', () => {
     const daten = redaktionLaden({ inhalt, meldungen: [meldung(a), meldung(a, { id: 'm2', grund: 'lizenz' })] });
     const body = render(Redaktion, { props: { ...daten, zugang: true, kennwortNoetig: true } }).body;
-    expect(body).toContain('Meldungen</h1>');
+    expect(body).toContain('Hinweise</h1>');
     expect(body).toContain(`href="${a.pfad}"`);
     expect(body).toContain('vorläufig ausgeblendet');
     expect(body).toContain('Inhalt problematisch');
@@ -545,7 +545,7 @@ describe('Redaktion (ADR-0011)', () => {
   it('bestätigte stehen darunter, mit „Wieder einblenden“', () => {
     const daten = redaktionLaden({ inhalt, meldungen: [meldung(b, { status: 'bestaetigt', entschieden: '2026-10-26T10:00:00.000Z' })] });
     const body = render(Redaktion, { props: { ...daten, zugang: true, kennwortNoetig: true } }).body;
-    expect(body).toContain('Zurzeit liegen keine offenen Meldungen vor.');
+    expect(body).toContain('Zurzeit liegen keine offenen Hinweise vor.');
     expect(body).toContain('Von der Redaktion ausgeblendet');
     expect(body).toMatch(/name="entscheidung" value="einblenden"[^>]*>Wieder einblenden/);
   });

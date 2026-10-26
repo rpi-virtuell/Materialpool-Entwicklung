@@ -27,7 +27,8 @@ im Menü „Mein Profil“ (nie „Anmelden“), Voreinstellung der Liste mit
 `profil=1`. **Ebenso (ADR-0008):** die
 Merkliste „Gemerkt“ — Lesezeichen als POST-Formular, Liste im Cookie,
 `/merkliste`. **Und (ADR-0011):** die Meldefunktion — „Stimmt etwas
-nicht? Melden“ auf der Detailseite (POST, Fangfeld, signierter
+nicht? Hinweis geben“ auf der Detailseite (in der Oberfläche heißt es
+„Hinweis“, im Code „Meldung“) (POST, Fangfeld, signierter
 Zeitstempel), Speicher `daten/meldungen.json`, eine Meldung markiert, ab
 zwei ausgeblendet; `/redaktion` bestätigt oder verwirft, mit gemeinsamem
 `REDAKTION_KENNWORT` (leer: offen) — kein Konto. E-Mail nur mit

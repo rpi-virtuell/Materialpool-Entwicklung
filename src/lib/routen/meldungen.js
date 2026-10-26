@@ -100,7 +100,7 @@ export function meldenVerarbeiten({ formular, material, schonGemeldet, heute, je
   }
   if (!geprueft.ok) return { art: 'fehler', status: 400, fehler: geprueft.fehler, werte: geprueft.werte };
   if (heute >= jeTag) {
-    return { art: 'fehler', status: 429, fehler: 'Heute sind schon sehr viele Meldungen eingegangen. Bitte versuch es morgen noch einmal.', werte: geprueft.werte };
+    return { art: 'fehler', status: 429, fehler: 'Heute sind schon sehr viele Hinweise eingegangen. Bitte versuch es morgen noch einmal.', werte: geprueft.werte };
   }
   return {
     art: 'ablegen',
@@ -119,8 +119,8 @@ export function meldenVerarbeiten({ formular, material, schonGemeldet, heute, je
 
 /** @param {Stand} stand */
 function hinweisVon(stand) {
-  if (stand.stand === 'gemeldet') return 'Zu diesem Material liegt eine Meldung vor. Die Redaktion prüft sie.';
-  if (stand.stand === 'vorlaeufig') return 'Dieses Material wurde mehrfach gemeldet und ist ausgeblendet, bis die Redaktion es geprüft hat.';
+  if (stand.stand === 'gemeldet') return 'Zu diesem Material liegt ein Hinweis vor. Die Redaktion prüft ihn.';
+  if (stand.stand === 'vorlaeufig') return 'Zu diesem Material liegen mehrere Hinweise vor. Es ist ausgeblendet, bis die Redaktion es geprüft hat.';
   if (stand.stand === 'bestaetigt') return `Die Redaktion hat dieses Material ausgeblendet. Grund: ${stand.gruende.join(', ')}.`;
   return null;
 }
@@ -157,12 +157,12 @@ export function meldenBilden({ material, stand, gemeldetHier, an, stempel, rueck
  */
 export function meldungsBrief({ meldung, stand, origin }) {
   const wirkung = stand.stand === 'vorlaeufig'
-    ? `${stand.offen} offene Meldungen — das Material ist vorläufig ausgeblendet, bis du entscheidest.`
-    : 'Erste offene Meldung — das Material trägt einen Hinweis und bleibt sichtbar.';
+    ? `${stand.offen} offene Hinweise — das Material ist vorläufig ausgeblendet, bis du entscheidest.`
+    : 'Erster offener Hinweis — er ist am Material vermerkt, das Material bleibt sichtbar.';
   return {
-    betreff: `Meldung zu „${meldung.titel}“: ${grundLabel(meldung.grund)}`,
+    betreff: `Hinweis zu „${meldung.titel}“: ${grundLabel(meldung.grund)}`,
     text: [
-      `Zum Material „${meldung.titel}“ ist eine Meldung eingegangen.`,
+      `Zum Material „${meldung.titel}“ ist ein Hinweis eingegangen.`,
       '',
       `Grund: ${grundLabel(meldung.grund)}`,
       'Begründung:',
@@ -173,7 +173,7 @@ export function meldungsBrief({ meldung, stand, origin }) {
       `Material: ${origin}${meldung.pfad}`,
       `Bestätigen oder verwerfen: ${origin}/redaktion`,
       '',
-      'Diese E-Mail hat der Materialpool automatisch verschickt. Wer gemeldet hat, ist nicht bekannt.'
+      'Diese E-Mail hat der Materialpool automatisch verschickt. Wer den Hinweis gegeben hat, ist nicht bekannt.'
     ].join('\n')
   };
 }

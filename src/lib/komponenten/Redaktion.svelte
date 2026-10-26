@@ -20,12 +20,12 @@
   let { offen, ausgeblendet, toteLinks = [], zugang, kennwortNoetig, fehler = null } = $props();
   const datum = (/** @type {string} */ iso) => new Date(iso).toLocaleDateString('de-DE', { dateStyle: 'medium', timeZone: 'Europe/Berlin' });
   /** @param {import('$lib/models/meldung.js').Stand} s */
-  const standText = (s) => (s.stand === 'vorlaeufig' ? `${s.offen} Meldungen · vorläufig ausgeblendet` : '1 Meldung · Hinweis am Material, noch sichtbar');
+  const standText = (s) => (s.stand === 'vorlaeufig' ? `${s.offen} Hinweise · vorläufig ausgeblendet` : '1 Hinweis · am Material vermerkt, noch sichtbar');
 </script>
 
 <main class="redaktion-page">
   <div class="redaktion-inner">
-    <h1>Meldungen</h1>
+    <h1>Hinweise</h1>
 
     {#if !zugang}
       <form class="redaktion-anmelden" method="post" action="?/anmelden">
@@ -41,13 +41,13 @@
         </p>
       {/if}
       <p class="redaktion-lead">
-        Eine Meldung setzt einen Hinweis aufs Material; ab zwei ist es vorläufig ausgeblendet. Bestätigen blendet es
-        aus, bis jemand es wieder einblendet. Verwerfen löscht die Meldungen, das Material ist wieder normal sichtbar.
+        Ein Hinweis wird am Material vermerkt; ab zwei ist es vorläufig ausgeblendet. Bestätigen blendet es
+        aus, bis jemand es wieder einblendet. Verwerfen löscht die Hinweise, das Material ist wieder normal sichtbar.
       </p>
 
       <h2>Offen</h2>
       {#if offen.length === 0}
-        <p class="redaktion-leer">Zurzeit liegen keine offenen Meldungen vor.</p>
+        <p class="redaktion-leer">Zurzeit liegen keine offenen Hinweise vor.</p>
       {:else}
         <ul class="redaktion-liste">
           {#each offen as f (f.schluessel)}

@@ -15,7 +15,8 @@ Religionsfächer von drei Relays (0007), Merkliste im Cookie (0008), nur
 geprüfte Events im Spiegel (0009), Materialien mit totem Link
 ausgeblendet (0010), Meldungen markieren, ab zwei vorläufig ausgeblendet,
 die Redaktion entscheidet (0011); was ausgeblendet ist, sieht nur die
-Redaktion unter `/redaktion` (Nachträge 0010, 0011).
+Redaktion unter `/redaktion` (Nachträge 0010, 0011); Hinweise zu den
+Angaben künftig an die Herausgeber statt an die Redaktion (0012, offen).
 
 | Nr. | Titel | Status |
 |---|---|---|
@@ -29,4 +30,5 @@ Redaktion unter `/redaktion` (Nachträge 0010, 0011).
 | [0008](0008-merkliste-im-cookie-ohne-javascript.md) | Eine Merkliste „Gemerkt“ sammelt Materialien per Lesezeichen — als Cookie des Browsers, ohne JavaScript | angenommen (2026-10-08) |
 | [0009](0009-vertrauen-signatur-autoren-adressen.md) | Der Spiegel nimmt nur Events mit gültiger id und Signatur, filtert Autoren selbst und adressiert Materialien über (pubkey, d) | angenommen (2026-10-08) |
 | [0010](0010-linkpruefung-blendet-tote-links-aus.md) | Eine Link-Prüfung im Server blendet Materialien aus, deren Link zweimal hintereinander „gibt es nicht“ meldet | angenommen (2026-10-08), Nachträge 2026-10-08, 2026-10-26 |
-| [0011](0011-meldungen-markieren-und-ab-zwei-ausblenden.md) | Alle können ein Material melden; eine Meldung markiert es, ab zwei ist es vorläufig ausgeblendet, bis die Redaktion entscheidet | angenommen (2026-10-26), Nachtrag 2026-10-26 |
+| [0011](0011-meldungen-markieren-und-ab-zwei-ausblenden.md) | Alle können ein Material melden; eine Meldung markiert es, ab zwei ist es vorläufig ausgeblendet, bis die Redaktion entscheidet | angenommen (2026-10-26), Nachträge 2026-10-26 |
+| [0012](0012-hinweise-an-die-herausgeber.md) | Hinweise zu falschen Angaben gehen an die, die das Material veröffentlicht haben, nicht an eine zentrale Redaktion | offen |

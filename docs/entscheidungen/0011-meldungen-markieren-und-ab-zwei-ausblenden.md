@@ -1,6 +1,6 @@
 # ADR-0011: Alle können ein Material melden; eine Meldung markiert es, ab zwei ist es vorläufig ausgeblendet, bis die Redaktion entscheidet
 
-**Status:** angenommen (2026-10-26) · Nachtrag 2026-10-26: Was ausgeblendet ist, zeigt nur noch die Redaktionsseite (siehe unten)
+**Status:** angenommen (2026-10-26) · Nachtrag 2026-10-26: Was ausgeblendet ist, zeigt nur noch die Redaktionsseite (siehe unten) · Nachtrag 2026-10-26: Die Oberfläche sagt „Hinweis geben“ statt „Melden“ (siehe unten)
 
 ## Kontext
 
@@ -123,6 +123,15 @@ davon erfahren.
   gibt es nicht mehr, auch keine Weiterleitung. Die Liste sagt weiter, wie viele Materialien
   nach Meldungen fehlen, aber ohne Link. Die Detailseite eines
   Materials nennt wie bisher seinen Stand.
+- **Nachtrag 2026-10-26 (Wort):** Die Oberfläche sagt „Stimmt etwas
+  nicht? Hinweis geben“, „Hinweis abschicken“, und die Redaktionsseite
+  heißt „Hinweise“. „Melden“ klang nach Anzeige, die meisten Fälle sind
+  aber harmlos: eine falsche Lizenz, ein veralteter Link. Wer so etwas
+  bemerkt, will helfen. Im Code und in dieser ADR heißt es weiter
+  „Meldung“. Offen bleibt: Ein weiches Wort passt schlecht zu einer
+  harten Folge. Vielleicht sollte nur „Inhalt problematisch“
+  ausblenden. Dazu und zur Frage, wer benachrichtigt wird, siehe
+  ADR-0012.
 - Falsch wäre die Entscheidung, wenn häufig Materialien zu Unrecht
   verschwinden: Dann die Schwelle anheben oder auf „nur markieren“
   umstellen. Kommen kaum Meldungen, aber viel Spam: das Formular hinter

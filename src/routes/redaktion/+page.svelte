@@ -5,7 +5,7 @@
 </script>
 
 <svelte:head>
-  <title>Meldungen — Materialpool Religion</title>
+  <title>Hinweise — Materialpool Religion</title>
   <!-- Nicht in der Kopfzeile, keine Seite für Suchmaschinen (ADR-0011). -->
   <meta name="robots" content="noindex" />
 </svelte:head>

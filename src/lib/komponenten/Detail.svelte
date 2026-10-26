@@ -96,13 +96,13 @@
   </dl>
 
   {#if melden?.gemeldetHier}
-    <p class="melden-dank" id="melden">Danke für deine Meldung! Die Redaktion sieht sie sich an.</p>
+    <p class="melden-dank" id="melden">Danke für deinen Hinweis! Die Redaktion sieht ihn sich an.</p>
   {:else if melden?.formular}
     {@const f = melden.formular}
     <!-- Aufklappen ohne JavaScript; nach einem Fehler steht es offen. Das
          Fangfeld sehen Menschen nicht, Spam-Programme füllen es aus. -->
     <details class="melden" id="melden" open={f.offen}>
-      <summary class="melden-auf">Stimmt etwas nicht? Melden</summary>
+      <summary class="melden-auf">Stimmt etwas nicht? Hinweis geben</summary>
       <form method="post" action={f.aktion}>
         {#if f.fehler}<p class="melden-fehler" role="alert">{f.fehler}</p>{/if}
         <fieldset>
@@ -118,10 +118,10 @@
           <label>Webseite (bitte leer lassen) <input type="text" name="webseite" autocomplete="off" tabindex="-1" /></label>
         </div>
         <input type="hidden" name="stempel" value={f.stempel} />
-        <button class="melden-btn" type="submit">Meldung abschicken</button>
+        <button class="melden-btn" type="submit">Hinweis abschicken</button>
         <p class="melden-klein">
-          Die Meldung geht an die Redaktion des Materialpools. Gespeichert werden Grund, Begründung und Zeitpunkt –
-          nicht, wer meldet. Ab zwei Meldungen wird das Material ausgeblendet, bis die Redaktion es geprüft hat.
+          Der Hinweis geht an die Redaktion des Materialpools. Gespeichert werden Grund, Begründung und Zeitpunkt –
+          nicht, wer ihn gibt. Ab zwei Hinweisen wird das Material ausgeblendet, bis die Redaktion es geprüft hat.
         </p>
       </form>
     </details>
