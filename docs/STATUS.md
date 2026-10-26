@@ -8,6 +8,22 @@ das Gesamtbild in `superpowers/specs/2026-09-28-materialpool-neustart-design.md`
 
 ---
 
+## 2026-10-26 (4) — „Hinweis geben“ statt „Melden“, ADR-0012 offen
+
+**Passiert:** „Melden“ klang Christina zu hart. Die Oberfläche sagt jetzt
+„Stimmt etwas nicht? Hinweis geben“, „Hinweis abschicken“, „Danke für
+deinen Hinweis!“; die Redaktionsseite heißt „Hinweise“, ebenso der Satz
+unter der Liste und die E-Mail. Im Code heißt es weiter „Meldung“
+(Nachtrag ADR-0011). Neu als **offene** ADR-0012: Hinweise zu Lizenz und
+Angaben sollen künftig an die Herausgeber gehen, nicht an eine zentrale
+Redaktion. Es fehlen dafür noch ein eigener Schlüssel und ein Weg, die
+Herausgeber zu erreichen.
+
+**Wo steht das Projekt:** `pnpm check` 0 Fehler, 347 Tests grün; im
+Dev-Server Detail- und Redaktionsseite angesehen.
+
+---
+
 ## 2026-10-26 (3) — Keine Entwickleransicht, Fach „Religion für alle“
 
 **Passiert:** Die zugeklappte „Entwickleransicht“ unter jeder

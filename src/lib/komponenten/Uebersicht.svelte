@@ -153,7 +153,7 @@
       {/if}
       {#if gemeldet > 0}
         <p class="ausgeblendet-hinweis">
-          {gemeldet === 1 ? '1 Material ist' : `${gemeldet} Materialien sind`} nach Meldungen ausgeblendet, bis die Redaktion {gemeldet === 1 ? 'es' : 'sie'} geprüft hat.
+          {gemeldet === 1 ? '1 Material ist' : `${gemeldet} Materialien sind`} nach Hinweisen ausgeblendet, bis die Redaktion {gemeldet === 1 ? 'es' : 'sie'} geprüft hat.
         </p>
       {/if}
       </div>
