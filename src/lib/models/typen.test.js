@@ -72,7 +72,7 @@ describe('Fächer', () => {
   it('heißt „Fach“, nicht „Konfession“, mit den Namen des Prototyps', () => {
     expect(FACH_REIHENFOLGE.map((k) => FACH_LABEL[k])).toEqual([
       'Evangelische Religionslehre', 'Katholische Religionslehre', 'Islamische Religionslehre',
-      'Jüdische Religionslehre', 'Alevitische Religionslehre', 'Religionslehre (überkonfessionell)'
+      'Jüdische Religionslehre', 'Alevitische Religionslehre', 'Religion für alle'
     ]);
   });
 });

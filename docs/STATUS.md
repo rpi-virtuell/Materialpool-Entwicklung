@@ -8,6 +8,23 @@ das Gesamtbild in `superpowers/specs/2026-09-28-materialpool-neustart-design.md`
 
 ---
 
+## 2026-10-26 (3) — Keine Entwickleransicht, Fach „Religion für alle“
+
+**Passiert:** Die zugeklappte „Entwickleransicht“ unter jeder
+Detailseite ist weg (Event-Kennung, Schlüssel, Relays, Link auf die
+Rohdaten). Sie stammte aus dem ersten Gerüst vom 28.09., ohne
+Entscheidung, und war nie für Lehrkräfte gedacht. `/m/<d>/json` bleibt
+für die Arbeit an den Daten, nur unverlinkt. Das Fach zu s1055 heißt
+jetzt „Religion für alle“ statt „Religionslehre (überkonfessionell)“:
+Christina wollte es offener, weil es auch den Religionsunterricht für
+alle gibt. In den Daten heißt s1055 ohnehin nur „Religion“. Die
+Zuordnung bleibt: nur Materialien ohne Konfession.
+
+**Wo steht das Projekt:** `pnpm check` 0 Fehler, 347 Tests grün; im
+Dev-Server Detailseite und Fach-Filter angesehen.
+
+---
+
 ## 2026-10-26 (2) — Ausgeblendetes sieht nur noch die Redaktion
 
 **Passiert:** Christina wollte die Seiten „Ausgeblendete Materialien“ und

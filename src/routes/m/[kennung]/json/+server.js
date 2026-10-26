@@ -5,8 +5,9 @@ import { eventFinden } from '$lib/routen/material.js';
 import { spiegelHolen } from '$lib/services/spiegel.js';
 
 /**
- * Entwickleransicht: das rohe Event samt Herkunft. Läuft durch dieselbe
- * Suche wie die Seite — keine zweite Implementierung.
+ * Das rohe Event samt Herkunft, für die Arbeit an den Daten. Seit die
+ * Entwickleransicht weg ist (26.10.2026), verlinkt es keine Seite mehr.
+ * Läuft durch dieselbe Suche wie die Seite — keine zweite Implementierung.
  * @type {import('./$types').RequestHandler}
  */
 export function GET({ params, url }) {

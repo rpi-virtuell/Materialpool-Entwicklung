@@ -6,10 +6,10 @@
    * dasselbe Cover wie auf der Karte, von der man kommt (Tinte, Tönung,
    * Typ-Marke, Titel darin), darunter Herkunft, Beschreibung, „Material
    * öffnen“ und „Merken“ (ADR-0008), dann die Angaben als benannte Liste.
-   * Die Rohdaten bleiben in der Entwickleransicht.
+   * Keine Entwickleransicht mehr (Christina, 26.10.2026): Sie stammte aus
+   * dem ersten Gerüst und war nie für Lehrkräfte gedacht.
    * @type {{
    *   material: import('$lib/models/material.js').Material,
-   *   relays: string[],
    *   cover: { ink: string, tint: string },
    *   icon: string,
    *   zurueck?: string,
@@ -22,7 +22,7 @@
    * `melden`: Meldefunktion (ADR-0011) — Hinweis, ob gemeldet, und das
    * Formular; ausgeblendet ebenfalls ohne „Material öffnen“.
    */
-  let { material, relays, cover, icon, zurueck = '/materialien', merken = null, linkWeg = false, melden = null } = $props();
+  let { material, cover, icon, zurueck = '/materialien', merken = null, linkWeg = false, melden = null } = $props();
   const oeffnenZeigen = $derived(material.url && !linkWeg && !melden?.ausgeblendet);
   const begriffe = (/** @type {{ label: string }[]} */ liste) => liste.map((b) => b.label).join(', ');
   // Das Ziel nur nennen, wenn es nicht schon dasteht — sonst liest man
@@ -127,13 +127,6 @@
     </details>
   {/if}
 
-  <details class="entwickler">
-    <summary>Entwickleransicht</summary>
-    <p>Event <code>{material.id}</code> von <code>{material.pubkey}</code>, kind 30142, d = <code>{material.d}</code>.</p>
-    {#if material.typen.length > 0}<p>AMB-Typ: {material.typen.join(', ')}</p>{/if}
-    <p>Geliefert von: {relays.length > 0 ? relays.join(', ') : 'unbekannt (Stand aus der Datei)'}.</p>
-    <p><a href={material.jsonPfad}>Rohes Event als JSON</a></p>
-  </details>
 </article>
 
 <style>
@@ -273,10 +266,6 @@
   }
   .melden-btn:hover { border-color: var(--blue); }
   .melden-dank { margin-top: var(--sp-8); padding-top: var(--sp-5); border-top: 1px solid var(--border); font-size: var(--fs-300); color: var(--text-body); }
-
-  .entwickler { margin-top: var(--sp-8); font-size: var(--fs-200); color: var(--text-muted); }
-  .entwickler summary { cursor: pointer; }
-  .entwickler code { word-break: break-all; }
 
   @media (max-width: 960px) {
     .detail { padding: var(--sp-5) var(--gutter) var(--sp-10); }

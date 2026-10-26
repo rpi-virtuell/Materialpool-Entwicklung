@@ -74,9 +74,9 @@
         <section class="konto-abschnitt fach-abschnitt">
           <h2>Welches Fach unterrichtest du?</h2>
           <!-- Dieselben Werte und Namen wie der Fach-Filter beim Stöbern.
-               Überkonfessionell kommt nicht heimlich dazu — wer es will,
+               „Religion für alle“ kommt nicht heimlich dazu — wer es will,
                wählt es hier sichtbar mit. -->
-          <p class="konto-abschnitt-sub">Mehrere möglich. Überkonfessionelle Materialien passen oft zu allen Fächern.</p>
+          <p class="konto-abschnitt-sub">Mehrere möglich. Materialien aus „Religion für alle“ passen oft zu allen Fächern.</p>
           <div class="konto-bereiche">
             {#each seite.faecher as f (f.key)}
               <label class="konto-bereich">

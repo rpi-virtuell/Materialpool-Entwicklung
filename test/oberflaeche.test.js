@@ -121,7 +121,7 @@ describe('Merkliste (ADR-0008)', () => {
   });
   it('Detailseite: „Merken“ bzw. „Gemerkt“', () => {
     const merken = { schluessel: merkSchluessel(erntedank), gemerkt: true };
-    const { body } = render(Detail, { props: { material: erntedank, relays, cover: coverFarben(erntedank), icon: 'notebook', merken } });
+    const { body } = render(Detail, { props: { material: erntedank, cover: coverFarben(erntedank), icon: 'notebook', merken } });
     expect(body).toMatch(/action="\/merkliste\?\/umschalten"/);
     expect(body).toContain(`name="zurueck" value="${erntedank.pfad}"`);
     expect(body).toMatch(/aria-pressed="true"[^>]*>.*Gemerkt/s);
@@ -394,12 +394,12 @@ describe('Detail', () => {
   const jericho = materialien[6];
   it('schreibt Datum und Sprache deutsch', () => {
     const m = { ...jericho, datum: '2017-08-01', sprachen: ['de', 'en'] };
-    const body = render(Detail, { props: { material: m, relays: [], cover: coverFarben(m), icon: 'notebook' } }).body;
+    const body = render(Detail, { props: { material: m, cover: coverFarben(m), icon: 'notebook' } }).body;
     expect(body).toMatch(/<dt[^>]*>Datum<\/dt>\s*<dd[^>]*>01\.08\.2017<\/dd>/);
     expect(body).toMatch(/<dt[^>]*>Sprache<\/dt>\s*<dd[^>]*>Deutsch, Englisch<\/dd>/);
   });
   it('toter Link: Hinweis statt „Material öffnen“ (ADR-0010)', () => {
-    const body = render(Detail, { props: { material: jericho, relays: [], cover: coverFarben(jericho), icon: 'notebook', linkWeg: true } }).body;
+    const body = render(Detail, { props: { material: jericho, cover: coverFarben(jericho), icon: 'notebook', linkWeg: true } }).body;
     expect(body).toContain('Der Link zu diesem Material war zuletzt nicht erreichbar.');
     expect(body).not.toContain('Material öffnen');
   });
@@ -408,7 +408,7 @@ describe('Detail', () => {
     /** @param {Partial<Parameters<typeof meldenBilden>[0]>} teil */
     const mitMelden = (teil = {}) => render(Detail, {
       props: {
-        material: jericho, relays: [], cover: coverFarben(jericho), icon: 'notebook',
+        material: jericho, cover: coverFarben(jericho), icon: 'notebook',
         melden: meldenBilden({ material: jericho, stand: standVon([]), gemeldetHier: false, an: true, stempel, ...teil })
       }
     }).body;
@@ -456,17 +456,17 @@ describe('Detail', () => {
 
   /** @param {Partial<{ zurueck: string }>} extra */
   const detail = (extra = {}) =>
-    render(Detail, { props: { material: jericho, relays: ['wss://eins/'], cover: coverFarben(jericho), icon: 'notebook', ...extra } }).body;
+    render(Detail, { props: { material: jericho, cover: coverFarben(jericho), icon: 'notebook', ...extra } }).body;
 
-  it('nennt Ressource, Lizenz, Begriffe, Herkunft und die Entwickleransicht', () => {
+  it('nennt Ressource, Lizenz, Begriffe und Herkunft — ohne Entwickleransicht (2026-10-26)', () => {
     const body = detail();
-    expect(body).toContain('https://material.rpi-virtuell.de/material/zwischen-jericho-und-jerusalem/');
     expect(body).toContain('rel="license"');
     expect(body).toContain('CC BY-SA 4.0');
     expect(body).toContain('Religionslehre (evangelische)');
     expect(body).toContain('Horst Heller');
-    expect(body).toContain('wss://eins/');
-    expect(body).toContain(`${jericho.pfad}/json`);
+    expect(body).not.toContain('Entwickleransicht');
+    expect(body).not.toContain(`${jericho.pfad}/json`);
+    expect(body).not.toContain(jericho.pubkey);
   });
 
   it('trägt das Cover der Karte: Tinte und Tönung, Typ und Titel darin, Bild als Textur', () => {
@@ -494,25 +494,25 @@ describe('Detail', () => {
     /** @param {Partial<import('../src/lib/models/material.js').Material>} teil */
     const mit = (teil) => {
       const m = { ...jericho, url: 'https://www.religionen-entdecken.de/lexikon/m/martin-luther', ...teil };
-      return render(Detail, { props: { material: m, relays: [], cover: coverFarben(m), icon: 'notebook' } }).body;
+      return render(Detail, { props: { material: m, cover: coverFarben(m), icon: 'notebook' } }).body;
     };
     expect(mit({ herkunft: 'religionen-entdecken.de' })).not.toContain('oeffnen-ziel');
     expect(mit({ beschreibung: 'Artikel auf religionen-entdecken.de' })).not.toContain('oeffnen-ziel');
     expect(mit({ herkunft: 'Horst Heller', beschreibung: 'Ein Lexikonartikel.' })).toContain('auf religionen-entdecken.de');
   });
 
-  it('nennt die Angaben als benannte Zeilen, AMB-Typ nur in der Entwickleransicht', () => {
+  it('nennt die Angaben als benannte Zeilen, ohne AMB-Typ', () => {
     const body = detail();
     for (const dt of ['Bildungsstufe', 'Fach', 'Materialart', 'Lizenz', 'Datum']) expect(body).toMatch(new RegExp(`<dt[^>]*>${dt}</dt>`));
-    expect(body.indexOf('AMB-Typ')).toBeGreaterThan(body.indexOf('Entwickleransicht'));
-    const ohneStufe = render(Detail, { props: { material: materialien[1], relays: [], cover: coverFarben(materialien[1]), icon: 'file' } }).body;
+    expect(body).not.toContain('AMB-Typ');
+    const ohneStufe = render(Detail, { props: { material: materialien[1], cover: coverFarben(materialien[1]), icon: 'file' } }).body;
     expect(ohneStufe).toMatch(/<dt[^>]*>Bildungsstufe<\/dt>\s*<dd[^>]*>nicht angegeben<\/dd>/);
   });
 
   it('macht aus einer Lizenz ohne http(s)-Adresse keinen Link', () => {
     const tags = beispiele[6].tags.map((t) => (t[0] === 'license:id' ? ['license:id', 'javascript:alert(1)'] : t));
     const material = materialAusEvent({ ...beispiele[6], tags });
-    const { body } = render(Detail, { props: { material, relays: [], cover: coverFarben(material), icon: 'file' } });
+    const { body } = render(Detail, { props: { material, cover: coverFarben(material), icon: 'file' } });
     expect(body).toContain('javascript:alert(1)');
     expect(body).not.toContain('href="javascript:');
     expect(body).not.toContain('rel="license"');
