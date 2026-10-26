@@ -1,19 +1,23 @@
 <script>
   /**
-   * Redaktionsseite (/redaktion, ADR-0011): gemeldete Materialien mit allen
-   * Meldungen, je Material „Bestätigen und ausblenden“ oder „Verwerfen“;
-   * darunter, was die Redaktion ausgeblendet hat, mit „Wieder einblenden“.
-   * Jeder Knopf ist ein POST-Formular. Mit REDAKTION_KENNWORT fragt die
-   * Seite zuerst danach, ohne sagt sie, dass sie offen ist.
+   * Redaktionsseite (/redaktion, ADR-0011): die eine Seite für alles
+   * Ausgeblendete. Gemeldete Materialien mit allen Meldungen, je Material
+   * „Bestätigen und ausblenden“ oder „Verwerfen“; darunter, was die
+   * Redaktion ausgeblendet hat, mit „Wieder einblenden“; zuletzt die toten
+   * Links der Link-Prüfung (ADR-0010, Nachtrag 2026-10-26), nur zum
+   * Ansehen — sie kommen von selbst zurück. Jeder Knopf ist ein
+   * POST-Formular. Mit REDAKTION_KENNWORT fragt die Seite zuerst danach,
+   * ohne sagt sie, dass sie offen ist.
    * @type {{
    *   offen: import('$lib/routen/meldungen.js').Fall[],
    *   ausgeblendet: import('$lib/routen/meldungen.js').Fall[],
+   *   toteLinks?: ReturnType<typeof import('$lib/routen/ausgeblendet.js').ausgeblendeteLaden>['eintraege'],
    *   zugang: boolean,
    *   kennwortNoetig: boolean,
    *   fehler?: string|null
    * }}
    */
-  let { offen, ausgeblendet, zugang, kennwortNoetig, fehler = null } = $props();
+  let { offen, ausgeblendet, toteLinks = [], zugang, kennwortNoetig, fehler = null } = $props();
   const datum = (/** @type {string} */ iso) => new Date(iso).toLocaleDateString('de-DE', { dateStyle: 'medium', timeZone: 'Europe/Berlin' });
   /** @param {import('$lib/models/meldung.js').Stand} s */
   const standText = (s) => (s.stand === 'vorlaeufig' ? `${s.offen} Meldungen · vorläufig ausgeblendet` : '1 Meldung · Hinweis am Material, noch sichtbar');
@@ -85,6 +89,29 @@
         </ul>
       {/if}
 
+      <h2>Tote Links</h2>
+      <p class="redaktion-lead">
+        Der Materialpool prüft regelmäßig, ob die Links zu den Materialien noch funktionieren. Meldet eine Seite
+        zweimal hintereinander, dass es sie nicht mehr gibt, wird das Material aus Liste, Suche und Startseite
+        genommen. Funktioniert der Link wieder, erscheint es von selbst wieder.
+      </p>
+      {#if toteLinks.length === 0}
+        <p class="redaktion-leer">Zurzeit ist kein Material wegen eines toten Links ausgeblendet.</p>
+      {:else}
+        <ul class="redaktion-liste">
+          {#each toteLinks as e (e.material.id)}
+            <li>
+              <a class="redaktion-titel" href={e.material.pfad}>{e.material.name}</a>
+              <p class="redaktion-von">{e.material.herkunft}</p>
+              <p class="redaktion-link"><a href={e.url} rel="external noopener nofollow">{e.url}</a></p>
+              <p class="redaktion-stand">
+                Antwort {e.status ?? '–'} · nicht erreichbar seit {datum(e.wegSeit)} · zuletzt geprüft {datum(e.geprueft)}
+              </p>
+            </li>
+          {/each}
+        </ul>
+      {/if}
+
       {#if kennwortNoetig}
         <form class="redaktion-abmelden" method="post" action="?/abmelden">
           <button class="redaktion-link" type="submit">Abmelden</button>
@@ -107,6 +134,8 @@
   .redaktion-titel { font-weight: 600; color: var(--text-dark); }
   .redaktion-von { font-size: var(--fs-200); color: var(--text-body); margin: var(--sp-1) 0; }
   .redaktion-stand { font-size: var(--fs-200); color: var(--text-muted); margin: var(--sp-1) 0 0; }
+  .redaktion-link { font-size: var(--fs-200); overflow-wrap: anywhere; margin: 0; }
+  .redaktion-link a { color: var(--blue); }
   .redaktion-stand.ist-weg { font-weight: 600; color: var(--text-dark); }
   .redaktion-meldungen { list-style: none; padding: 0; margin: var(--sp-3) 0; display: flex; flex-direction: column; gap: var(--sp-3); }
   .redaktion-meldungen li { padding-left: var(--sp-3); border-left: 2px solid var(--border); }

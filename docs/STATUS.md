@@ -8,6 +8,24 @@ das Gesamtbild in `superpowers/specs/2026-09-28-materialpool-neustart-design.md`
 
 ---
 
+## 2026-10-26 (2) — Ausgeblendetes sieht nur noch die Redaktion
+
+**Passiert:** Christina wollte die Seiten „Ausgeblendete Materialien“ und
+„Meldungen“ zusammenlegen, und zwar nur für die Redaktion. Außenstehenden
+half die öffentliche Liste wenig. Bei Meldungen hätte sie Anbieter schon
+vor der Prüfung als „Inhalt problematisch“ genannt. Jetzt hat
+`/redaktion` drei Abschnitte: Offen, Von der Redaktion ausgeblendet, Tote
+Links (nur zum Ansehen). `/ausgeblendet` leitet mit 308 dorthin weiter,
+`komponenten/Ausgeblendet.svelte` ist weg. Unter der Liste steht weiter,
+wie viele Materialien fehlen, aber ohne Link „Welche?“. Festgehalten als
+Nachträge in ADR-0010 und ADR-0011.
+
+**Wo steht das Projekt:** `pnpm check` 0 Fehler, 347 Tests grün. Im
+Dev-Server geprüft: Weiterleitung, neuer Abschnitt, Hinweis unter der
+Liste ohne Link, Verwerfen.
+
+---
+
 ## 2026-10-26 — Meldefunktion (ADR-0011)
 
 **Passiert:** Christina hat den Ablauf entschieden, er steht als ADR-0011

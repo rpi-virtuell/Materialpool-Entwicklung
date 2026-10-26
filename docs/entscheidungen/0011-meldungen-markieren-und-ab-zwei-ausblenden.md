@@ -1,6 +1,6 @@
 # ADR-0011: Alle können ein Material melden; eine Meldung markiert es, ab zwei ist es vorläufig ausgeblendet, bis die Redaktion entscheidet
 
-**Status:** angenommen (2026-10-26)
+**Status:** angenommen (2026-10-26) · Nachtrag 2026-10-26: Was ausgeblendet ist, zeigt nur noch die Redaktionsseite (siehe unten)
 
 ## Kontext
 
@@ -114,6 +114,15 @@ davon erfahren.
   (`MAIL_VERSAND=an`, `SMTP_*`, `MAIL_AN`, `MAIL_VON`, siehe
   `docs/betrieb.md`). Bis dahin muss jemand selbst nach `/redaktion`
   schauen.
+- **Nachtrag 2026-10-26:** Gemeldete Materialien stehen nicht mehr
+  öffentlich auf `/ausgeblendet`. Sonst stünde dort mit Anbieter
+  „Inhalt problematisch“, schon nach zwei anonymen Meldungen und bevor
+  die Redaktion geprüft hat. `/redaktion` ist jetzt die einzige Seite
+  für alles Ausgeblendete: offene Meldungen, von der Redaktion
+  Ausgeblendetes und die toten Links aus ADR-0010. `/ausgeblendet`
+  leitet dorthin weiter. Die Liste sagt weiter, wie viele Materialien
+  nach Meldungen fehlen, aber ohne Link. Die Detailseite eines
+  Materials nennt wie bisher seinen Stand.
 - Falsch wäre die Entscheidung, wenn häufig Materialien zu Unrecht
   verschwinden: Dann die Schwelle anheben oder auf „nur markieren“
   umstellen. Kommen kaum Meldungen, aber viel Spam: das Formular hinter

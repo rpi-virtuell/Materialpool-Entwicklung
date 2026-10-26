@@ -10,4 +10,4 @@
   <meta name="robots" content="noindex" />
 </svelte:head>
 
-<Redaktion offen={data.offen} ausgeblendet={data.ausgeblendet} zugang={data.zugang} kennwortNoetig={data.kennwortNoetig} fehler={form?.fehler ?? null} />
+<Redaktion offen={data.offen} ausgeblendet={data.ausgeblendet} toteLinks={data.toteLinks} zugang={data.zugang} kennwortNoetig={data.kennwortNoetig} fehler={form?.fehler ?? null} />

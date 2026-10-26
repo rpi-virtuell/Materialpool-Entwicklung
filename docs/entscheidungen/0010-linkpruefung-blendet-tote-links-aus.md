@@ -1,6 +1,6 @@
 # ADR-0010: Eine Link-Prüfung im Server blendet Materialien aus, deren Link zweimal hintereinander „gibt es nicht“ meldet
 
-**Status:** angenommen (2026-10-08) · Nachtrag 2026-10-08: Geprüft wird jetzt das Ziel, nicht die Zwischenseite (siehe unten)
+**Status:** angenommen (2026-10-08) · Nachtrag 2026-10-08: Geprüft wird jetzt das Ziel, nicht die Zwischenseite (siehe unten) · Nachtrag 2026-10-26: Die Liste der toten Links steht nur noch auf der Redaktionsseite (ADR-0011, siehe unten)
 **Beteiligte:** Christina Kreutz, Claude (Umsetzung)
 
 ## Kontext
@@ -56,6 +56,15 @@ Wir prüfen nur eindeutige Fälle und blenden aus:
   Katalog vorbei, der Punkt oben gilt nur noch für diese Reste — und
   für die 1.331, deren contentUrl eine Datei ist: Dort bleibt es bei
   der Katalogseite, damit „Material öffnen“ keinen Download startet.
+- **Nachtrag 2026-10-26:** Die Liste der toten Links ist nicht mehr
+  öffentlich. Sie steht als Abschnitt „Tote Links“ auf der
+  Redaktionsseite `/redaktion` (ADR-0011), neben den Meldungen, und
+  `/ausgeblendet` leitet dorthin weiter. Außenstehenden half die Liste
+  wenig: Was ein einzelnes Material betrifft, sagt schon seine
+  Detailseite. Nachfragen bei den Anbietern ist Arbeit der Redaktion.
+  Die Liste nennt weiter, wie viele Materialien fehlen (nie still),
+  aber ohne Link „Welche?“, weil Außenstehende die Seite nicht öffnen
+  sollen.
 - Falsch wäre die Entscheidung, wenn Materialien zu Unrecht
   verschwinden (ein Server antwortet Prüfprogrammen mit 404). Dann: die
   Liste der ausgeblendeten Links ansehen und solche Server ausnehmen,
