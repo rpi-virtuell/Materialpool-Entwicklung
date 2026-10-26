@@ -15,14 +15,15 @@ das Gesamtbild in `superpowers/specs/2026-09-28-materialpool-neustart-design.md`
 half die öffentliche Liste wenig. Bei Meldungen hätte sie Anbieter schon
 vor der Prüfung als „Inhalt problematisch“ genannt. Jetzt hat
 `/redaktion` drei Abschnitte: Offen, Von der Redaktion ausgeblendet, Tote
-Links (nur zum Ansehen). `/ausgeblendet` leitet mit 308 dorthin weiter,
-`komponenten/Ausgeblendet.svelte` ist weg. Unter der Liste steht weiter,
+Links (nur zum Ansehen). `/ausgeblendet` und
+`komponenten/Ausgeblendet.svelte` sind weg, auf Christinas Wunsch auch
+ohne Weiterleitung: Die alte Adresse ergibt „Seite nicht gefunden“. Unter der Liste steht weiter,
 wie viele Materialien fehlen, aber ohne Link „Welche?“. Festgehalten als
 Nachträge in ADR-0010 und ADR-0011.
 
 **Wo steht das Projekt:** `pnpm check` 0 Fehler, 347 Tests grün. Im
-Dev-Server geprüft: Weiterleitung, neuer Abschnitt, Hinweis unter der
-Liste ohne Link, Verwerfen.
+Dev-Server geprüft: `/ausgeblendet` antwortet 404, neuer Abschnitt,
+Hinweis unter der Liste ohne Link, Verwerfen.
 
 ---
 
