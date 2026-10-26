@@ -59,7 +59,7 @@ Wir prüfen nur eindeutige Fälle und blenden aus:
 - **Nachtrag 2026-10-26:** Die Liste der toten Links ist nicht mehr
   öffentlich. Sie steht als Abschnitt „Tote Links“ auf der
   Redaktionsseite `/redaktion` (ADR-0011), neben den Meldungen, und
-  `/ausgeblendet` leitet dorthin weiter. Außenstehenden half die Liste
+  `/ausgeblendet` gibt es nicht mehr, auch keine Weiterleitung. Außenstehenden half die Liste
   wenig: Was ein einzelnes Material betrifft, sagt schon seine
   Detailseite. Nachfragen bei den Anbietern ist Arbeit der Redaktion.
   Die Liste nennt weiter, wie viele Materialien fehlen (nie still),

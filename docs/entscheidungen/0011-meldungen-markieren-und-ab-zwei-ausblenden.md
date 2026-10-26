@@ -120,7 +120,7 @@ davon erfahren.
   die Redaktion geprüft hat. `/redaktion` ist jetzt die einzige Seite
   für alles Ausgeblendete: offene Meldungen, von der Redaktion
   Ausgeblendetes und die toten Links aus ADR-0010. `/ausgeblendet`
-  leitet dorthin weiter. Die Liste sagt weiter, wie viele Materialien
+  gibt es nicht mehr, auch keine Weiterleitung. Die Liste sagt weiter, wie viele Materialien
   nach Meldungen fehlen, aber ohne Link. Die Detailseite eines
   Materials nennt wie bisher seinen Stand.
 - Falsch wäre die Entscheidung, wenn häufig Materialien zu Unrecht
