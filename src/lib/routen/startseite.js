@@ -115,11 +115,11 @@ function fuerDichBilden(materialien, konto, merkKeys) {
 }
 
 /**
- * @param {{ inhalt: Inhalt, fehlschlag: Fehlschlag|null, relays: string[], heute?: Date, palette?: Record<StufeKey, string>, konto?: Konto, merkKeys?: string[], weg?: (url: string|null) => boolean }} eingabe
- *   `weg`: Link-Prüfung (ADR-0010) — solche Materialien werden weder empfohlen noch gezählt
+ * @param {{ inhalt: Inhalt, fehlschlag: Fehlschlag|null, relays: string[], heute?: Date, palette?: Record<StufeKey, string>, konto?: Konto, merkKeys?: string[], weg?: (url: string|null) => boolean, verborgen?: (m: Material) => boolean }} eingabe
+ *   `weg`: Link-Prüfung (ADR-0010), `verborgen`: nach Meldungen ausgeblendet (ADR-0011) — beides wird weder empfohlen noch gezählt
  */
-export function startseiteLaden({ inhalt, fehlschlag, relays, heute = new Date(), palette = STUFEN_FARBE_DEFAULT, konto = LEERES_KONTO, merkKeys = [], weg = () => false }) {
-  const materialien = materialienVon(inhalt).filter((m) => !weg(m.url));
+export function startseiteLaden({ inhalt, fehlschlag, relays, heute = new Date(), palette = STUFEN_FARBE_DEFAULT, konto = LEERES_KONTO, merkKeys = [], weg = () => false, verborgen = () => false }) {
+  const materialien = materialienVon(inhalt).filter((m) => !weg(m.url) && !verborgen(m));
   const keywords = saisonKeywords(heute);
 
   // Einstiege in die Liste tragen angemeldet das Profil (routen/konto.js).

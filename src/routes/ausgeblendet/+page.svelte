@@ -10,4 +10,4 @@
   <meta name="robots" content="noindex" />
 </svelte:head>
 
-<Ausgeblendet eintraege={data.eintraege} />
+<Ausgeblendet eintraege={data.eintraege} gemeldet={data.gemeldet} />

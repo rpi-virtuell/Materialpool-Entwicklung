@@ -3,9 +3,10 @@ import { env } from '$env/dynamic/private';
 import { konfigLesen } from '$lib/konfig.js';
 import { frageHinweis, frageUmleitung } from '$lib/routen/frage.js';
 import { KONTO_COOKIE, kontoLesen, profilEinsetzen, profilHinweis } from '$lib/routen/konto.js';
-import { MERKLISTE_COOKIE, merklisteLesen } from '$lib/routen/merkliste.js';
+import { MERKLISTE_COOKIE, merklisteLesen, merkSchluessel } from '$lib/routen/merkliste.js';
 import { filterLesen, listeLaden, listenPfad } from '$lib/routen/uebersicht.js';
 import { linkpruefungHolen } from '$lib/services/linkpruefung.js';
+import { meldungenHolen } from '$lib/services/meldungen.js';
 import { relaySuche, spiegelHolen } from '$lib/services/spiegel.js';
 
 export const prerender = false;
@@ -24,6 +25,7 @@ export async function load({ url, cookies }) {
 
   const konfig = konfigLesen(env);
   const spiegel = spiegelHolen();
+  const meldungen = meldungenHolen();
   const filter = filterLesen(url.searchParams);
   // Suchtext → Volltextsuche am Relay (NIP-50, ADR-0005); Facetten und
   // Seiten arbeiten auf den Treffern. Ohne Text bleibt alles im Spiegel.
@@ -37,6 +39,8 @@ export async function load({ url, cookies }) {
     frage: frageHinweis(url.searchParams),
     profilHinweis: profilHinweis(filter, konto),
     merkKeys: merklisteLesen(cookies.get(MERKLISTE_COOKIE)),
-    weg: linkpruefungHolen().weg
+    weg: linkpruefungHolen().weg,
+    // Meldungen (ADR-0011): ab zwei offenen oder bestätigt ausgeblendet.
+    verborgen: (m) => meldungen.verborgen(merkSchluessel(m))
   });
 }

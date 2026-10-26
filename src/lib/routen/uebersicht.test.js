@@ -229,6 +229,19 @@ describe('listeLaden', () => {
     expect(gesucht.karten.map((k) => k.material.url)).not.toContain(tot);
     expect(listeLaden({ inhalt, fehlschlag: null, relays }).ausgeblendet).toBe(0);
   });
+  it('blendet gemeldete Materialien aus, auch in der Suche, und zählt sie getrennt (ADR-0011)', () => {
+    const gemeldet = materialAusEvent(beispiele[2]);
+    const verborgen = (/** @type {import('../models/material.js').Material} */ m) => m.id === gemeldet.id;
+    const daten = listeLaden({ inhalt, fehlschlag: null, relays, verborgen });
+    expect(daten.gesamt).toBe(6);
+    expect(daten.gemeldet).toBe(1);
+    expect(daten.ausgeblendet).toBe(0);
+    expect(daten.karten.some((k) => k.material.id === gemeldet.id)).toBe(false);
+    const suche = { events: [beispiele[0], beispiele[2]], gefragteRelays: relays, grund: null };
+    const gesucht = listeLaden({ inhalt, fehlschlag: null, relays, verborgen, filter: filter({ q: 'x' }), suche });
+    expect(gesucht.karten.map((k) => k.material.id)).toEqual([materialAusEvent(beispiele[0]).id]);
+    expect(listeLaden({ inhalt, fehlschlag: null, relays }).gemeldet).toBe(0);
+  });
   it('wendet Filter und Sortierung an und behält gesamt', () => {
     const daten = listeLaden({ inhalt, fehlschlag: null, relays, filter: filter({ q: 'pfingsten', sortierung: 'titel' }) });
     expect(daten.karten).toHaveLength(1);

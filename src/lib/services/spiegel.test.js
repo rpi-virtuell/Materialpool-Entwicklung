@@ -23,6 +23,8 @@ function konfig(teil = {}) {
     vorrang: [],
     vorschaubilder: true,
     linkpruefung: { an: false, pfad: 'daten/test-links.json', intervallS: 1, taktS: 1, jeTakt: 1 },
+    meldungen: { an: false, pfad: 'daten/test-meldungen.json', jeTag: 30, kennwort: '' },
+    post: { versand: false, an: '', von: '', host: '', port: 587, benutzer: '', kennwort: '' },
     spiegelPfad: 'daten/test.json',
     spiegelIntervallS: 600,
     spiegelStartwartezeitS: 1,

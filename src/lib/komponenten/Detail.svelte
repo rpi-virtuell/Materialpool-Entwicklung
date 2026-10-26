@@ -14,12 +14,16 @@
    *   icon: string,
    *   zurueck?: string,
    *   merken?: { schluessel: string, gemerkt: boolean }|null,
-   *   linkWeg?: boolean
+   *   linkWeg?: boolean,
+   *   melden?: ReturnType<typeof import('$lib/routen/meldungen.js').meldenBilden>
    * }}
    * `linkWeg`: Die Link-Prüfung hat den Link zweimal nicht gefunden
    * (ADR-0010) — Hinweis statt „Material öffnen“.
+   * `melden`: Meldefunktion (ADR-0011) — Hinweis, ob gemeldet, und das
+   * Formular; ausgeblendet ebenfalls ohne „Material öffnen“.
    */
-  let { material, relays, cover, icon, zurueck = '/materialien', merken = null, linkWeg = false } = $props();
+  let { material, relays, cover, icon, zurueck = '/materialien', merken = null, linkWeg = false, melden = null } = $props();
+  const oeffnenZeigen = $derived(material.url && !linkWeg && !melden?.ausgeblendet);
   const begriffe = (/** @type {{ label: string }[]} */ liste) => liste.map((b) => b.label).join(', ');
   // Das Ziel nur nennen, wenn es nicht schon dasteht — sonst liest man
   // dieselbe Adresse dreimal (Herkunft, Beschreibung, Knopf).
@@ -53,9 +57,12 @@
   {#if linkWeg}
     <p class="detail-linkweg" role="note">Der Link zu diesem Material war zuletzt nicht erreichbar.</p>
   {/if}
+  {#if melden?.hinweis}
+    <p class="detail-linkweg" role="note">{melden.hinweis}</p>
+  {/if}
 
   <div class="detail-aktionen">
-    {#if material.url && !linkWeg}
+    {#if oeffnenZeigen}
       <!-- Wohin es geht, steht klein darunter: Man verlässt den Materialpool
            (Christina, 09.10.2026). Derselbe Tab, kein target. -->
       <div class="oeffnen">
@@ -87,6 +94,38 @@
     {#if material.sprachen.length > 0}<dt>Sprache</dt><dd>{material.sprachen.map(spracheName).join(', ')}</dd>{/if}
     {#if material.schlagworte.length > 0}<dt>Schlagworte</dt><dd>{material.schlagworte.join(' · ')}</dd>{/if}
   </dl>
+
+  {#if melden?.gemeldetHier}
+    <p class="melden-dank" id="melden">Danke für deine Meldung! Die Redaktion sieht sie sich an.</p>
+  {:else if melden?.formular}
+    {@const f = melden.formular}
+    <!-- Aufklappen ohne JavaScript; nach einem Fehler steht es offen. Das
+         Fangfeld sehen Menschen nicht, Spam-Programme füllen es aus. -->
+    <details class="melden" id="melden" open={f.offen}>
+      <summary class="melden-auf">Stimmt etwas nicht? Melden</summary>
+      <form method="post" action={f.aktion}>
+        {#if f.fehler}<p class="melden-fehler" role="alert">{f.fehler}</p>{/if}
+        <fieldset>
+          <legend>Was stimmt nicht?</legend>
+          {#each f.gruende as g (g.key)}
+            <label class="melden-grund"><input type="radio" name="grund" value={g.key} checked={f.werte.grund === g.key} required /> {g.label}</label>
+          {/each}
+        </fieldset>
+        <label class="melden-feld" for="melden-begruendung">Kurze Begründung</label>
+        <p class="melden-klein" id="melden-hilfe">Bitte keine Namen, E-Mail-Adressen oder Telefonnummern.</p>
+        <textarea id="melden-begruendung" name="begruendung" rows="4" maxlength="1000" required aria-describedby="melden-hilfe">{f.werte.begruendung}</textarea>
+        <div class="melden-falle" aria-hidden="true">
+          <label>Webseite (bitte leer lassen) <input type="text" name="webseite" autocomplete="off" tabindex="-1" /></label>
+        </div>
+        <input type="hidden" name="stempel" value={f.stempel} />
+        <button class="melden-btn" type="submit">Meldung abschicken</button>
+        <p class="melden-klein">
+          Die Meldung geht an die Redaktion des Materialpools. Gespeichert werden Grund, Begründung und Zeitpunkt –
+          nicht, wer meldet. Ab zwei Meldungen wird das Material ausgeblendet, bis die Redaktion es geprüft hat.
+        </p>
+      </form>
+    </details>
+  {/if}
 
   <details class="entwickler">
     <summary>Entwickleransicht</summary>
@@ -197,6 +236,43 @@
   .detail-angaben dt { color: var(--text-muted); }
   .detail-angaben dd { margin: 0; color: var(--text-dark); overflow-wrap: anywhere; }
   .detail-angaben a { color: var(--blue); }
+
+  /* Melden (ADR-0011): zurückhaltend unter den Angaben, kein Knopf neben
+     „Material öffnen“ — es ist die Ausnahme, nicht der Weg. */
+  .melden { margin-top: var(--sp-8); padding-top: var(--sp-5); border-top: 1px solid var(--border); font-size: var(--fs-300); }
+  .melden-auf { cursor: pointer; color: var(--text-muted); }
+  .melden-auf:hover { color: var(--text-dark); }
+  .melden form { display: flex; flex-direction: column; align-items: flex-start; gap: var(--sp-3); margin-top: var(--sp-4); }
+  .melden fieldset { margin: 0; padding: 0; border: 0; display: flex; flex-direction: column; gap: var(--sp-2); }
+  .melden legend { margin-bottom: var(--sp-2); font-weight: 600; color: var(--text-dark); }
+  .melden-grund { display: flex; align-items: center; gap: var(--sp-2); color: var(--text-body); }
+  .melden-feld { font-weight: 600; color: var(--text-dark); }
+  .melden textarea {
+    width: 100%;
+    padding: var(--sp-3);
+    border: 1px solid var(--border);
+    border-radius: 5px;
+    font: inherit;
+    color: var(--text-dark);
+    background: var(--weiss);
+  }
+  .melden textarea:focus { border-color: var(--blue); outline: 2px solid var(--blue); outline-offset: 1px; }
+  .melden-klein { margin: 0; font-size: var(--fs-200); color: var(--text-muted); }
+  .melden-fehler { margin: 0; padding-left: var(--sp-3); border-left: 3px solid var(--blue); font-weight: 600; color: var(--text-dark); }
+  .melden-falle { position: absolute; left: -10000px; width: 1px; height: 1px; overflow: hidden; }
+  .melden-btn {
+    min-height: 44px;
+    padding: var(--sp-3) var(--sp-5);
+    border: 1px solid var(--border);
+    border-radius: 5px;
+    background: var(--weiss);
+    font: inherit;
+    font-weight: 600;
+    color: var(--text-dark);
+    cursor: pointer;
+  }
+  .melden-btn:hover { border-color: var(--blue); }
+  .melden-dank { margin-top: var(--sp-8); padding-top: var(--sp-5); border-top: 1px solid var(--border); font-size: var(--fs-300); color: var(--text-body); }
 
   .entwickler { margin-top: var(--sp-8); font-size: var(--fs-200); color: var(--text-muted); }
   .entwickler summary { cursor: pointer; }

@@ -67,6 +67,26 @@ describe('konfigLesen', () => {
     expect(() => konfigLesen({ RELAYS: 'wss://a/', VORSCHAUBILDER: 'ja' })).toThrow(/VORSCHAUBILDER/);
   });
 
+  it('Meldungen (ADR-0011): an mit Standardwerten, ohne Kennwort, abschaltbar', () => {
+    expect(konfigLesen({ RELAYS: 'wss://a/' }).meldungen).toEqual({ an: true, pfad: 'daten/meldungen.json', jeTag: 30, kennwort: '' });
+    expect(konfigLesen({ RELAYS: 'wss://a/', MELDUNGEN: 'aus' }).meldungen.an).toBe(false);
+    expect(konfigLesen({ RELAYS: 'wss://a/', REDAKTION_KENNWORT: ' geheim ' }).meldungen.kennwort).toBe('geheim');
+    expect(() => konfigLesen({ RELAYS: 'wss://a/', MELDUNGEN: 'ja' })).toThrow(/MELDUNGEN/);
+    expect(() => konfigLesen({ RELAYS: 'wss://a/', MELDUNGEN_JE_TAG: '0' })).toThrow(/MELDUNGEN_JE_TAG/);
+  });
+
+  it('E-Mail nur ins Protokoll, bis MAIL_VERSAND=an; dann brechen fehlende Angaben ab', () => {
+    expect(konfigLesen({ RELAYS: 'wss://a/' }).post).toEqual({ versand: false, an: '', von: '', host: '', port: 587, benutzer: '', kennwort: '' });
+    const voll = { RELAYS: 'wss://a/', MAIL_VERSAND: 'an', MAIL_AN: 'redaktion@example.org', MAIL_VON: 'materialpool@example.org', SMTP_HOST: 'smtp.example.org' };
+    expect(konfigLesen({ ...voll, SMTP_PORT: '465', SMTP_BENUTZER: 'mp', SMTP_KENNWORT: 'pw' }).post).toEqual({
+      versand: true, an: 'redaktion@example.org', von: 'materialpool@example.org', host: 'smtp.example.org', port: 465, benutzer: 'mp', kennwort: 'pw'
+    });
+    for (const fehlt of ['MAIL_AN', 'MAIL_VON', 'SMTP_HOST']) {
+      expect(() => konfigLesen({ ...voll, [fehlt]: '' })).toThrow(new RegExp(fehlt));
+    }
+    expect(() => konfigLesen({ RELAYS: 'wss://a/', MAIL_VERSAND: 'vielleicht' })).toThrow(/MAIL_VERSAND/);
+  });
+
   it('bricht bei unbrauchbarer Ganzzahl ab statt still auf den Standard zu fallen', () => {
     expect(() => konfigLesen({ RELAYS: 'wss://a/', SPIEGEL_LIMIT: 'viele' })).toThrow(/SPIEGEL_LIMIT/);
     expect(() => konfigLesen({ RELAYS: 'wss://a/', SPIEGEL_INTERVALL_S: '0' })).toThrow(/SPIEGEL_INTERVALL_S/);

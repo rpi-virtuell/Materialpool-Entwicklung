@@ -14,6 +14,9 @@ import IconSprite from '../src/lib/komponenten/IconSprite.svelte';
 import Karte from '../src/lib/komponenten/Karte.svelte';
 import Konto from '../src/lib/komponenten/Konto.svelte';
 import Merkliste from '../src/lib/komponenten/Merkliste.svelte';
+import Redaktion from '../src/lib/komponenten/Redaktion.svelte';
+import { standVon } from '../src/lib/models/meldung.js';
+import { meldenBilden, redaktionLaden, stempelAusstellen } from '../src/lib/routen/meldungen.js';
 import { karteMitMerken, merkSchluessel } from '../src/lib/routen/merkliste.js';
 import Kopfzeile from '../src/lib/komponenten/Kopfzeile.svelte';
 import { LEERES_KONTO } from '../src/lib/models/konto.js';
@@ -376,6 +379,32 @@ describe('Uebersicht (Liste)', () => {
     expect(body).toMatch(/<a href="\/ausgeblendet"[^>]*>Welches\?<\/a>/);
     expect(render(Uebersicht, { props: listeLaden({ inhalt, fehlschlag: null, relays }) }).body).not.toContain('ausgeblendet');
   });
+
+  it('sagt auch, wie viele nach Meldungen fehlen (ADR-0011)', () => {
+    const daten = listeLaden({ inhalt, fehlschlag: null, relays, verborgen: (m) => m.id === materialien[0].id || m.id === materialien[1].id });
+    const body = render(Uebersicht, { props: daten }).body;
+    expect(body).toContain('2 Materialien sind nach Meldungen ausgeblendet, bis die Redaktion sie geprüft hat.');
+    expect(body).toMatch(/<a href="\/ausgeblendet"[^>]*>Welche\?<\/a>/);
+    expect(body).not.toContain('weil sein Link');
+  });
+});
+
+describe('Ausgeblendet nach Meldungen (ADR-0011)', () => {
+  it('nennt Titel, Anbieter, Grund und ob die Redaktion schon entschieden hat', () => {
+    const m = materialien[6];
+    const fall = (/** @type {'vorlaeufig'|'bestaetigt'} */ stand) => ({
+      schluessel: merkSchluessel(m), titel: m.name, pfad: m.pfad, herkunft: m.herkunft,
+      stand: { stand, offen: 2, gruende: ['Lizenz falsch'], seit: '2026-10-20T08:00:00.000Z' }, meldungen: []
+    });
+    const body = render(Ausgeblendet, { props: { eintraege: [], gemeldet: [fall('vorlaeufig'), { ...fall('bestaetigt'), schluessel: 'b' }] } }).body;
+    expect(body).toContain('Nach Meldungen ausgeblendet</h2>');
+    expect(body).toContain(`href="${m.pfad}"`);
+    expect(body).toContain('Lizenz falsch');
+    expect(body).toContain('vorläufig, die Redaktion prüft');
+    expect(body).toContain('von der Redaktion ausgeblendet');
+    expect(body).toContain('20.10.2026');
+    expect(body).not.toContain('Zurzeit ist kein Material ausgeblendet.');
+  });
 });
 
 describe('Ausgeblendet (ADR-0010)', () => {
@@ -412,6 +441,57 @@ describe('Detail', () => {
     expect(body).toContain('Der Link zu diesem Material war zuletzt nicht erreichbar.');
     expect(body).not.toContain('Material öffnen');
   });
+  describe('Melden (ADR-0011)', () => {
+    const stempel = stempelAusstellen('geheim', Date.parse('2026-10-26T12:00:00Z'));
+    /** @param {Partial<Parameters<typeof meldenBilden>[0]>} teil */
+    const mitMelden = (teil = {}) => render(Detail, {
+      props: {
+        material: jericho, relays: [], cover: coverFarben(jericho), icon: 'notebook',
+        melden: meldenBilden({ material: jericho, stand: standVon([]), gemeldetHier: false, an: true, stempel, ...teil })
+      }
+    }).body;
+    /** @param {number} n @returns {import('../src/lib/models/meldung.js').Meldung[]} */
+    const offene = (n) => Array.from({ length: n }, (_, i) => ({
+      id: `m${i}`, material: merkSchluessel(jericho), titel: jericho.name, pfad: jericho.pfad, grund: 'lizenz', begruendung: 'x', zeit: '2026-10-26T12:00:00.000Z', status: 'offen'
+    }));
+
+    it('ein zugeklapptes Formular ohne JavaScript: Grund, Begründung, Fangfeld, Stempel', () => {
+      const body = mitMelden();
+      expect(body).toMatch(/<details class="melden[^"]*" id="melden"><summary[^>]*>Stimmt etwas nicht\? Melden<\/summary>/);
+      expect(body).toContain(`<form method="post" action="${jericho.pfad}?/melden"`);
+      expect(body.match(/type="radio" name="grund"/g)).toHaveLength(4);
+      expect(body).toContain('Lizenz falsch');
+      expect(body).toMatch(/<textarea[^>]*name="begruendung"[^>]*maxlength="1000"[^>]*required/);
+      expect(body).toMatch(/<div class="melden-falle[^"]*" aria-hidden="true">.*name="webseite"[^>]*tabindex="-1"/s);
+      expect(body).toContain(`name="stempel" value="${stempel}"`);
+      expect(body).toContain('Meldung abschicken');
+      expect(body).toContain('nicht, wer meldet');
+      expect(body).not.toContain('<script');
+    });
+    it('nach einem Fehler: aufgeklappt, mit Eingabe und Fehler', () => {
+      const body = mitMelden({ ruecklauf: { fehler: 'Bitte schreib kurz eine Begründung dazu.', werte: { grund: 'inhalt', begruendung: 'Text <b>' } } });
+      expect(body).toMatch(/<details class="melden[^"]*" id="melden" open/);
+      expect(body).toMatch(/role="alert"[^>]*>Bitte schreib kurz eine Begründung dazu\./);
+      expect(body).toMatch(/value="inhalt" checked/);
+      expect(body).toContain('Text &lt;b>');
+    });
+    it('eine Meldung: Hinweis, „Material öffnen“ bleibt', () => {
+      const body = mitMelden({ stand: standVon(offene(1)) });
+      expect(body).toMatch(/role="note"[^>]*>Zu diesem Material liegt eine Meldung vor\. Die Redaktion prüft sie\./);
+      expect(body).toContain('Material öffnen');
+    });
+    it('zwei Meldungen: Hinweis statt „Material öffnen“', () => {
+      const body = mitMelden({ stand: standVon(offene(2)) });
+      expect(body).toContain('ausgeblendet, bis die Redaktion es geprüft hat');
+      expect(body).not.toContain('Material öffnen');
+    });
+    it('schon aus diesem Browser gemeldet: Dank statt Formular', () => {
+      const body = mitMelden({ stand: standVon(offene(1)), gemeldetHier: true });
+      expect(body).toContain('Danke für deine Meldung');
+      expect(body).not.toContain('<form method="post" action="/m/');
+    });
+  });
+
   /** @param {Partial<{ zurueck: string }>} extra */
   const detail = (extra = {}) =>
     render(Detail, { props: { material: jericho, relays: ['wss://eins/'], cover: coverFarben(jericho), icon: 'notebook', ...extra } }).body;
@@ -474,5 +554,49 @@ describe('Detail', () => {
     expect(body).toContain('javascript:alert(1)');
     expect(body).not.toContain('href="javascript:');
     expect(body).not.toContain('rel="license"');
+  });
+});
+
+describe('Redaktion (ADR-0011)', () => {
+  const [a, b] = materialien;
+  /** @param {import('../src/lib/models/material.js').Material} m @param {Partial<import('../src/lib/models/meldung.js').Meldung>} teil @returns {import('../src/lib/models/meldung.js').Meldung} */
+  const meldung = (m, teil = {}) => ({
+    id: 'm1', material: merkSchluessel(m), titel: m.name, pfad: m.pfad, grund: 'inhalt', begruendung: 'Abwertend formuliert.', zeit: '2026-10-25T09:00:00.000Z', status: 'offen', ...teil
+  });
+
+  it('listet offene Meldungen mit Bestätigen und Verwerfen als POST-Formular', () => {
+    const daten = redaktionLaden({ inhalt, meldungen: [meldung(a), meldung(a, { id: 'm2', grund: 'lizenz' })] });
+    const body = render(Redaktion, { props: { ...daten, zugang: true, kennwortNoetig: true } }).body;
+    expect(body).toContain('Meldungen</h1>');
+    expect(body).toContain(`href="${a.pfad}"`);
+    expect(body).toContain('vorläufig ausgeblendet');
+    expect(body).toContain('Inhalt problematisch');
+    expect(body).toContain('Abwertend formuliert.');
+    expect(body).toContain('25.10.2026');
+    expect(body).toMatch(/<form[^>]* method="post" action="\?\/entscheiden"/);
+    expect(body).toContain(`name="material" value="${merkSchluessel(a)}"`);
+    expect(body).toMatch(/name="entscheidung" value="bestaetigen"[^>]*>Bestätigen und ausblenden/);
+    expect(body).toMatch(/name="entscheidung" value="verwerfen"[^>]*>Verwerfen/);
+    expect(body).not.toContain('Kennwort geschützt');
+    expect(body).not.toContain('<script');
+  });
+  it('bestätigte stehen darunter, mit „Wieder einblenden“', () => {
+    const daten = redaktionLaden({ inhalt, meldungen: [meldung(b, { status: 'bestaetigt', entschieden: '2026-10-26T10:00:00.000Z' })] });
+    const body = render(Redaktion, { props: { ...daten, zugang: true, kennwortNoetig: true } }).body;
+    expect(body).toContain('Zurzeit liegen keine offenen Meldungen vor.');
+    expect(body).toContain('Von der Redaktion ausgeblendet');
+    expect(body).toMatch(/name="entscheidung" value="einblenden"[^>]*>Wieder einblenden/);
+  });
+  it('ohne Kennwort: sagt, dass die Seite offen ist', () => {
+    const body = render(Redaktion, { props: { offen: [], ausgeblendet: [], zugang: true, kennwortNoetig: false } }).body;
+    expect(body).toContain('noch nicht durch ein Kennwort geschützt');
+  });
+  it('ohne Zugang: nur das Kennwortfeld, keine Meldung', () => {
+    const daten = redaktionLaden({ inhalt, meldungen: [meldung(a)] });
+    const body = render(Redaktion, { props: { ...daten, zugang: false, kennwortNoetig: true, fehler: 'Das Kennwort stimmt nicht.' } }).body;
+    expect(body).toMatch(/<form[^>]* method="post" action="\?\/anmelden"/);
+    expect(body).toMatch(/type="password" name="kennwort"/);
+    expect(body).toContain('Das Kennwort stimmt nicht.');
+    expect(body).not.toContain('Abwertend formuliert.');
   });
 });

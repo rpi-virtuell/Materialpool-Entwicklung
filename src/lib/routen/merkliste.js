@@ -27,8 +27,21 @@ const SCHLUESSEL = /^[0-9a-f]{12}$/;
  * @param {Pick<Material, 'pubkey'|'d'>} material
  */
 export function merkSchluessel(material) {
-  return createHash('sha256').update(`${material.pubkey}\n${material.d}`).digest('hex').slice(0, 12);
+  let key = schluesselSpeicher.get(material);
+  if (key === undefined) {
+    key = createHash('sha256').update(`${material.pubkey}\n${material.d}`).digest('hex').slice(0, 12);
+    schluesselSpeicher.set(material, key);
+  }
+  return key;
 }
+
+/**
+ * Je Material einmal gerechnet: Die Liste fragt bei jeder Anfrage für alle
+ * Materialien, ob sie gemeldet sind (ADR-0011), und die Materialien eines
+ * Spiegelstands bleiben dieselben Objekte (routen/bestand.js).
+ * @type {WeakMap<object, string>}
+ */
+const schluesselSpeicher = new WeakMap();
 
 /** @param {string|undefined} roh @returns {string[]} */
 export function merklisteLesen(roh) {

@@ -11,6 +11,10 @@
  * @property {{ an: boolean, pfad: string, intervallS: number, taktS: number, jeTakt: number }} linkpruefung
  *   Link-Prüfung (ADR-0010): JSON-Datei, Abstand je Link, Takt und Links je Takt
  * @property {boolean} vorschaubilder       Bilder fremder Server zeigen; aus, bis VORSCHAUBILDER=an
+ * @property {{ an: boolean, pfad: string, jeTag: number, kennwort: string }} meldungen
+ *   Meldefunktion (ADR-0011): JSON-Datei, Höchstzahl je 24 Stunden, Kennwort der Redaktionsseite (leer = offen)
+ * @property {{ versand: boolean, an: string, von: string, host: string, port: number, benutzer: string, kennwort: string }} post
+ *   E-Mail an die Redaktion; ohne `versand` nur ins Protokoll
  */
 
 const HEX64 = /^[0-9a-f]{64}$/;
@@ -40,6 +44,19 @@ function positiveGanzzahl(roh, standard, name) {
 export function relayAdresseErlaubt(adresse) {
   if (adresse.startsWith('wss://')) return true;
   return /^ws:\/\/(127\.0\.0\.1|localhost|\[::1\])(:\d+)?(\/|$)/.test(adresse);
+}
+
+/**
+ * Schalter "an" oder "aus", leer heißt: Standard. Anderes bricht ab.
+ * @param {string|undefined} roh @param {string} name
+ * @returns {''|'an'|'aus'}
+ */
+function anAus(roh, name) {
+  const wert = (roh ?? '').trim().toLowerCase();
+  if (wert !== '' && wert !== 'an' && wert !== 'aus') {
+    throw new Error(`${name} muss "an" oder "aus" sein, ist aber "${roh}".`);
+  }
+  return wert;
 }
 
 /**
@@ -98,17 +115,35 @@ export function konfigLesen(quelle) {
     throw new Error(`QUELLE_FAECHER: keine URI: ${keineUri.join(', ')}`);
   }
 
-  const schalter = (quelle.LINKPRUEFUNG ?? '').trim().toLowerCase();
-  if (!['', 'an', 'aus'].includes(schalter)) {
-    throw new Error(`LINKPRUEFUNG muss "an" oder "aus" sein, ist aber "${quelle.LINKPRUEFUNG}".`);
-  }
+  const schalter = anAus(quelle.LINKPRUEFUNG, 'LINKPRUEFUNG');
+  const bilder = anAus(quelle.VORSCHAUBILDER, 'VORSCHAUBILDER');
 
-  const bilder = (quelle.VORSCHAUBILDER ?? '').trim().toLowerCase();
-  if (!['', 'an', 'aus'].includes(bilder)) {
-    throw new Error(`VORSCHAUBILDER muss "an" oder "aus" sein, ist aber "${quelle.VORSCHAUBILDER}".`);
+  // E-Mails an die Redaktion (ADR-0011): ohne MAIL_VERSAND=an nur ins
+  // Protokoll. Ist der Versand an, muss alles da sein — sonst gingen
+  // Meldungen still verloren.
+  const post = {
+    versand: anAus(quelle.MAIL_VERSAND, 'MAIL_VERSAND') === 'an',
+    an: (quelle.MAIL_AN ?? '').trim(),
+    von: (quelle.MAIL_VON ?? '').trim(),
+    host: (quelle.SMTP_HOST ?? '').trim(),
+    port: positiveGanzzahl(quelle.SMTP_PORT, 587, 'SMTP_PORT'),
+    benutzer: (quelle.SMTP_BENUTZER ?? '').trim(),
+    kennwort: (quelle.SMTP_KENNWORT ?? '').trim()
+  };
+  if (post.versand) {
+    const fehlt = Object.entries({ MAIL_AN: post.an, MAIL_VON: post.von, SMTP_HOST: post.host }).filter(([, wert]) => wert === '').map(([name]) => name);
+    if (fehlt.length > 0) throw new Error(`MAIL_VERSAND=an, aber es fehlt: ${fehlt.join(', ')} (siehe .env.example).`);
   }
 
   return {
+    meldungen: {
+      an: anAus(quelle.MELDUNGEN, 'MELDUNGEN') !== 'aus',
+      pfad: (quelle.MELDUNGEN_PFAD ?? '').trim() || 'daten/meldungen.json',
+      jeTag: positiveGanzzahl(quelle.MELDUNGEN_JE_TAG, 30, 'MELDUNGEN_JE_TAG'),
+      // Leer: Die Redaktionsseite ist vorerst offen (ADR-0011).
+      kennwort: (quelle.REDAKTION_KENNWORT ?? '').trim()
+    },
+    post,
     relays,
     autoren,
     faecher,

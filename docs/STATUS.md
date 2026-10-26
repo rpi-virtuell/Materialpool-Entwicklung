@@ -8,6 +8,40 @@ das Gesamtbild in `superpowers/specs/2026-09-28-materialpool-neustart-design.md`
 
 ---
 
+## 2026-10-26 — Meldefunktion (ADR-0011)
+
+**Passiert:** Christina hat den Ablauf entschieden, er steht als ADR-0011
+fest. Auf jeder Detailseite steht unter den Angaben „Stimmt etwas nicht?
+Melden“: Grund (Lizenz falsch, Inhalt problematisch, Link oder Angaben
+falsch, Sonstiges) und kurze Begründung, ohne Kontaktdaten. Eine Meldung
+setzt einen Hinweis aufs Material, ab zwei offenen ist es vorläufig
+ausgeblendet (Liste, Suche, Startseite; Zahl unter der Liste, Abschnitt auf
+`/ausgeblendet`, kein „Material öffnen“). `/redaktion` zeigt die
+Meldungen: „Bestätigen und ausblenden“, „Verwerfen“ (löscht die
+Meldungen), „Wieder einblenden“. Ohne `REDAKTION_KENNWORT` ist die Seite
+vorerst offen und sagt das. Schutz gegen Spam ohne JavaScript: Fangfeld,
+signierter Zeitstempel (unter drei Sekunden zählt nicht), höchstens 30
+Meldungen in 24 Stunden. Derselbe Browser zählt nur einmal (Cookie
+`gemeldet`). Die E-Mail an die Redaktion steht ohne `MAIL_VERSAND=an` im
+Protokoll des Servers, mit `an` geht sie per SMTP (`nodemailer`, neu).
+NIP-56 (`kind:1984`) geprüft und verworfen: Meldungen dort sind
+öffentlich und nicht zurückzunehmen, kennen keine falsche Lizenz, und der
+Materialpool hat keinen eigenen Schlüssel.
+
+**Wo steht das Projekt:** `pnpm check` 0 Fehler, 350 Tests grün. Im
+Dev-Server durchgespielt: melden → Hinweis und E-Mail im Protokoll; zweite
+Meldung ohne Cookie → ausgeblendet; bestätigen → ausgeblendet mit Grund;
+wieder einblenden → wie vorher. Fehler im Formular kommt aufgeklappt
+zurück, Fangfeld speichert nichts; bei 375 px nichts seitlich zu breit.
+
+**Nächster Schritt:** Für live braucht Jörg in der Server-`.env`:
+`REDAKTION_KENNWORT`, dann `MAIL_VERSAND=an` mit `MAIL_AN`, `MAIL_VON`,
+`SMTP_*` (`docs/betrieb.md`). Bis dahin muss jemand selbst nach
+`/redaktion` schauen. Ein freiwilliges Kontaktfeld erst nach Zustimmung
+der Datenschutzstelle.
+
+---
+
 ## 2026-10-09 (7) — Suche findet live wieder etwas
 
 **Passiert:** Live fand die Suche gar nichts, auch nicht „Ostern“. Der

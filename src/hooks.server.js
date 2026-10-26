@@ -12,6 +12,8 @@ import { vorschaubilderErlauben } from '$lib/models/material.js';
 import { materialienVon } from '$lib/routen/bestand.js';
 import { antwortKoepfe } from '$lib/routen/koepfe.js';
 import { linkpruefungStarten } from '$lib/services/linkpruefung.js';
+import { meldungenStarten } from '$lib/services/meldungen.js';
+import { postEinstellen } from '$lib/services/post.js';
 import { spiegelBereit, spiegelHolen, spiegelStarten } from '$lib/services/spiegel.js';
 
 /** @type {import('@sveltejs/kit').ServerInit} */
@@ -24,6 +26,10 @@ export async function init() {
   // Link-Prüfung (ADR-0010) im Hintergrund, je Takt mit den Links des aktuellen Spiegelstands.
   const urlsHolen = () => materialienVon(spiegelHolen().lesen()).flatMap((m) => (m.url ? [m.url] : []));
   await linkpruefungStarten(konfig.linkpruefung, urlsHolen);
+  // Meldungen (ADR-0011): Stand von der Platte, E-Mail an die Redaktion
+  // nur mit MAIL_VERSAND=an, sonst ins Protokoll.
+  await meldungenStarten(konfig.meldungen);
+  postEinstellen(konfig.post);
 }
 
 /** Sicherheitsrichtlinie und Cache-Regeln auf jeder Antwort (routen/koepfe.js). @type {import('@sveltejs/kit').Handle} */
