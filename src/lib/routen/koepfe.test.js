@@ -17,6 +17,9 @@ describe('antwortKoepfe', () => {
     expect(mit({ konto: '{"name":"Christina"}' })['cache-control']).toBe('private, no-store');
     expect(mit({ primaryColor: '#c1272d' })['cache-control']).toBe('private, no-store');
     expect(mit({ merkliste: '["aaaaaaaaaaaa"]' })['cache-control']).toBe('private, no-store');
+    // Meldungen (ADR-0011): „Danke für deine Meldung“ und die Redaktion
+    expect(mit({ gemeldet: '["aaaaaaaaaaaa"]' })['cache-control']).toBe('private, no-store');
+    expect(mit({ redaktion: 'marke' })['cache-control']).toBe('private, no-store');
     expect(mit({})).not.toHaveProperty('cache-control');
     expect(antwortKoepfe().vary).toBe('Cookie');
   });

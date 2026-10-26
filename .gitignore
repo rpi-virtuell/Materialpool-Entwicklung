@@ -10,5 +10,7 @@ daten/spiegel-mock.json
 daten/spiegel-mock.json.tmp
 daten/linkpruefung.json
 daten/linkpruefung.json.tmp
+daten/meldungen.json
+daten/meldungen.json.tmp
 .claude/worktrees/
 .claude/launch.json

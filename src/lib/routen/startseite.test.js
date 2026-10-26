@@ -62,6 +62,12 @@ describe('startseiteLaden', () => {
     expect(b.empfehlung?.id).not.toBe(a.empfehlung?.id);
   });
 
+  it('empfiehlt kein ausgeblendetes gemeldetes Material (ADR-0011)', () => {
+    const a = startseiteLaden({ inhalt, fehlschlag: null, relays, heute: september });
+    const b = startseiteLaden({ inhalt, fehlschlag: null, relays, heute: september, verborgen: (m) => m.id === a.empfehlung?.id });
+    expect(b.empfehlung?.id).not.toBe(a.empfehlung?.id);
+  });
+
   it('ohne Saisontreffer: irgendein Material mit Bild', () => {
     const { empfehlung } = startseiteLaden({ inhalt, fehlschlag: null, relays, heute: juli });
     expect(empfehlung?.bild).toMatch(/^https?:/);

@@ -2,11 +2,16 @@
   /**
    * „Ausgeblendete Materialien“ (ADR-0010): was die Link-Prüfung aus Liste,
    * Suche und Startseite genommen hat — mit totem Link, Antwort des Servers
-   * und Datum, damit jemand bei den Anbietern nachfragen kann. Erreichbar
-   * über den Hinweis unter der Liste, nicht über die Kopfzeile.
-   * @type {{ eintraege: ReturnType<typeof import('$lib/routen/ausgeblendet.js').ausgeblendeteLaden>['eintraege'] }}
+   * und Datum, damit jemand bei den Anbietern nachfragen kann. Darunter,
+   * was nach Meldungen fehlt (ADR-0011), mit Grund, aber ohne den Text der
+   * Meldung. Erreichbar über den Hinweis unter der Liste, nicht über die
+   * Kopfzeile.
+   * @type {{
+   *   eintraege: ReturnType<typeof import('$lib/routen/ausgeblendet.js').ausgeblendeteLaden>['eintraege'],
+   *   gemeldet?: import('$lib/routen/meldungen.js').Fall[]
+   * }}
    */
-  let { eintraege } = $props();
+  let { eintraege, gemeldet = [] } = $props();
   const datum = (/** @type {string} */ iso) => new Date(iso).toLocaleDateString('de-DE', { dateStyle: 'medium', timeZone: 'Europe/Berlin' });
 </script>
 
@@ -19,9 +24,10 @@
       genommen. Funktioniert der Link wieder, erscheint es von selbst wieder.
     </p>
 
-    {#if eintraege.length === 0}
+    {#if eintraege.length === 0 && gemeldet.length === 0}
       <p class="ausgeblendet-leer">Zurzeit ist kein Material ausgeblendet.</p>
-    {:else}
+    {/if}
+    {#if eintraege.length > 0}
       <p class="ausgeblendet-zahl">{eintraege.length === 1 ? '1 Material' : `${eintraege.length} Materialien, zuletzt ausgeblendete zuerst`}</p>
       <ul class="ausgeblendet-liste">
         {#each eintraege as e (e.material.id)}
@@ -38,12 +44,34 @@
         {/each}
       </ul>
     {/if}
+
+    {#if gemeldet.length > 0}
+      <h2>Nach Meldungen ausgeblendet</h2>
+      <p class="ausgeblendet-lead">
+        Bei jedem Material kann man melden, dass etwas nicht stimmt. Ab zwei Meldungen ist es ausgeblendet, bis die
+        Redaktion entschieden hat; bestätigt sie die Meldung, bleibt es ausgeblendet.
+      </p>
+      <ul class="ausgeblendet-liste">
+        {#each gemeldet as f (f.schluessel)}
+          <li>
+            <a class="ausgeblendet-titel" href={f.pfad}>{f.titel}</a>
+            {#if f.herkunft}<p class="ausgeblendet-von">{f.herkunft}</p>{/if}
+            <p class="ausgeblendet-stand">
+              {f.stand.gruende.join(', ')} ·
+              {f.stand.stand === 'bestaetigt' ? 'von der Redaktion ausgeblendet' : 'vorläufig, die Redaktion prüft'}
+              {#if f.stand.seit}· seit {datum(f.stand.seit)}{/if}
+            </p>
+          </li>
+        {/each}
+      </ul>
+    {/if}
   </div>
 </main>
 
 <style>
   .ausgeblendet-inner { max-width: 760px; margin: 0 auto; padding: var(--sp-8) var(--gutter) var(--sp-15); }
   h1 { font-size: var(--fs-700); margin-bottom: var(--sp-3); }
+  h2 { font-size: var(--fs-500); margin: var(--sp-10) 0 var(--sp-3); }
   .ausgeblendet-lead { color: var(--text-body); line-height: 1.6; margin-bottom: var(--sp-6); }
   .ausgeblendet-leer { font-weight: 600; color: var(--text-dark); }
   .ausgeblendet-zahl { font-size: var(--fs-200); color: var(--text-muted); margin-bottom: var(--sp-3); }

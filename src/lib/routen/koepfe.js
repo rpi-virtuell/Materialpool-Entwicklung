@@ -4,6 +4,7 @@
  */
 import { CI_PARAMETER } from './farbschalter.js';
 import { KONTO_COOKIE } from './konto.js';
+import { GEMELDET_COOKIE, REDAKTION_COOKIE } from './meldungen.js';
 import { MERKLISTE_COOKIE } from './merkliste.js';
 
 /**
@@ -26,9 +27,10 @@ export const SICHERHEITSRICHTLINIE = [
 ].join('; ');
 
 /**
- * Mit Konto-, Farb- oder Merklisten-Cookie ist die Seite persönlich
- * (Begrüßung, Profil, Farbe, Gemerktes): Kein gemeinsamer Cache darf sie
- * speichern und anderen zeigen.
+ * Mit Konto-, Farb-, Merklisten- oder Melde-Cookie ist die Seite
+ * persönlich (Begrüßung, Profil, Farbe, Gemerktes, „Danke für deine
+ * Meldung“, Redaktion): Kein gemeinsamer Cache darf sie speichern und
+ * anderen zeigen.
  * `Vary: Cookie` sagt dasselbe jedem Cache, der den Cookie nicht kennt.
  * @param {{ entwicklung?: boolean, cookie?: (name: string) => string|undefined }} [lage]
  *   `entwicklung`: im Dev-Server braucht Vite eigene Skripte
@@ -38,6 +40,7 @@ export function antwortKoepfe(lage = {}) {
   /** @type {Record<string, string>} */
   const koepfe = { vary: 'Cookie' };
   if (!lage.entwicklung) koepfe['content-security-policy'] = SICHERHEITSRICHTLINIE;
-  if ([KONTO_COOKIE, CI_PARAMETER, MERKLISTE_COOKIE].some((name) => lage.cookie?.(name))) koepfe['cache-control'] = 'private, no-store';
+  const persoenlich = [KONTO_COOKIE, CI_PARAMETER, MERKLISTE_COOKIE, GEMELDET_COOKIE, REDAKTION_COOKIE];
+  if (persoenlich.some((name) => lage.cookie?.(name))) koepfe['cache-control'] = 'private, no-store';
   return koepfe;
 }

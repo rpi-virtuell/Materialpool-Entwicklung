@@ -158,15 +158,16 @@ export function filterLesen(params) {
  * Grundmenge einer Liste: bei Suchtext die Relay-Treffer (relevanzsortiert,
  * ADR-0005); ohne Suchtext oder wenn kein Relay antwortete, der Spiegel
  * mit Wortsuche — dann mit Hinweis, nie stumm.
- * Materialien mit totem Link (`weg`, ADR-0010) fallen hier heraus.
+ * Ausgeblendete Materialien (`weg`: toter Link, ADR-0010, oder gemeldet,
+ * ADR-0011) fallen hier heraus.
  * @param {Inhalt} inhalt
  * @param {Filter} filter
  * @param {Suchergebnis|null} suche
- * @param {(url: string|null) => boolean} [weg]
+ * @param {(m: Material) => boolean} [weg]
  * @returns {{ materialien: Material[], textGefiltert: boolean, quelle: 'relay'|'spiegel', hinweis: string|null }}
  */
 export function grundmengeBilden(inhalt, filter, suche, weg = () => false) {
-  const sichtbar = (/** @type {Material[]} */ liste) => liste.filter((m) => !weg(m.url));
+  const sichtbar = (/** @type {Material[]} */ liste) => liste.filter((m) => !weg(m));
   if (!filter.q) return { materialien: sichtbar(materialienVon(inhalt)), textGefiltert: false, quelle: 'spiegel', hinweis: null };
   if (suche && suche.grund === null && suche.events.length > 0) {
     return { materialien: sichtbar(suche.events.map((e) => materialImBestand(inhalt, e))), textGefiltert: true, quelle: 'relay', hinweis: null };
@@ -378,13 +379,16 @@ export function seitenBilden(treffer, filter) {
  */
 
 /**
- * @param {{ inhalt: Inhalt, fehlschlag: Fehlschlag|null, relays: string[], filter?: Filter, suche?: Suchergebnis|null, frage?: FrageHinweis|null, profilHinweis?: string|null, merkKeys?: string[], weg?: (url: string|null) => boolean }} eingabe
- *   `weg`: Link-Prüfung (ADR-0010) — solche Materialien fehlen, `ausgeblendet` zählt sie
+ * @param {{ inhalt: Inhalt, fehlschlag: Fehlschlag|null, relays: string[], filter?: Filter, suche?: Suchergebnis|null, frage?: FrageHinweis|null, profilHinweis?: string|null, merkKeys?: string[], weg?: (url: string|null) => boolean, verborgen?: (m: Material) => boolean }} eingabe
+ *   `weg`: Link-Prüfung (ADR-0010) — solche Materialien fehlen, `ausgeblendet` zählt sie;
+ *   `verborgen`: nach Meldungen ausgeblendet (ADR-0011) — fehlen ebenso, `gemeldet` zählt sie
  */
-export function listeLaden({ inhalt, fehlschlag, relays, filter = leererFilter(), suche = null, frage = null, profilHinweis = null, merkKeys = [], weg = () => false }) {
-  const grundmenge = grundmengeBilden(inhalt, filter, suche, weg);
+export function listeLaden({ inhalt, fehlschlag, relays, filter = leererFilter(), suche = null, frage = null, profilHinweis = null, merkKeys = [], weg = () => false, verborgen = () => false }) {
+  const grundmenge = grundmengeBilden(inhalt, filter, suche, (m) => weg(m.url) || verborgen(m));
   const alle = materialienVon(inhalt);
-  const sichtbar = alle.filter((m) => !weg(m.url)).length;
+  const linkWeg = alle.filter((m) => weg(m.url));
+  const gemeldet = alle.filter((m) => !weg(m.url) && verborgen(m)).length;
+  const sichtbar = alle.length - linkWeg.length - gemeldet;
   // Relay-Treffer sind schon textgefiltert; die Facetten greifen darauf.
   const facettenFilter = grundmenge.textGefiltert ? { ...filter, q: '' } : filter;
   const gefiltert = filterAnwenden(grundmenge.materialien, facettenFilter);
@@ -409,7 +413,8 @@ export function listeLaden({ inhalt, fehlschlag, relays, filter = leererFilter()
       pfad: listenPfad({ ...filter, sortierung: s.key, seite: 1 })
     })),
     gesamt: sichtbar,
-    ausgeblendet: alle.length - sichtbar,
+    ausgeblendet: linkWeg.length,
+    gemeldet,
     suche: { quelle: grundmenge.quelle, hinweis: grundmenge.hinweis },
     frage,
     profilHinweis,

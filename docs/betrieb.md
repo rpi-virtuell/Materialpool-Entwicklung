@@ -54,6 +54,24 @@ Adresse auf den Server umziehen, auf dem `community-hub.rpi-virtuell.net`
   schreibt aber keinen Stand (Warnung im Log) und startet nach jedem
   Neustart leer.
 
+## Meldungen und E-Mail an die Redaktion (ADR-0011)
+
+- Meldungen liegen in `daten/meldungen.json` (`MELDUNGEN_PFAD`), im
+  selben Volume wie der Spiegel. Ohne Schreibrecht gehen sie nach einem
+  Neustart verloren (Warnung im Log).
+- **`REDAKTION_KENNWORT` setzen**, bevor die Seite wirklich öffentlich
+  wird. Leer ist `/redaktion` offen — so gewollt für den Prototyp, aber
+  dann kann jede Person mit der Adresse Meldungen bestätigen oder
+  verwerfen.
+- **E-Mail:** Ohne `MAIL_VERSAND=an` steht jede Meldung als E-Mail-Text
+  im Protokoll des Containers (`docker compose logs`, Zeilen ab „E-Mail an
+  die Redaktion“). Für den echten Versand in der Server-`.env`:
+  `MAIL_VERSAND=an`, `MAIL_AN` (Postfach der Redaktion), `MAIL_VON`
+  (Absender, den der SMTP-Server erlaubt), `SMTP_HOST`, `SMTP_PORT`
+  (587 STARTTLS oder 465), `SMTP_BENUTZER`, `SMTP_KENNWORT`. Fehlt eine
+  der drei Pflichtangaben, bricht der Start ab. Scheitert ein Versand,
+  steht die E-Mail mit dem Fehler im Protokoll.
+
 ## Lokal wie auf dem Server
 
 ```
